@@ -17,11 +17,23 @@ tokens = (
     'CALL', 'RETURN', 'INT', 'CHAR', 'FLOAT',
     'BOOL','NOTEQ', 'LTHANEQ', 'MTHANEQ', 'EQ',
     'CTEF', 'CTEE', 'CTEBOOL', 'CTECHAR', 'ID',
+    'CANCION','WHILE','PLAY'
     )
 
-literals = ['(',')',',',':',';', '{','}','*','/','',',',';','>','<']
+literals = ['(',')',',',':',';', '{','}','*','/','',',',';','>','<','=','+']
 
 # Tokens
+def t_PLAY(t):
+    r'PLAY'
+    return t
+
+def t_WHILE(t):
+    r'WHILE'
+    return t
+
+def t_CANCION(t):
+    r'CANCION'
+    return t
 
 def t_VAR(t):
     r'VAR'
@@ -38,7 +50,6 @@ def t_NEW(t):
 def t_LIST(t):
     r'LIST'
     return t
-
 
 def t_IF(t):
     r'IF'
@@ -136,6 +147,7 @@ def t_CTEF(t):
     r'[0-9]+([eE]([+]|[-])?|[.][0-9]+[eE]([+]|[-])?|[.])[0-9]+'
     t.value = float(t.value)
     return t
+
 def t_CTEE(t):
     r'[0-9]+'
     t.value = int(t.value)
@@ -243,7 +255,7 @@ def p_bloque(p):
     pass
 
 def p_cancion(p):
-    'cancion : "(" CTEE ")" bloque'
+    'cancion : CANCION "(" CTEE ")" f bloque'
     pass
 
 def p_estatuto(p):
@@ -392,11 +404,11 @@ def p_removelist(p):
     pass
 
 def p_while(p):
-    'while : "(" expresion ")" bloque ";"'
+    'while : WHILE "(" expresion ")" bloque ";"'
     pass
 
 def p_play(p):
-    'play : "(" NOTA "," CTEE ")" ";"'
+    'play : PLAY "(" NOTA "," CTEE ")" ";"'
     pass
 
 def p_print(p):

@@ -30,7 +30,7 @@ Rule 24    i -> estatuto j
 Rule 25    j -> empty
 Rule 26    j -> i
 Rule 27    bloque -> { i }
-Rule 28    cancion -> ( CTEE ) bloque
+Rule 28    cancion -> CANCION ( CTEE ) f bloque
 Rule 29    estatuto -> asignacion
 Rule 30    estatuto -> if
 Rule 31    estatuto -> for
@@ -92,8 +92,8 @@ Rule 86    append -> APPEND ( expresion )
 Rule 87    length -> LENGTH ( )
 Rule 88    getlist -> GET ( expresion )
 Rule 89    removelist -> REMOVE ( expresion )
-Rule 90    while -> ( expresion ) bloque ;
-Rule 91    play -> ( NOTA , CTEE ) ;
+Rule 90    while -> WHILE ( expresion ) bloque ;
+Rule 91    play -> PLAY ( NOTA , CTEE ) ;
 Rule 92    print -> PRINT expresion ;
 Rule 93    callfunc -> CALL ID ( s ) ;
 Rule 94    s -> empty
@@ -129,6 +129,7 @@ AND                  : 53
 APPEND               : 86
 BOOL                 : 105
 CALL                 : 93
+CANCION              : 28
 CHAR                 : 103
 CTEBOOL              : 74
 CTECHAR              : 76
@@ -152,11 +153,13 @@ NOT                  : 46
 NOTA                 : 91
 NOTEQ                : 58
 OR                   : 54
+PLAY                 : 91
 PRINT                : 92
 REMOVE               : 89
 RETURN               : 98
 SET                  : 85
 VAR                  : 10
+WHILE                : 90
 error                : 
 {                    : 27
 }                    : 27
@@ -178,7 +181,7 @@ empty                : 2 4 6 8 12 15 17 19 21 23 25 41 45 48 52 56 64 69 77 94 9
 estatuto             : 24
 exp                  : 51
 expresion            : 37 40 43 67 85 86 88 89 90 92 95 98
-f                    : 14 18
+f                    : 14 18 28
 factor               : 47
 for                  : 31
 funcion              : 7
@@ -232,7 +235,7 @@ state 0
     (10) vars -> . VAR v : tipo ;
 
     FUNC            reduce using rule 106 (empty -> .)
-    (               reduce using rule 106 (empty -> .)
+    CANCION         reduce using rule 106 (empty -> .)
     VAR             shift and go to state 4
 
     a                              shift and go to state 1
@@ -248,7 +251,7 @@ state 1
     (106) empty -> .
     (14) funcion -> . FUNC tipo ID ( params ) f bloque
 
-    (               reduce using rule 106 (empty -> .)
+    CANCION         reduce using rule 106 (empty -> .)
     FUNC            shift and go to state 7
 
     c                              shift and go to state 6
@@ -266,7 +269,7 @@ state 2
     (10) vars -> . VAR v : tipo ;
 
     FUNC            reduce using rule 106 (empty -> .)
-    (               reduce using rule 106 (empty -> .)
+    CANCION         reduce using rule 106 (empty -> .)
     VAR             shift and go to state 4
 
     a                              shift and go to state 10
@@ -294,15 +297,15 @@ state 5
     (2) a -> empty .
 
     FUNC            reduce using rule 2 (a -> empty .)
-    (               reduce using rule 2 (a -> empty .)
+    CANCION         reduce using rule 2 (a -> empty .)
 
 
 state 6
 
     (1) programa -> a c . cancion
-    (28) cancion -> . ( CTEE ) bloque
+    (28) cancion -> . CANCION ( CTEE ) f bloque
 
-    (               shift and go to state 15
+    CANCION         shift and go to state 15
 
     cancion                        shift and go to state 16
 
@@ -328,7 +331,7 @@ state 8
 
     (6) c -> empty .
 
-    (               reduce using rule 6 (c -> empty .)
+    CANCION         reduce using rule 6 (c -> empty .)
 
 
 state 9
@@ -341,7 +344,7 @@ state 9
     (7) c -> . funcion d
     (14) funcion -> . FUNC tipo ID ( params ) f bloque
 
-    (               reduce using rule 106 (empty -> .)
+    CANCION         reduce using rule 106 (empty -> .)
     FUNC            shift and go to state 7
 
     c                              shift and go to state 21
@@ -354,7 +357,7 @@ state 10
     (5) b -> a .
 
     FUNC            reduce using rule 5 (b -> a .)
-    (               reduce using rule 5 (b -> a .)
+    CANCION         reduce using rule 5 (b -> a .)
 
 
 state 11
@@ -362,7 +365,7 @@ state 11
     (3) a -> vars b .
 
     FUNC            reduce using rule 3 (a -> vars b .)
-    (               reduce using rule 3 (a -> vars b .)
+    CANCION         reduce using rule 3 (a -> vars b .)
 
 
 state 12
@@ -371,12 +374,12 @@ state 12
     (2) a -> empty .
 
   ! reduce/reduce conflict for FUNC resolved using rule 2 (a -> empty .)
-  ! reduce/reduce conflict for ( resolved using rule 2 (a -> empty .)
+  ! reduce/reduce conflict for CANCION resolved using rule 2 (a -> empty .)
     FUNC            reduce using rule 2 (a -> empty .)
-    (               reduce using rule 2 (a -> empty .)
+    CANCION         reduce using rule 2 (a -> empty .)
 
   ! FUNC            [ reduce using rule 4 (b -> empty .) ]
-  ! (               [ reduce using rule 4 (b -> empty .) ]
+  ! CANCION         [ reduce using rule 4 (b -> empty .) ]
 
 
 state 13
@@ -401,9 +404,9 @@ state 14
 
 state 15
 
-    (28) cancion -> ( . CTEE ) bloque
+    (28) cancion -> CANCION . ( CTEE ) f bloque
 
-    CTEE            shift and go to state 28
+    (               shift and go to state 28
 
 
 state 16
@@ -459,14 +462,14 @@ state 21
 
     (9) d -> c .
 
-    (               reduce using rule 9 (d -> c .)
+    CANCION         reduce using rule 9 (d -> c .)
 
 
 state 22
 
     (7) c -> funcion d .
 
-    (               reduce using rule 7 (c -> funcion d .)
+    CANCION         reduce using rule 7 (c -> funcion d .)
 
 
 state 23
@@ -474,10 +477,10 @@ state 23
     (8) d -> empty .
     (6) c -> empty .
 
-  ! reduce/reduce conflict for ( resolved using rule 6 (c -> empty .)
-    (               reduce using rule 6 (c -> empty .)
+  ! reduce/reduce conflict for CANCION resolved using rule 6 (c -> empty .)
+    CANCION         reduce using rule 6 (c -> empty .)
 
-  ! (               [ reduce using rule 8 (d -> empty .) ]
+  ! CANCION         [ reduce using rule 8 (d -> empty .) ]
 
 
 state 24
@@ -523,9 +526,9 @@ state 27
 
 state 28
 
-    (28) cancion -> ( CTEE . ) bloque
+    (28) cancion -> CANCION ( . CTEE ) f bloque
 
-    )               shift and go to state 37
+    CTEE            shift and go to state 37
 
 
 state 29
@@ -591,12 +594,10 @@ state 36
 
 state 37
 
-    (28) cancion -> ( CTEE ) . bloque
-    (27) bloque -> . { i }
+    (28) cancion -> CANCION ( CTEE . ) f bloque
 
-    {               shift and go to state 41
+    )               shift and go to state 40
 
-    bloque                         shift and go to state 40
 
 state 38
 
@@ -615,10 +616,10 @@ state 38
     BOOL            reduce using rule 106 (empty -> .)
     LIST            shift and go to state 18
 
-    tipo                           shift and go to state 42
-    params                         shift and go to state 43
+    tipo                           shift and go to state 41
+    params                         shift and go to state 42
     u                              shift and go to state 19
-    empty                          shift and go to state 44
+    empty                          shift and go to state 43
 
 state 39
 
@@ -626,18 +627,139 @@ state 39
 
     VAR             reduce using rule 10 (vars -> VAR v : tipo ; .)
     FUNC            reduce using rule 10 (vars -> VAR v : tipo ; .)
-    (               reduce using rule 10 (vars -> VAR v : tipo ; .)
+    CANCION         reduce using rule 10 (vars -> VAR v : tipo ; .)
     {               reduce using rule 10 (vars -> VAR v : tipo ; .)
 
 
 state 40
 
-    (28) cancion -> ( CTEE ) bloque .
+    (28) cancion -> CANCION ( CTEE ) . f bloque
+    (15) f -> . empty
+    (16) f -> . vars g
+    (106) empty -> .
+    (10) vars -> . VAR v : tipo ;
 
-    $end            reduce using rule 28 (cancion -> ( CTEE ) bloque .)
+    {               reduce using rule 106 (empty -> .)
+    VAR             shift and go to state 4
 
+    vars                           shift and go to state 44
+    f                              shift and go to state 45
+    empty                          shift and go to state 46
 
 state 41
+
+    (20) params -> tipo . ID h
+
+    ID              shift and go to state 47
+
+
+state 42
+
+    (14) funcion -> FUNC tipo ID ( params . ) f bloque
+
+    )               shift and go to state 48
+
+
+state 43
+
+    (19) params -> empty .
+    (100) u -> empty .
+
+    )               reduce using rule 19 (params -> empty .)
+    INT             reduce using rule 100 (u -> empty .)
+    CHAR            reduce using rule 100 (u -> empty .)
+    FLOAT           reduce using rule 100 (u -> empty .)
+    BOOL            reduce using rule 100 (u -> empty .)
+
+
+state 44
+
+    (16) f -> vars . g
+    (17) g -> . empty
+    (18) g -> . f
+    (106) empty -> .
+    (15) f -> . empty
+    (16) f -> . vars g
+    (10) vars -> . VAR v : tipo ;
+
+    {               reduce using rule 106 (empty -> .)
+    VAR             shift and go to state 4
+
+    g                              shift and go to state 49
+    f                              shift and go to state 50
+    vars                           shift and go to state 44
+    empty                          shift and go to state 51
+
+state 45
+
+    (28) cancion -> CANCION ( CTEE ) f . bloque
+    (27) bloque -> . { i }
+
+    {               shift and go to state 52
+
+    bloque                         shift and go to state 53
+
+state 46
+
+    (15) f -> empty .
+
+    {               reduce using rule 15 (f -> empty .)
+
+
+state 47
+
+    (20) params -> tipo ID . h
+    (21) h -> . empty
+    (22) h -> . , params
+    (106) empty -> .
+
+    ,               shift and go to state 55
+    )               reduce using rule 106 (empty -> .)
+
+    h                              shift and go to state 54
+    empty                          shift and go to state 56
+
+state 48
+
+    (14) funcion -> FUNC tipo ID ( params ) . f bloque
+    (15) f -> . empty
+    (16) f -> . vars g
+    (106) empty -> .
+    (10) vars -> . VAR v : tipo ;
+
+    {               reduce using rule 106 (empty -> .)
+    VAR             shift and go to state 4
+
+    vars                           shift and go to state 44
+    f                              shift and go to state 57
+    empty                          shift and go to state 46
+
+state 49
+
+    (16) f -> vars g .
+
+    {               reduce using rule 16 (f -> vars g .)
+
+
+state 50
+
+    (18) g -> f .
+
+    {               reduce using rule 18 (g -> f .)
+
+
+state 51
+
+    (17) g -> empty .
+    (15) f -> empty .
+
+  ! reduce/reduce conflict for { resolved using rule 15 (f -> empty .)
+    {               reduce using rule 15 (f -> empty .)
+
+  ! {               [ reduce using rule 17 (g -> empty .) ]
+
+
+state 52
 
     (27) bloque -> { . i }
     (23) i -> . empty
@@ -654,63 +776,104 @@ state 41
     (40) if -> . IF ( expresion ) bloque l ;
     (43) for -> . FOR ( asignacion expresion asignacion ) bloque ;
     (98) return -> . RETURN ( expresion ) ;
-    (90) while -> . ( expresion ) bloque ;
-    (91) play -> . ( NOTA , CTEE ) ;
+    (90) while -> . WHILE ( expresion ) bloque ;
+    (91) play -> . PLAY ( NOTA , CTEE ) ;
     (92) print -> . PRINT expresion ;
 
     }               reduce using rule 106 (empty -> .)
-    ID              shift and go to state 56
-    IF              shift and go to state 57
-    FOR             shift and go to state 55
-    RETURN          shift and go to state 45
-    (               shift and go to state 49
-    PRINT           shift and go to state 46
+    ID              shift and go to state 70
+    IF              shift and go to state 71
+    FOR             shift and go to state 69
+    RETURN          shift and go to state 58
+    WHILE           shift and go to state 60
+    PLAY            shift and go to state 59
+    PRINT           shift and go to state 61
 
-    play                           shift and go to state 53
-    return                         shift and go to state 54
-    for                            shift and go to state 48
-    asignacion                     shift and go to state 58
-    i                              shift and go to state 59
-    estatuto                       shift and go to state 50
-    while                          shift and go to state 60
-    print                          shift and go to state 51
-    empty                          shift and go to state 52
-    if                             shift and go to state 47
+    play                           shift and go to state 67
+    return                         shift and go to state 68
+    for                            shift and go to state 63
+    asignacion                     shift and go to state 72
+    i                              shift and go to state 73
+    estatuto                       shift and go to state 64
+    while                          shift and go to state 74
+    print                          shift and go to state 65
+    empty                          shift and go to state 66
+    if                             shift and go to state 62
 
-state 42
+state 53
 
-    (20) params -> tipo . ID h
+    (28) cancion -> CANCION ( CTEE ) f bloque .
 
-    ID              shift and go to state 61
-
-
-state 43
-
-    (14) funcion -> FUNC tipo ID ( params . ) f bloque
-
-    )               shift and go to state 62
+    $end            reduce using rule 28 (cancion -> CANCION ( CTEE ) f bloque .)
 
 
-state 44
+state 54
 
-    (19) params -> empty .
-    (100) u -> empty .
+    (20) params -> tipo ID h .
 
-    )               reduce using rule 19 (params -> empty .)
-    INT             reduce using rule 100 (u -> empty .)
-    CHAR            reduce using rule 100 (u -> empty .)
-    FLOAT           reduce using rule 100 (u -> empty .)
-    BOOL            reduce using rule 100 (u -> empty .)
+    )               reduce using rule 20 (params -> tipo ID h .)
 
 
-state 45
+state 55
+
+    (22) h -> , . params
+    (19) params -> . empty
+    (20) params -> . tipo ID h
+    (106) empty -> .
+    (99) tipo -> . u y
+    (100) u -> . empty
+    (101) u -> . LIST
+
+    )               reduce using rule 106 (empty -> .)
+    INT             reduce using rule 106 (empty -> .)
+    CHAR            reduce using rule 106 (empty -> .)
+    FLOAT           reduce using rule 106 (empty -> .)
+    BOOL            reduce using rule 106 (empty -> .)
+    LIST            shift and go to state 18
+
+    tipo                           shift and go to state 41
+    u                              shift and go to state 19
+    params                         shift and go to state 75
+    empty                          shift and go to state 43
+
+state 56
+
+    (21) h -> empty .
+
+    )               reduce using rule 21 (h -> empty .)
+
+
+state 57
+
+    (14) funcion -> FUNC tipo ID ( params ) f . bloque
+    (27) bloque -> . { i }
+
+    {               shift and go to state 52
+
+    bloque                         shift and go to state 76
+
+state 58
 
     (98) return -> RETURN . ( expresion ) ;
 
-    (               shift and go to state 63
+    (               shift and go to state 77
 
 
-state 46
+state 59
+
+    (91) play -> PLAY . ( NOTA , CTEE ) ;
+
+    (               shift and go to state 78
+
+
+state 60
+
+    (90) while -> WHILE . ( expresion ) bloque ;
+
+    (               shift and go to state 79
+
+
+state 61
 
     (92) print -> PRINT . expresion ;
     (44) expresion -> . m subexpresion
@@ -718,7 +881,7 @@ state 46
     (46) m -> . NOT
     (106) empty -> .
 
-    NOT             shift and go to state 66
+    NOT             shift and go to state 82
     (               reduce using rule 106 (empty -> .)
     -               reduce using rule 106 (empty -> .)
     ID              reduce using rule 106 (empty -> .)
@@ -728,11 +891,11 @@ state 46
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    expresion                      shift and go to state 64
-    m                              shift and go to state 65
-    empty                          shift and go to state 67
+    expresion                      shift and go to state 80
+    m                              shift and go to state 81
+    empty                          shift and go to state 83
 
-state 47
+state 62
 
     (30) estatuto -> if .
 
@@ -740,12 +903,13 @@ state 47
     IF              reduce using rule 30 (estatuto -> if .)
     FOR             reduce using rule 30 (estatuto -> if .)
     RETURN          reduce using rule 30 (estatuto -> if .)
-    (               reduce using rule 30 (estatuto -> if .)
+    WHILE           reduce using rule 30 (estatuto -> if .)
+    PLAY            reduce using rule 30 (estatuto -> if .)
     PRINT           reduce using rule 30 (estatuto -> if .)
     }               reduce using rule 30 (estatuto -> if .)
 
 
-state 48
+state 63
 
     (31) estatuto -> for .
 
@@ -753,36 +917,13 @@ state 48
     IF              reduce using rule 31 (estatuto -> for .)
     FOR             reduce using rule 31 (estatuto -> for .)
     RETURN          reduce using rule 31 (estatuto -> for .)
-    (               reduce using rule 31 (estatuto -> for .)
+    WHILE           reduce using rule 31 (estatuto -> for .)
+    PLAY            reduce using rule 31 (estatuto -> for .)
     PRINT           reduce using rule 31 (estatuto -> for .)
     }               reduce using rule 31 (estatuto -> for .)
 
 
-state 49
-
-    (90) while -> ( . expresion ) bloque ;
-    (91) play -> ( . NOTA , CTEE ) ;
-    (44) expresion -> . m subexpresion
-    (45) m -> . empty
-    (46) m -> . NOT
-    (106) empty -> .
-
-    NOTA            shift and go to state 69
-    NOT             shift and go to state 66
-    (               reduce using rule 106 (empty -> .)
-    -               reduce using rule 106 (empty -> .)
-    ID              reduce using rule 106 (empty -> .)
-    CTEE            reduce using rule 106 (empty -> .)
-    CTEF            reduce using rule 106 (empty -> .)
-    CTEBOOL         reduce using rule 106 (empty -> .)
-    CTECHAR         reduce using rule 106 (empty -> .)
-    CALL            reduce using rule 106 (empty -> .)
-
-    expresion                      shift and go to state 68
-    m                              shift and go to state 65
-    empty                          shift and go to state 67
-
-state 50
+state 64
 
     (24) i -> estatuto . j
     (25) j -> . empty
@@ -801,31 +942,32 @@ state 50
     (40) if -> . IF ( expresion ) bloque l ;
     (43) for -> . FOR ( asignacion expresion asignacion ) bloque ;
     (98) return -> . RETURN ( expresion ) ;
-    (90) while -> . ( expresion ) bloque ;
-    (91) play -> . ( NOTA , CTEE ) ;
+    (90) while -> . WHILE ( expresion ) bloque ;
+    (91) play -> . PLAY ( NOTA , CTEE ) ;
     (92) print -> . PRINT expresion ;
 
     }               reduce using rule 106 (empty -> .)
-    ID              shift and go to state 56
-    IF              shift and go to state 57
-    FOR             shift and go to state 55
-    RETURN          shift and go to state 45
-    (               shift and go to state 49
-    PRINT           shift and go to state 46
+    ID              shift and go to state 70
+    IF              shift and go to state 71
+    FOR             shift and go to state 69
+    RETURN          shift and go to state 58
+    WHILE           shift and go to state 60
+    PLAY            shift and go to state 59
+    PRINT           shift and go to state 61
 
-    play                           shift and go to state 53
-    j                              shift and go to state 72
-    return                         shift and go to state 54
-    for                            shift and go to state 48
-    asignacion                     shift and go to state 58
-    i                              shift and go to state 71
-    estatuto                       shift and go to state 50
-    while                          shift and go to state 60
-    print                          shift and go to state 51
-    empty                          shift and go to state 70
-    if                             shift and go to state 47
+    play                           shift and go to state 67
+    j                              shift and go to state 86
+    return                         shift and go to state 68
+    for                            shift and go to state 63
+    asignacion                     shift and go to state 72
+    i                              shift and go to state 85
+    estatuto                       shift and go to state 64
+    while                          shift and go to state 74
+    print                          shift and go to state 65
+    empty                          shift and go to state 84
+    if                             shift and go to state 62
 
-state 51
+state 65
 
     (35) estatuto -> print .
 
@@ -833,19 +975,20 @@ state 51
     IF              reduce using rule 35 (estatuto -> print .)
     FOR             reduce using rule 35 (estatuto -> print .)
     RETURN          reduce using rule 35 (estatuto -> print .)
-    (               reduce using rule 35 (estatuto -> print .)
+    WHILE           reduce using rule 35 (estatuto -> print .)
+    PLAY            reduce using rule 35 (estatuto -> print .)
     PRINT           reduce using rule 35 (estatuto -> print .)
     }               reduce using rule 35 (estatuto -> print .)
 
 
-state 52
+state 66
 
     (23) i -> empty .
 
     }               reduce using rule 23 (i -> empty .)
 
 
-state 53
+state 67
 
     (34) estatuto -> play .
 
@@ -853,12 +996,13 @@ state 53
     IF              reduce using rule 34 (estatuto -> play .)
     FOR             reduce using rule 34 (estatuto -> play .)
     RETURN          reduce using rule 34 (estatuto -> play .)
-    (               reduce using rule 34 (estatuto -> play .)
+    WHILE           reduce using rule 34 (estatuto -> play .)
+    PLAY            reduce using rule 34 (estatuto -> play .)
     PRINT           reduce using rule 34 (estatuto -> play .)
     }               reduce using rule 34 (estatuto -> play .)
 
 
-state 54
+state 68
 
     (32) estatuto -> return .
 
@@ -866,33 +1010,34 @@ state 54
     IF              reduce using rule 32 (estatuto -> return .)
     FOR             reduce using rule 32 (estatuto -> return .)
     RETURN          reduce using rule 32 (estatuto -> return .)
-    (               reduce using rule 32 (estatuto -> return .)
+    WHILE           reduce using rule 32 (estatuto -> return .)
+    PLAY            reduce using rule 32 (estatuto -> return .)
     PRINT           reduce using rule 32 (estatuto -> return .)
     }               reduce using rule 32 (estatuto -> return .)
 
 
-state 55
+state 69
 
     (43) for -> FOR . ( asignacion expresion asignacion ) bloque ;
 
-    (               shift and go to state 73
+    (               shift and go to state 87
 
 
-state 56
+state 70
 
     (36) asignacion -> ID . = k ;
 
-    =               shift and go to state 74
+    =               shift and go to state 88
 
 
-state 57
+state 71
 
     (40) if -> IF . ( expresion ) bloque l ;
 
-    (               shift and go to state 75
+    (               shift and go to state 89
 
 
-state 58
+state 72
 
     (29) estatuto -> asignacion .
 
@@ -900,19 +1045,20 @@ state 58
     IF              reduce using rule 29 (estatuto -> asignacion .)
     FOR             reduce using rule 29 (estatuto -> asignacion .)
     RETURN          reduce using rule 29 (estatuto -> asignacion .)
-    (               reduce using rule 29 (estatuto -> asignacion .)
+    WHILE           reduce using rule 29 (estatuto -> asignacion .)
+    PLAY            reduce using rule 29 (estatuto -> asignacion .)
     PRINT           reduce using rule 29 (estatuto -> asignacion .)
     }               reduce using rule 29 (estatuto -> asignacion .)
 
 
-state 59
+state 73
 
     (27) bloque -> { i . }
 
-    }               shift and go to state 76
+    }               shift and go to state 90
 
 
-state 60
+state 74
 
     (33) estatuto -> while .
 
@@ -920,40 +1066,28 @@ state 60
     IF              reduce using rule 33 (estatuto -> while .)
     FOR             reduce using rule 33 (estatuto -> while .)
     RETURN          reduce using rule 33 (estatuto -> while .)
-    (               reduce using rule 33 (estatuto -> while .)
+    WHILE           reduce using rule 33 (estatuto -> while .)
+    PLAY            reduce using rule 33 (estatuto -> while .)
     PRINT           reduce using rule 33 (estatuto -> while .)
     }               reduce using rule 33 (estatuto -> while .)
 
 
-state 61
+state 75
 
-    (20) params -> tipo ID . h
-    (21) h -> . empty
-    (22) h -> . , params
-    (106) empty -> .
+    (22) h -> , params .
 
-    ,               shift and go to state 78
-    )               reduce using rule 106 (empty -> .)
+    )               reduce using rule 22 (h -> , params .)
 
-    h                              shift and go to state 77
-    empty                          shift and go to state 79
 
-state 62
+state 76
 
-    (14) funcion -> FUNC tipo ID ( params ) . f bloque
-    (15) f -> . empty
-    (16) f -> . vars g
-    (106) empty -> .
-    (10) vars -> . VAR v : tipo ;
+    (14) funcion -> FUNC tipo ID ( params ) f bloque .
 
-    {               reduce using rule 106 (empty -> .)
-    VAR             shift and go to state 4
+    FUNC            reduce using rule 14 (funcion -> FUNC tipo ID ( params ) f bloque .)
+    CANCION         reduce using rule 14 (funcion -> FUNC tipo ID ( params ) f bloque .)
 
-    vars                           shift and go to state 80
-    f                              shift and go to state 81
-    empty                          shift and go to state 82
 
-state 63
+state 77
 
     (98) return -> RETURN ( . expresion ) ;
     (44) expresion -> . m subexpresion
@@ -961,7 +1095,7 @@ state 63
     (46) m -> . NOT
     (106) empty -> .
 
-    NOT             shift and go to state 66
+    NOT             shift and go to state 82
     (               reduce using rule 106 (empty -> .)
     -               reduce using rule 106 (empty -> .)
     ID              reduce using rule 106 (empty -> .)
@@ -971,18 +1105,47 @@ state 63
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    expresion                      shift and go to state 83
-    m                              shift and go to state 65
-    empty                          shift and go to state 67
+    expresion                      shift and go to state 91
+    m                              shift and go to state 81
+    empty                          shift and go to state 83
 
-state 64
+state 78
+
+    (91) play -> PLAY ( . NOTA , CTEE ) ;
+
+    NOTA            shift and go to state 92
+
+
+state 79
+
+    (90) while -> WHILE ( . expresion ) bloque ;
+    (44) expresion -> . m subexpresion
+    (45) m -> . empty
+    (46) m -> . NOT
+    (106) empty -> .
+
+    NOT             shift and go to state 82
+    (               reduce using rule 106 (empty -> .)
+    -               reduce using rule 106 (empty -> .)
+    ID              reduce using rule 106 (empty -> .)
+    CTEE            reduce using rule 106 (empty -> .)
+    CTEF            reduce using rule 106 (empty -> .)
+    CTEBOOL         reduce using rule 106 (empty -> .)
+    CTECHAR         reduce using rule 106 (empty -> .)
+    CALL            reduce using rule 106 (empty -> .)
+
+    expresion                      shift and go to state 93
+    m                              shift and go to state 81
+    empty                          shift and go to state 83
+
+state 80
 
     (92) print -> PRINT expresion . ;
 
-    ;               shift and go to state 84
+    ;               shift and go to state 94
 
 
-state 65
+state 81
 
     (44) expresion -> m . subexpresion
     (51) subexpresion -> . exp o
@@ -995,8 +1158,8 @@ state 65
     (70) w -> . -
     (106) empty -> .
 
-    (               shift and go to state 87
-    -               shift and go to state 85
+    (               shift and go to state 97
+    -               shift and go to state 95
     ID              reduce using rule 106 (empty -> .)
     CTEE            reduce using rule 106 (empty -> .)
     CTEF            reduce using rule 106 (empty -> .)
@@ -1004,15 +1167,15 @@ state 65
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    w                              shift and go to state 86
-    nexp                           shift and go to state 88
-    subexpresion                   shift and go to state 89
-    termino                        shift and go to state 90
-    exp                            shift and go to state 91
-    factor                         shift and go to state 92
-    empty                          shift and go to state 93
+    w                              shift and go to state 96
+    nexp                           shift and go to state 98
+    subexpresion                   shift and go to state 99
+    termino                        shift and go to state 100
+    exp                            shift and go to state 101
+    factor                         shift and go to state 102
+    empty                          shift and go to state 103
 
-state 66
+state 82
 
     (46) m -> NOT .
 
@@ -1026,7 +1189,7 @@ state 66
     CALL            reduce using rule 46 (m -> NOT .)
 
 
-state 67
+state 83
 
     (45) m -> empty .
 
@@ -1040,21 +1203,7 @@ state 67
     CALL            reduce using rule 45 (m -> empty .)
 
 
-state 68
-
-    (90) while -> ( expresion . ) bloque ;
-
-    )               shift and go to state 94
-
-
-state 69
-
-    (91) play -> ( NOTA . , CTEE ) ;
-
-    ,               shift and go to state 95
-
-
-state 70
+state 84
 
     (25) j -> empty .
     (23) i -> empty .
@@ -1065,30 +1214,30 @@ state 70
   ! }               [ reduce using rule 25 (j -> empty .) ]
 
 
-state 71
+state 85
 
     (26) j -> i .
 
     }               reduce using rule 26 (j -> i .)
 
 
-state 72
+state 86
 
     (24) i -> estatuto j .
 
     }               reduce using rule 24 (i -> estatuto j .)
 
 
-state 73
+state 87
 
     (43) for -> FOR ( . asignacion expresion asignacion ) bloque ;
     (36) asignacion -> . ID = k ;
 
-    ID              shift and go to state 56
+    ID              shift and go to state 70
 
-    asignacion                     shift and go to state 96
+    asignacion                     shift and go to state 104
 
-state 74
+state 88
 
     (36) asignacion -> ID = . k ;
     (37) k -> . expresion
@@ -1099,8 +1248,8 @@ state 74
     (46) m -> . NOT
     (106) empty -> .
 
-    NEW             shift and go to state 100
-    NOT             shift and go to state 66
+    NEW             shift and go to state 108
+    NOT             shift and go to state 82
     (               reduce using rule 106 (empty -> .)
     -               reduce using rule 106 (empty -> .)
     ID              reduce using rule 106 (empty -> .)
@@ -1110,13 +1259,13 @@ state 74
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    expresion                      shift and go to state 97
-    k                              shift and go to state 98
-    m                              shift and go to state 65
-    asiglista                      shift and go to state 99
-    empty                          shift and go to state 67
+    expresion                      shift and go to state 105
+    k                              shift and go to state 106
+    m                              shift and go to state 81
+    asiglista                      shift and go to state 107
+    empty                          shift and go to state 83
 
-state 75
+state 89
 
     (40) if -> IF ( . expresion ) bloque l ;
     (44) expresion -> . m subexpresion
@@ -1124,7 +1273,7 @@ state 75
     (46) m -> . NOT
     (106) empty -> .
 
-    NOT             shift and go to state 66
+    NOT             shift and go to state 82
     (               reduce using rule 106 (empty -> .)
     -               reduce using rule 106 (empty -> .)
     ID              reduce using rule 106 (empty -> .)
@@ -1134,99 +1283,43 @@ state 75
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    expresion                      shift and go to state 101
-    m                              shift and go to state 65
-    empty                          shift and go to state 67
+    expresion                      shift and go to state 109
+    m                              shift and go to state 81
+    empty                          shift and go to state 83
 
-state 76
+state 90
 
     (27) bloque -> { i } .
 
-    $end            reduce using rule 27 (bloque -> { i } .)
-    ELSE            reduce using rule 27 (bloque -> { i } .)
     ;               reduce using rule 27 (bloque -> { i } .)
     FUNC            reduce using rule 27 (bloque -> { i } .)
-    (               reduce using rule 27 (bloque -> { i } .)
+    CANCION         reduce using rule 27 (bloque -> { i } .)
+    $end            reduce using rule 27 (bloque -> { i } .)
+    ELSE            reduce using rule 27 (bloque -> { i } .)
 
 
-state 77
-
-    (20) params -> tipo ID h .
-
-    )               reduce using rule 20 (params -> tipo ID h .)
-
-
-state 78
-
-    (22) h -> , . params
-    (19) params -> . empty
-    (20) params -> . tipo ID h
-    (106) empty -> .
-    (99) tipo -> . u y
-    (100) u -> . empty
-    (101) u -> . LIST
-
-    )               reduce using rule 106 (empty -> .)
-    INT             reduce using rule 106 (empty -> .)
-    CHAR            reduce using rule 106 (empty -> .)
-    FLOAT           reduce using rule 106 (empty -> .)
-    BOOL            reduce using rule 106 (empty -> .)
-    LIST            shift and go to state 18
-
-    tipo                           shift and go to state 42
-    u                              shift and go to state 19
-    params                         shift and go to state 102
-    empty                          shift and go to state 44
-
-state 79
-
-    (21) h -> empty .
-
-    )               reduce using rule 21 (h -> empty .)
-
-
-state 80
-
-    (16) f -> vars . g
-    (17) g -> . empty
-    (18) g -> . f
-    (106) empty -> .
-    (15) f -> . empty
-    (16) f -> . vars g
-    (10) vars -> . VAR v : tipo ;
-
-    {               reduce using rule 106 (empty -> .)
-    VAR             shift and go to state 4
-
-    g                              shift and go to state 103
-    f                              shift and go to state 104
-    vars                           shift and go to state 80
-    empty                          shift and go to state 105
-
-state 81
-
-    (14) funcion -> FUNC tipo ID ( params ) f . bloque
-    (27) bloque -> . { i }
-
-    {               shift and go to state 41
-
-    bloque                         shift and go to state 106
-
-state 82
-
-    (15) f -> empty .
-
-    {               reduce using rule 15 (f -> empty .)
-
-
-state 83
+state 91
 
     (98) return -> RETURN ( expresion . ) ;
 
-    )               shift and go to state 107
+    )               shift and go to state 110
 
 
-state 84
+state 92
+
+    (91) play -> PLAY ( NOTA . , CTEE ) ;
+
+    ,               shift and go to state 111
+
+
+state 93
+
+    (90) while -> WHILE ( expresion . ) bloque ;
+
+    )               shift and go to state 112
+
+
+state 94
 
     (92) print -> PRINT expresion ; .
 
@@ -1234,12 +1327,13 @@ state 84
     IF              reduce using rule 92 (print -> PRINT expresion ; .)
     FOR             reduce using rule 92 (print -> PRINT expresion ; .)
     RETURN          reduce using rule 92 (print -> PRINT expresion ; .)
-    (               reduce using rule 92 (print -> PRINT expresion ; .)
+    WHILE           reduce using rule 92 (print -> PRINT expresion ; .)
+    PLAY            reduce using rule 92 (print -> PRINT expresion ; .)
     PRINT           reduce using rule 92 (print -> PRINT expresion ; .)
     }               reduce using rule 92 (print -> PRINT expresion ; .)
 
 
-state 85
+state 95
 
     (70) w -> - .
 
@@ -1251,7 +1345,7 @@ state 85
     CALL            reduce using rule 70 (w -> - .)
 
 
-state 86
+state 96
 
     (68) factor -> w . varcte
     (71) varcte -> . ID r
@@ -1262,17 +1356,17 @@ state 86
     (76) varcte -> . CTECHAR
     (93) callfunc -> . CALL ID ( s ) ;
 
-    ID              shift and go to state 115
-    CTEE            shift and go to state 113
-    CTEF            shift and go to state 112
-    CTEBOOL         shift and go to state 109
-    CTECHAR         shift and go to state 114
-    CALL            shift and go to state 111
+    ID              shift and go to state 120
+    CTEE            shift and go to state 118
+    CTEF            shift and go to state 117
+    CTEBOOL         shift and go to state 114
+    CTECHAR         shift and go to state 119
+    CALL            shift and go to state 116
 
-    callfunc                       shift and go to state 110
-    varcte                         shift and go to state 108
+    callfunc                       shift and go to state 115
+    varcte                         shift and go to state 113
 
-state 87
+state 97
 
     (67) factor -> ( . expresion )
     (44) expresion -> . m subexpresion
@@ -1280,7 +1374,7 @@ state 87
     (46) m -> . NOT
     (106) empty -> .
 
-    NOT             shift and go to state 66
+    NOT             shift and go to state 82
     (               reduce using rule 106 (empty -> .)
     -               reduce using rule 106 (empty -> .)
     ID              reduce using rule 106 (empty -> .)
@@ -1290,11 +1384,11 @@ state 87
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    expresion                      shift and go to state 116
-    m                              shift and go to state 65
-    empty                          shift and go to state 67
+    expresion                      shift and go to state 121
+    m                              shift and go to state 81
+    empty                          shift and go to state 83
 
-state 88
+state 98
 
     (55) exp -> nexp . p
     (56) p -> . empty
@@ -1306,12 +1400,12 @@ state 88
     (62) p -> . LTHANEQ nexp
     (106) empty -> .
 
-    EQ              shift and go to state 121
-    NOTEQ           shift and go to state 118
-    >               shift and go to state 124
-    <               shift and go to state 122
-    MTHANEQ         shift and go to state 117
-    LTHANEQ         shift and go to state 120
+    EQ              shift and go to state 126
+    NOTEQ           shift and go to state 123
+    >               shift and go to state 129
+    <               shift and go to state 127
+    MTHANEQ         shift and go to state 122
+    LTHANEQ         shift and go to state 125
     AND             reduce using rule 106 (empty -> .)
     OR              reduce using rule 106 (empty -> .)
     ;               reduce using rule 106 (empty -> .)
@@ -1319,20 +1413,20 @@ state 88
     ID              reduce using rule 106 (empty -> .)
     ,               reduce using rule 106 (empty -> .)
 
-    p                              shift and go to state 119
-    empty                          shift and go to state 123
+    p                              shift and go to state 124
+    empty                          shift and go to state 128
 
-state 89
+state 99
 
     (44) expresion -> m subexpresion .
 
-    )               reduce using rule 44 (expresion -> m subexpresion .)
-    ;               reduce using rule 44 (expresion -> m subexpresion .)
-    ,               reduce using rule 44 (expresion -> m subexpresion .)
     ID              reduce using rule 44 (expresion -> m subexpresion .)
+    )               reduce using rule 44 (expresion -> m subexpresion .)
+    ,               reduce using rule 44 (expresion -> m subexpresion .)
+    ;               reduce using rule 44 (expresion -> m subexpresion .)
 
 
-state 90
+state 100
 
     (63) nexp -> termino . q
     (64) q -> . empty
@@ -1340,8 +1434,8 @@ state 90
     (66) q -> . - nexp
     (106) empty -> .
 
-    +               shift and go to state 125
-    -               shift and go to state 126
+    +               shift and go to state 130
+    -               shift and go to state 131
     EQ              reduce using rule 106 (empty -> .)
     NOTEQ           reduce using rule 106 (empty -> .)
     >               reduce using rule 106 (empty -> .)
@@ -1355,10 +1449,10 @@ state 90
     ID              reduce using rule 106 (empty -> .)
     ,               reduce using rule 106 (empty -> .)
 
-    q                              shift and go to state 127
-    empty                          shift and go to state 128
+    q                              shift and go to state 132
+    empty                          shift and go to state 133
 
-state 91
+state 101
 
     (51) subexpresion -> exp . o
     (52) o -> . empty
@@ -1366,17 +1460,17 @@ state 91
     (54) o -> . OR subexpresion
     (106) empty -> .
 
-    AND             shift and go to state 129
-    OR              shift and go to state 131
+    AND             shift and go to state 134
+    OR              shift and go to state 136
     ;               reduce using rule 106 (empty -> .)
     )               reduce using rule 106 (empty -> .)
     ID              reduce using rule 106 (empty -> .)
     ,               reduce using rule 106 (empty -> .)
 
-    empty                          shift and go to state 132
-    o                              shift and go to state 130
+    empty                          shift and go to state 137
+    o                              shift and go to state 135
 
-state 92
+state 102
 
     (47) termino -> factor . n
     (48) n -> . empty
@@ -1384,8 +1478,8 @@ state 92
     (50) n -> . / termino
     (106) empty -> .
 
-    *               shift and go to state 133
-    /               shift and go to state 134
+    *               shift and go to state 138
+    /               shift and go to state 139
     +               reduce using rule 106 (empty -> .)
     -               reduce using rule 106 (empty -> .)
     EQ              reduce using rule 106 (empty -> .)
@@ -1401,10 +1495,10 @@ state 92
     ID              reduce using rule 106 (empty -> .)
     ,               reduce using rule 106 (empty -> .)
 
-    n                              shift and go to state 135
-    empty                          shift and go to state 136
+    n                              shift and go to state 140
+    empty                          shift and go to state 141
 
-state 93
+state 103
 
     (69) w -> empty .
 
@@ -1416,23 +1510,7 @@ state 93
     CALL            reduce using rule 69 (w -> empty .)
 
 
-state 94
-
-    (90) while -> ( expresion ) . bloque ;
-    (27) bloque -> . { i }
-
-    {               shift and go to state 41
-
-    bloque                         shift and go to state 137
-
-state 95
-
-    (91) play -> ( NOTA , . CTEE ) ;
-
-    CTEE            shift and go to state 138
-
-
-state 96
+state 104
 
     (43) for -> FOR ( asignacion . expresion asignacion ) bloque ;
     (44) expresion -> . m subexpresion
@@ -1440,7 +1518,7 @@ state 96
     (46) m -> . NOT
     (106) empty -> .
 
-    NOT             shift and go to state 66
+    NOT             shift and go to state 82
     (               reduce using rule 106 (empty -> .)
     -               reduce using rule 106 (empty -> .)
     ID              reduce using rule 106 (empty -> .)
@@ -1450,93 +1528,69 @@ state 96
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    expresion                      shift and go to state 139
-    m                              shift and go to state 65
-    empty                          shift and go to state 67
+    expresion                      shift and go to state 142
+    m                              shift and go to state 81
+    empty                          shift and go to state 83
 
-state 97
+state 105
 
     (37) k -> expresion .
 
     ;               reduce using rule 37 (k -> expresion .)
 
 
-state 98
+state 106
 
     (36) asignacion -> ID = k . ;
 
-    ;               shift and go to state 140
+    ;               shift and go to state 143
 
 
-state 99
+state 107
 
     (38) k -> asiglista .
 
     ;               reduce using rule 38 (k -> asiglista .)
 
 
-state 100
+state 108
 
     (39) asiglista -> NEW . LIST ( )
 
-    LIST            shift and go to state 141
+    LIST            shift and go to state 144
 
 
-state 101
+state 109
 
     (40) if -> IF ( expresion . ) bloque l ;
 
-    )               shift and go to state 142
+    )               shift and go to state 145
 
 
-state 102
-
-    (22) h -> , params .
-
-    )               reduce using rule 22 (h -> , params .)
-
-
-state 103
-
-    (16) f -> vars g .
-
-    {               reduce using rule 16 (f -> vars g .)
-
-
-state 104
-
-    (18) g -> f .
-
-    {               reduce using rule 18 (g -> f .)
-
-
-state 105
-
-    (17) g -> empty .
-    (15) f -> empty .
-
-  ! reduce/reduce conflict for { resolved using rule 15 (f -> empty .)
-    {               reduce using rule 15 (f -> empty .)
-
-  ! {               [ reduce using rule 17 (g -> empty .) ]
-
-
-state 106
-
-    (14) funcion -> FUNC tipo ID ( params ) f bloque .
-
-    FUNC            reduce using rule 14 (funcion -> FUNC tipo ID ( params ) f bloque .)
-    (               reduce using rule 14 (funcion -> FUNC tipo ID ( params ) f bloque .)
-
-
-state 107
+state 110
 
     (98) return -> RETURN ( expresion ) . ;
 
-    ;               shift and go to state 143
+    ;               shift and go to state 146
 
 
-state 108
+state 111
+
+    (91) play -> PLAY ( NOTA , . CTEE ) ;
+
+    CTEE            shift and go to state 147
+
+
+state 112
+
+    (90) while -> WHILE ( expresion ) . bloque ;
+    (27) bloque -> . { i }
+
+    {               shift and go to state 52
+
+    bloque                         shift and go to state 148
+
+state 113
 
     (68) factor -> w varcte .
 
@@ -1544,21 +1598,21 @@ state 108
     /               reduce using rule 68 (factor -> w varcte .)
     +               reduce using rule 68 (factor -> w varcte .)
     -               reduce using rule 68 (factor -> w varcte .)
-    AND             reduce using rule 68 (factor -> w varcte .)
-    OR              reduce using rule 68 (factor -> w varcte .)
-    ;               reduce using rule 68 (factor -> w varcte .)
-    )               reduce using rule 68 (factor -> w varcte .)
-    ID              reduce using rule 68 (factor -> w varcte .)
-    ,               reduce using rule 68 (factor -> w varcte .)
     EQ              reduce using rule 68 (factor -> w varcte .)
     NOTEQ           reduce using rule 68 (factor -> w varcte .)
     >               reduce using rule 68 (factor -> w varcte .)
     <               reduce using rule 68 (factor -> w varcte .)
     MTHANEQ         reduce using rule 68 (factor -> w varcte .)
     LTHANEQ         reduce using rule 68 (factor -> w varcte .)
+    AND             reduce using rule 68 (factor -> w varcte .)
+    OR              reduce using rule 68 (factor -> w varcte .)
+    ;               reduce using rule 68 (factor -> w varcte .)
+    )               reduce using rule 68 (factor -> w varcte .)
+    ID              reduce using rule 68 (factor -> w varcte .)
+    ,               reduce using rule 68 (factor -> w varcte .)
 
 
-state 109
+state 114
 
     (74) varcte -> CTEBOOL .
 
@@ -1580,7 +1634,7 @@ state 109
     ,               reduce using rule 74 (varcte -> CTEBOOL .)
 
 
-state 110
+state 115
 
     (75) varcte -> callfunc .
 
@@ -1602,14 +1656,14 @@ state 110
     ,               reduce using rule 75 (varcte -> callfunc .)
 
 
-state 111
+state 116
 
     (93) callfunc -> CALL . ID ( s ) ;
 
-    ID              shift and go to state 144
+    ID              shift and go to state 149
 
 
-state 112
+state 117
 
     (73) varcte -> CTEF .
 
@@ -1631,7 +1685,7 @@ state 112
     ,               reduce using rule 73 (varcte -> CTEF .)
 
 
-state 113
+state 118
 
     (72) varcte -> CTEE .
 
@@ -1653,7 +1707,7 @@ state 113
     ,               reduce using rule 72 (varcte -> CTEE .)
 
 
-state 114
+state 119
 
     (76) varcte -> CTECHAR .
 
@@ -1675,7 +1729,7 @@ state 114
     ,               reduce using rule 76 (varcte -> CTECHAR .)
 
 
-state 115
+state 120
 
     (71) varcte -> ID . r
     (77) r -> . empty
@@ -1699,22 +1753,22 @@ state 115
     ;               reduce using rule 106 (empty -> .)
     )               reduce using rule 106 (empty -> .)
     ,               reduce using rule 106 (empty -> .)
-    ID              shift and go to state 147
+    ID              shift and go to state 152
 
   ! ID              [ reduce using rule 106 (empty -> .) ]
 
-    oplista                        shift and go to state 145
-    r                              shift and go to state 146
-    empty                          shift and go to state 148
+    oplista                        shift and go to state 150
+    r                              shift and go to state 151
+    empty                          shift and go to state 153
 
-state 116
+state 121
 
     (67) factor -> ( expresion . )
 
-    )               shift and go to state 149
+    )               shift and go to state 154
 
 
-state 117
+state 122
 
     (61) p -> MTHANEQ . nexp
     (63) nexp -> . termino q
@@ -1725,8 +1779,8 @@ state 117
     (70) w -> . -
     (106) empty -> .
 
-    (               shift and go to state 87
-    -               shift and go to state 85
+    (               shift and go to state 97
+    -               shift and go to state 95
     ID              reduce using rule 106 (empty -> .)
     CTEE            reduce using rule 106 (empty -> .)
     CTEF            reduce using rule 106 (empty -> .)
@@ -1734,13 +1788,13 @@ state 117
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    nexp                           shift and go to state 150
-    termino                        shift and go to state 90
-    w                              shift and go to state 86
-    factor                         shift and go to state 92
-    empty                          shift and go to state 93
+    nexp                           shift and go to state 155
+    termino                        shift and go to state 100
+    w                              shift and go to state 96
+    factor                         shift and go to state 102
+    empty                          shift and go to state 103
 
-state 118
+state 123
 
     (58) p -> NOTEQ . nexp
     (63) nexp -> . termino q
@@ -1751,8 +1805,8 @@ state 118
     (70) w -> . -
     (106) empty -> .
 
-    (               shift and go to state 87
-    -               shift and go to state 85
+    (               shift and go to state 97
+    -               shift and go to state 95
     ID              reduce using rule 106 (empty -> .)
     CTEE            reduce using rule 106 (empty -> .)
     CTEF            reduce using rule 106 (empty -> .)
@@ -1760,13 +1814,13 @@ state 118
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    nexp                           shift and go to state 151
-    termino                        shift and go to state 90
-    w                              shift and go to state 86
-    factor                         shift and go to state 92
-    empty                          shift and go to state 93
+    nexp                           shift and go to state 156
+    termino                        shift and go to state 100
+    w                              shift and go to state 96
+    factor                         shift and go to state 102
+    empty                          shift and go to state 103
 
-state 119
+state 124
 
     (55) exp -> nexp p .
 
@@ -1778,7 +1832,7 @@ state 119
     ,               reduce using rule 55 (exp -> nexp p .)
 
 
-state 120
+state 125
 
     (62) p -> LTHANEQ . nexp
     (63) nexp -> . termino q
@@ -1789,8 +1843,8 @@ state 120
     (70) w -> . -
     (106) empty -> .
 
-    (               shift and go to state 87
-    -               shift and go to state 85
+    (               shift and go to state 97
+    -               shift and go to state 95
     ID              reduce using rule 106 (empty -> .)
     CTEE            reduce using rule 106 (empty -> .)
     CTEF            reduce using rule 106 (empty -> .)
@@ -1798,13 +1852,13 @@ state 120
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    nexp                           shift and go to state 152
-    termino                        shift and go to state 90
-    w                              shift and go to state 86
-    factor                         shift and go to state 92
-    empty                          shift and go to state 93
+    nexp                           shift and go to state 157
+    termino                        shift and go to state 100
+    w                              shift and go to state 96
+    factor                         shift and go to state 102
+    empty                          shift and go to state 103
 
-state 121
+state 126
 
     (57) p -> EQ . nexp
     (63) nexp -> . termino q
@@ -1815,8 +1869,8 @@ state 121
     (70) w -> . -
     (106) empty -> .
 
-    (               shift and go to state 87
-    -               shift and go to state 85
+    (               shift and go to state 97
+    -               shift and go to state 95
     ID              reduce using rule 106 (empty -> .)
     CTEE            reduce using rule 106 (empty -> .)
     CTEF            reduce using rule 106 (empty -> .)
@@ -1824,13 +1878,13 @@ state 121
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    nexp                           shift and go to state 153
-    termino                        shift and go to state 90
-    w                              shift and go to state 86
-    factor                         shift and go to state 92
-    empty                          shift and go to state 93
+    nexp                           shift and go to state 158
+    termino                        shift and go to state 100
+    w                              shift and go to state 96
+    factor                         shift and go to state 102
+    empty                          shift and go to state 103
 
-state 122
+state 127
 
     (60) p -> < . nexp
     (63) nexp -> . termino q
@@ -1841,8 +1895,8 @@ state 122
     (70) w -> . -
     (106) empty -> .
 
-    (               shift and go to state 87
-    -               shift and go to state 85
+    (               shift and go to state 97
+    -               shift and go to state 95
     ID              reduce using rule 106 (empty -> .)
     CTEE            reduce using rule 106 (empty -> .)
     CTEF            reduce using rule 106 (empty -> .)
@@ -1850,13 +1904,13 @@ state 122
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    nexp                           shift and go to state 154
-    termino                        shift and go to state 90
-    w                              shift and go to state 86
-    factor                         shift and go to state 92
-    empty                          shift and go to state 93
+    nexp                           shift and go to state 159
+    termino                        shift and go to state 100
+    w                              shift and go to state 96
+    factor                         shift and go to state 102
+    empty                          shift and go to state 103
 
-state 123
+state 128
 
     (56) p -> empty .
 
@@ -1868,7 +1922,7 @@ state 123
     ,               reduce using rule 56 (p -> empty .)
 
 
-state 124
+state 129
 
     (59) p -> > . nexp
     (63) nexp -> . termino q
@@ -1879,8 +1933,8 @@ state 124
     (70) w -> . -
     (106) empty -> .
 
-    (               shift and go to state 87
-    -               shift and go to state 85
+    (               shift and go to state 97
+    -               shift and go to state 95
     ID              reduce using rule 106 (empty -> .)
     CTEE            reduce using rule 106 (empty -> .)
     CTEF            reduce using rule 106 (empty -> .)
@@ -1888,13 +1942,13 @@ state 124
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    nexp                           shift and go to state 155
-    termino                        shift and go to state 90
-    w                              shift and go to state 86
-    factor                         shift and go to state 92
-    empty                          shift and go to state 93
+    nexp                           shift and go to state 160
+    termino                        shift and go to state 100
+    w                              shift and go to state 96
+    factor                         shift and go to state 102
+    empty                          shift and go to state 103
 
-state 125
+state 130
 
     (65) q -> + . nexp
     (63) nexp -> . termino q
@@ -1905,8 +1959,8 @@ state 125
     (70) w -> . -
     (106) empty -> .
 
-    (               shift and go to state 87
-    -               shift and go to state 85
+    (               shift and go to state 97
+    -               shift and go to state 95
     ID              reduce using rule 106 (empty -> .)
     CTEE            reduce using rule 106 (empty -> .)
     CTEF            reduce using rule 106 (empty -> .)
@@ -1914,13 +1968,13 @@ state 125
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    nexp                           shift and go to state 156
-    termino                        shift and go to state 90
-    w                              shift and go to state 86
-    factor                         shift and go to state 92
-    empty                          shift and go to state 93
+    nexp                           shift and go to state 161
+    termino                        shift and go to state 100
+    w                              shift and go to state 96
+    factor                         shift and go to state 102
+    empty                          shift and go to state 103
 
-state 126
+state 131
 
     (66) q -> - . nexp
     (63) nexp -> . termino q
@@ -1931,8 +1985,8 @@ state 126
     (70) w -> . -
     (106) empty -> .
 
-    (               shift and go to state 87
-    -               shift and go to state 85
+    (               shift and go to state 97
+    -               shift and go to state 95
     ID              reduce using rule 106 (empty -> .)
     CTEE            reduce using rule 106 (empty -> .)
     CTEF            reduce using rule 106 (empty -> .)
@@ -1940,13 +1994,13 @@ state 126
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    nexp                           shift and go to state 157
-    termino                        shift and go to state 90
-    w                              shift and go to state 86
-    factor                         shift and go to state 92
-    empty                          shift and go to state 93
+    nexp                           shift and go to state 162
+    termino                        shift and go to state 100
+    w                              shift and go to state 96
+    factor                         shift and go to state 102
+    empty                          shift and go to state 103
 
-state 127
+state 132
 
     (63) nexp -> termino q .
 
@@ -1964,7 +2018,7 @@ state 127
     LTHANEQ         reduce using rule 63 (nexp -> termino q .)
 
 
-state 128
+state 133
 
     (64) q -> empty .
 
@@ -1982,7 +2036,7 @@ state 128
     ,               reduce using rule 64 (q -> empty .)
 
 
-state 129
+state 134
 
     (53) o -> AND . subexpresion
     (51) subexpresion -> . exp o
@@ -1995,8 +2049,8 @@ state 129
     (70) w -> . -
     (106) empty -> .
 
-    (               shift and go to state 87
-    -               shift and go to state 85
+    (               shift and go to state 97
+    -               shift and go to state 95
     ID              reduce using rule 106 (empty -> .)
     CTEE            reduce using rule 106 (empty -> .)
     CTEF            reduce using rule 106 (empty -> .)
@@ -2004,15 +2058,15 @@ state 129
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    w                              shift and go to state 86
-    nexp                           shift and go to state 88
-    subexpresion                   shift and go to state 158
-    termino                        shift and go to state 90
-    exp                            shift and go to state 91
-    factor                         shift and go to state 92
-    empty                          shift and go to state 93
+    w                              shift and go to state 96
+    nexp                           shift and go to state 98
+    subexpresion                   shift and go to state 163
+    termino                        shift and go to state 100
+    exp                            shift and go to state 101
+    factor                         shift and go to state 102
+    empty                          shift and go to state 103
 
-state 130
+state 135
 
     (51) subexpresion -> exp o .
 
@@ -2022,7 +2076,7 @@ state 130
     ,               reduce using rule 51 (subexpresion -> exp o .)
 
 
-state 131
+state 136
 
     (54) o -> OR . subexpresion
     (51) subexpresion -> . exp o
@@ -2035,8 +2089,8 @@ state 131
     (70) w -> . -
     (106) empty -> .
 
-    (               shift and go to state 87
-    -               shift and go to state 85
+    (               shift and go to state 97
+    -               shift and go to state 95
     ID              reduce using rule 106 (empty -> .)
     CTEE            reduce using rule 106 (empty -> .)
     CTEF            reduce using rule 106 (empty -> .)
@@ -2044,15 +2098,15 @@ state 131
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    w                              shift and go to state 86
-    nexp                           shift and go to state 88
-    subexpresion                   shift and go to state 159
-    termino                        shift and go to state 90
-    exp                            shift and go to state 91
-    factor                         shift and go to state 92
-    empty                          shift and go to state 93
+    w                              shift and go to state 96
+    nexp                           shift and go to state 98
+    subexpresion                   shift and go to state 164
+    termino                        shift and go to state 100
+    exp                            shift and go to state 101
+    factor                         shift and go to state 102
+    empty                          shift and go to state 103
 
-state 132
+state 137
 
     (52) o -> empty .
 
@@ -2062,7 +2116,7 @@ state 132
     ,               reduce using rule 52 (o -> empty .)
 
 
-state 133
+state 138
 
     (49) n -> * . termino
     (47) termino -> . factor n
@@ -2072,8 +2126,8 @@ state 133
     (70) w -> . -
     (106) empty -> .
 
-    (               shift and go to state 87
-    -               shift and go to state 85
+    (               shift and go to state 97
+    -               shift and go to state 95
     ID              reduce using rule 106 (empty -> .)
     CTEE            reduce using rule 106 (empty -> .)
     CTEF            reduce using rule 106 (empty -> .)
@@ -2081,12 +2135,12 @@ state 133
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    termino                        shift and go to state 160
-    w                              shift and go to state 86
-    factor                         shift and go to state 92
-    empty                          shift and go to state 93
+    termino                        shift and go to state 165
+    w                              shift and go to state 96
+    factor                         shift and go to state 102
+    empty                          shift and go to state 103
 
-state 134
+state 139
 
     (50) n -> / . termino
     (47) termino -> . factor n
@@ -2096,8 +2150,8 @@ state 134
     (70) w -> . -
     (106) empty -> .
 
-    (               shift and go to state 87
-    -               shift and go to state 85
+    (               shift and go to state 97
+    -               shift and go to state 95
     ID              reduce using rule 106 (empty -> .)
     CTEE            reduce using rule 106 (empty -> .)
     CTEF            reduce using rule 106 (empty -> .)
@@ -2105,12 +2159,12 @@ state 134
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    termino                        shift and go to state 161
-    w                              shift and go to state 86
-    factor                         shift and go to state 92
-    empty                          shift and go to state 93
+    termino                        shift and go to state 166
+    w                              shift and go to state 96
+    factor                         shift and go to state 102
+    empty                          shift and go to state 103
 
-state 135
+state 140
 
     (47) termino -> factor n .
 
@@ -2130,7 +2184,7 @@ state 135
     ,               reduce using rule 47 (termino -> factor n .)
 
 
-state 136
+state 141
 
     (48) n -> empty .
 
@@ -2150,30 +2204,16 @@ state 136
     ,               reduce using rule 48 (n -> empty .)
 
 
-state 137
-
-    (90) while -> ( expresion ) bloque . ;
-
-    ;               shift and go to state 162
-
-
-state 138
-
-    (91) play -> ( NOTA , CTEE . ) ;
-
-    )               shift and go to state 163
-
-
-state 139
+state 142
 
     (43) for -> FOR ( asignacion expresion . asignacion ) bloque ;
     (36) asignacion -> . ID = k ;
 
-    ID              shift and go to state 56
+    ID              shift and go to state 70
 
-    asignacion                     shift and go to state 164
+    asignacion                     shift and go to state 167
 
-state 140
+state 143
 
     (36) asignacion -> ID = k ; .
 
@@ -2186,31 +2226,33 @@ state 140
     CTEBOOL         reduce using rule 36 (asignacion -> ID = k ; .)
     CTECHAR         reduce using rule 36 (asignacion -> ID = k ; .)
     CALL            reduce using rule 36 (asignacion -> ID = k ; .)
+    )               reduce using rule 36 (asignacion -> ID = k ; .)
     IF              reduce using rule 36 (asignacion -> ID = k ; .)
     FOR             reduce using rule 36 (asignacion -> ID = k ; .)
     RETURN          reduce using rule 36 (asignacion -> ID = k ; .)
+    WHILE           reduce using rule 36 (asignacion -> ID = k ; .)
+    PLAY            reduce using rule 36 (asignacion -> ID = k ; .)
     PRINT           reduce using rule 36 (asignacion -> ID = k ; .)
     }               reduce using rule 36 (asignacion -> ID = k ; .)
-    )               reduce using rule 36 (asignacion -> ID = k ; .)
 
 
-state 141
+state 144
 
     (39) asiglista -> NEW LIST . ( )
 
-    (               shift and go to state 165
+    (               shift and go to state 168
 
 
-state 142
+state 145
 
     (40) if -> IF ( expresion ) . bloque l ;
     (27) bloque -> . { i }
 
-    {               shift and go to state 41
+    {               shift and go to state 52
 
-    bloque                         shift and go to state 166
+    bloque                         shift and go to state 169
 
-state 143
+state 146
 
     (98) return -> RETURN ( expresion ) ; .
 
@@ -2218,19 +2260,34 @@ state 143
     IF              reduce using rule 98 (return -> RETURN ( expresion ) ; .)
     FOR             reduce using rule 98 (return -> RETURN ( expresion ) ; .)
     RETURN          reduce using rule 98 (return -> RETURN ( expresion ) ; .)
-    (               reduce using rule 98 (return -> RETURN ( expresion ) ; .)
+    WHILE           reduce using rule 98 (return -> RETURN ( expresion ) ; .)
+    PLAY            reduce using rule 98 (return -> RETURN ( expresion ) ; .)
     PRINT           reduce using rule 98 (return -> RETURN ( expresion ) ; .)
     }               reduce using rule 98 (return -> RETURN ( expresion ) ; .)
 
 
-state 144
+state 147
+
+    (91) play -> PLAY ( NOTA , CTEE . ) ;
+
+    )               shift and go to state 170
+
+
+state 148
+
+    (90) while -> WHILE ( expresion ) bloque . ;
+
+    ;               shift and go to state 171
+
+
+state 149
 
     (93) callfunc -> CALL ID . ( s ) ;
 
-    (               shift and go to state 167
+    (               shift and go to state 172
 
 
-state 145
+state 150
 
     (78) r -> oplista .
 
@@ -2252,7 +2309,7 @@ state 145
     ,               reduce using rule 78 (r -> oplista .)
 
 
-state 146
+state 151
 
     (71) varcte -> ID r .
 
@@ -2274,14 +2331,14 @@ state 146
     ,               reduce using rule 71 (varcte -> ID r .)
 
 
-state 147
+state 152
 
     (79) oplista -> ID . . x
 
-    .               shift and go to state 168
+    .               shift and go to state 173
 
 
-state 148
+state 153
 
     (77) r -> empty .
 
@@ -2303,7 +2360,7 @@ state 148
     ,               reduce using rule 77 (r -> empty .)
 
 
-state 149
+state 154
 
     (67) factor -> ( expresion ) .
 
@@ -2311,21 +2368,21 @@ state 149
     /               reduce using rule 67 (factor -> ( expresion ) .)
     +               reduce using rule 67 (factor -> ( expresion ) .)
     -               reduce using rule 67 (factor -> ( expresion ) .)
-    AND             reduce using rule 67 (factor -> ( expresion ) .)
-    OR              reduce using rule 67 (factor -> ( expresion ) .)
-    ;               reduce using rule 67 (factor -> ( expresion ) .)
-    )               reduce using rule 67 (factor -> ( expresion ) .)
-    ID              reduce using rule 67 (factor -> ( expresion ) .)
-    ,               reduce using rule 67 (factor -> ( expresion ) .)
     EQ              reduce using rule 67 (factor -> ( expresion ) .)
     NOTEQ           reduce using rule 67 (factor -> ( expresion ) .)
     >               reduce using rule 67 (factor -> ( expresion ) .)
     <               reduce using rule 67 (factor -> ( expresion ) .)
     MTHANEQ         reduce using rule 67 (factor -> ( expresion ) .)
     LTHANEQ         reduce using rule 67 (factor -> ( expresion ) .)
+    AND             reduce using rule 67 (factor -> ( expresion ) .)
+    OR              reduce using rule 67 (factor -> ( expresion ) .)
+    ;               reduce using rule 67 (factor -> ( expresion ) .)
+    )               reduce using rule 67 (factor -> ( expresion ) .)
+    ID              reduce using rule 67 (factor -> ( expresion ) .)
+    ,               reduce using rule 67 (factor -> ( expresion ) .)
 
 
-state 150
+state 155
 
     (61) p -> MTHANEQ nexp .
 
@@ -2337,7 +2394,7 @@ state 150
     ,               reduce using rule 61 (p -> MTHANEQ nexp .)
 
 
-state 151
+state 156
 
     (58) p -> NOTEQ nexp .
 
@@ -2349,7 +2406,7 @@ state 151
     ,               reduce using rule 58 (p -> NOTEQ nexp .)
 
 
-state 152
+state 157
 
     (62) p -> LTHANEQ nexp .
 
@@ -2361,7 +2418,7 @@ state 152
     ,               reduce using rule 62 (p -> LTHANEQ nexp .)
 
 
-state 153
+state 158
 
     (57) p -> EQ nexp .
 
@@ -2373,7 +2430,7 @@ state 153
     ,               reduce using rule 57 (p -> EQ nexp .)
 
 
-state 154
+state 159
 
     (60) p -> < nexp .
 
@@ -2385,7 +2442,7 @@ state 154
     ,               reduce using rule 60 (p -> < nexp .)
 
 
-state 155
+state 160
 
     (59) p -> > nexp .
 
@@ -2397,7 +2454,7 @@ state 155
     ,               reduce using rule 59 (p -> > nexp .)
 
 
-state 156
+state 161
 
     (65) q -> + nexp .
 
@@ -2415,7 +2472,7 @@ state 156
     ,               reduce using rule 65 (q -> + nexp .)
 
 
-state 157
+state 162
 
     (66) q -> - nexp .
 
@@ -2433,7 +2490,7 @@ state 157
     ,               reduce using rule 66 (q -> - nexp .)
 
 
-state 158
+state 163
 
     (53) o -> AND subexpresion .
 
@@ -2443,7 +2500,7 @@ state 158
     ,               reduce using rule 53 (o -> AND subexpresion .)
 
 
-state 159
+state 164
 
     (54) o -> OR subexpresion .
 
@@ -2453,7 +2510,7 @@ state 159
     ,               reduce using rule 54 (o -> OR subexpresion .)
 
 
-state 160
+state 165
 
     (49) n -> * termino .
 
@@ -2473,7 +2530,7 @@ state 160
     ,               reduce using rule 49 (n -> * termino .)
 
 
-state 161
+state 166
 
     (50) n -> / termino .
 
@@ -2493,54 +2550,55 @@ state 161
     ,               reduce using rule 50 (n -> / termino .)
 
 
-state 162
-
-    (90) while -> ( expresion ) bloque ; .
-
-    ID              reduce using rule 90 (while -> ( expresion ) bloque ; .)
-    IF              reduce using rule 90 (while -> ( expresion ) bloque ; .)
-    FOR             reduce using rule 90 (while -> ( expresion ) bloque ; .)
-    RETURN          reduce using rule 90 (while -> ( expresion ) bloque ; .)
-    (               reduce using rule 90 (while -> ( expresion ) bloque ; .)
-    PRINT           reduce using rule 90 (while -> ( expresion ) bloque ; .)
-    }               reduce using rule 90 (while -> ( expresion ) bloque ; .)
-
-
-state 163
-
-    (91) play -> ( NOTA , CTEE ) . ;
-
-    ;               shift and go to state 169
-
-
-state 164
+state 167
 
     (43) for -> FOR ( asignacion expresion asignacion . ) bloque ;
 
-    )               shift and go to state 170
+    )               shift and go to state 174
 
 
-state 165
+state 168
 
     (39) asiglista -> NEW LIST ( . )
 
-    )               shift and go to state 171
+    )               shift and go to state 175
 
 
-state 166
+state 169
 
     (40) if -> IF ( expresion ) bloque . l ;
     (41) l -> . empty
     (42) l -> . ELSE bloque
     (106) empty -> .
 
-    ELSE            shift and go to state 173
+    ELSE            shift and go to state 177
     ;               reduce using rule 106 (empty -> .)
 
-    l                              shift and go to state 172
-    empty                          shift and go to state 174
+    l                              shift and go to state 176
+    empty                          shift and go to state 178
 
-state 167
+state 170
+
+    (91) play -> PLAY ( NOTA , CTEE ) . ;
+
+    ;               shift and go to state 179
+
+
+state 171
+
+    (90) while -> WHILE ( expresion ) bloque ; .
+
+    ID              reduce using rule 90 (while -> WHILE ( expresion ) bloque ; .)
+    IF              reduce using rule 90 (while -> WHILE ( expresion ) bloque ; .)
+    FOR             reduce using rule 90 (while -> WHILE ( expresion ) bloque ; .)
+    RETURN          reduce using rule 90 (while -> WHILE ( expresion ) bloque ; .)
+    WHILE           reduce using rule 90 (while -> WHILE ( expresion ) bloque ; .)
+    PLAY            reduce using rule 90 (while -> WHILE ( expresion ) bloque ; .)
+    PRINT           reduce using rule 90 (while -> WHILE ( expresion ) bloque ; .)
+    }               reduce using rule 90 (while -> WHILE ( expresion ) bloque ; .)
+
+
+state 172
 
     (93) callfunc -> CALL ID ( . s ) ;
     (94) s -> . empty
@@ -2559,14 +2617,14 @@ state 167
     CTEBOOL         reduce using rule 106 (empty -> .)
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
-    NOT             shift and go to state 66
+    NOT             shift and go to state 82
 
-    expresion                      shift and go to state 175
-    m                              shift and go to state 65
-    s                              shift and go to state 176
-    empty                          shift and go to state 177
+    expresion                      shift and go to state 180
+    m                              shift and go to state 81
+    s                              shift and go to state 181
+    empty                          shift and go to state 182
 
-state 168
+state 173
 
     (79) oplista -> ID . . x
     (80) x -> . inlistset
@@ -2580,92 +2638,93 @@ state 168
     (88) getlist -> . GET ( expresion )
     (89) removelist -> . REMOVE ( expresion )
 
-    SET             shift and go to state 178
-    APPEND          shift and go to state 185
-    LENGTH          shift and go to state 183
-    GET             shift and go to state 180
-    REMOVE          shift and go to state 182
+    SET             shift and go to state 183
+    APPEND          shift and go to state 190
+    LENGTH          shift and go to state 188
+    GET             shift and go to state 185
+    REMOVE          shift and go to state 187
 
-    inlistset                      shift and go to state 179
-    getlist                        shift and go to state 181
-    length                         shift and go to state 184
-    x                              shift and go to state 186
-    removelist                     shift and go to state 187
-    append                         shift and go to state 188
+    inlistset                      shift and go to state 184
+    getlist                        shift and go to state 186
+    length                         shift and go to state 189
+    x                              shift and go to state 191
+    removelist                     shift and go to state 192
+    append                         shift and go to state 193
 
-state 169
-
-    (91) play -> ( NOTA , CTEE ) ; .
-
-    ID              reduce using rule 91 (play -> ( NOTA , CTEE ) ; .)
-    IF              reduce using rule 91 (play -> ( NOTA , CTEE ) ; .)
-    FOR             reduce using rule 91 (play -> ( NOTA , CTEE ) ; .)
-    RETURN          reduce using rule 91 (play -> ( NOTA , CTEE ) ; .)
-    (               reduce using rule 91 (play -> ( NOTA , CTEE ) ; .)
-    PRINT           reduce using rule 91 (play -> ( NOTA , CTEE ) ; .)
-    }               reduce using rule 91 (play -> ( NOTA , CTEE ) ; .)
-
-
-state 170
+state 174
 
     (43) for -> FOR ( asignacion expresion asignacion ) . bloque ;
     (27) bloque -> . { i }
 
-    {               shift and go to state 41
+    {               shift and go to state 52
 
-    bloque                         shift and go to state 189
+    bloque                         shift and go to state 194
 
-state 171
+state 175
 
     (39) asiglista -> NEW LIST ( ) .
 
     ;               reduce using rule 39 (asiglista -> NEW LIST ( ) .)
 
 
-state 172
+state 176
 
     (40) if -> IF ( expresion ) bloque l . ;
 
-    ;               shift and go to state 190
+    ;               shift and go to state 195
 
 
-state 173
+state 177
 
     (42) l -> ELSE . bloque
     (27) bloque -> . { i }
 
-    {               shift and go to state 41
+    {               shift and go to state 52
 
-    bloque                         shift and go to state 191
+    bloque                         shift and go to state 196
 
-state 174
+state 178
 
     (41) l -> empty .
 
     ;               reduce using rule 41 (l -> empty .)
 
 
-state 175
+state 179
+
+    (91) play -> PLAY ( NOTA , CTEE ) ; .
+
+    ID              reduce using rule 91 (play -> PLAY ( NOTA , CTEE ) ; .)
+    IF              reduce using rule 91 (play -> PLAY ( NOTA , CTEE ) ; .)
+    FOR             reduce using rule 91 (play -> PLAY ( NOTA , CTEE ) ; .)
+    RETURN          reduce using rule 91 (play -> PLAY ( NOTA , CTEE ) ; .)
+    WHILE           reduce using rule 91 (play -> PLAY ( NOTA , CTEE ) ; .)
+    PLAY            reduce using rule 91 (play -> PLAY ( NOTA , CTEE ) ; .)
+    PRINT           reduce using rule 91 (play -> PLAY ( NOTA , CTEE ) ; .)
+    }               reduce using rule 91 (play -> PLAY ( NOTA , CTEE ) ; .)
+
+
+state 180
 
     (95) s -> expresion . t
     (96) t -> . empty
     (97) t -> . , s
     (106) empty -> .
 
-    ,               shift and go to state 194
+    ,               shift and go to state 199
     )               reduce using rule 106 (empty -> .)
 
-    t                              shift and go to state 192
-    empty                          shift and go to state 193
+    t                              shift and go to state 197
+    empty                          shift and go to state 198
 
-state 176
+state 181
 
     (93) callfunc -> CALL ID ( s . ) ;
 
-    )               shift and go to state 195
+    )               shift and go to state 200
 
 
-state 177
+state 182
 
     (94) s -> empty .
     (45) m -> empty .
@@ -2681,14 +2740,14 @@ state 177
     CALL            reduce using rule 45 (m -> empty .)
 
 
-state 178
+state 183
 
     (85) inlistset -> SET . ( CTEE , expresion )
 
-    (               shift and go to state 196
+    (               shift and go to state 201
 
 
-state 179
+state 184
 
     (80) x -> inlistset .
 
@@ -2710,14 +2769,14 @@ state 179
     ,               reduce using rule 80 (x -> inlistset .)
 
 
-state 180
+state 185
 
     (88) getlist -> GET . ( expresion )
 
-    (               shift and go to state 197
+    (               shift and go to state 202
 
 
-state 181
+state 186
 
     (83) x -> getlist .
 
@@ -2739,21 +2798,21 @@ state 181
     ,               reduce using rule 83 (x -> getlist .)
 
 
-state 182
+state 187
 
     (89) removelist -> REMOVE . ( expresion )
 
-    (               shift and go to state 198
+    (               shift and go to state 203
 
 
-state 183
+state 188
 
     (87) length -> LENGTH . ( )
 
-    (               shift and go to state 199
+    (               shift and go to state 204
 
 
-state 184
+state 189
 
     (82) x -> length .
 
@@ -2775,14 +2834,14 @@ state 184
     ,               reduce using rule 82 (x -> length .)
 
 
-state 185
+state 190
 
     (86) append -> APPEND . ( expresion )
 
-    (               shift and go to state 200
+    (               shift and go to state 205
 
 
-state 186
+state 191
 
     (79) oplista -> ID . x .
 
@@ -2804,7 +2863,7 @@ state 186
     ,               reduce using rule 79 (oplista -> ID . x .)
 
 
-state 187
+state 192
 
     (84) x -> removelist .
 
@@ -2826,7 +2885,7 @@ state 187
     ,               reduce using rule 84 (x -> removelist .)
 
 
-state 188
+state 193
 
     (81) x -> append .
 
@@ -2848,14 +2907,14 @@ state 188
     ,               reduce using rule 81 (x -> append .)
 
 
-state 189
+state 194
 
     (43) for -> FOR ( asignacion expresion asignacion ) bloque . ;
 
-    ;               shift and go to state 201
+    ;               shift and go to state 206
 
 
-state 190
+state 195
 
     (40) if -> IF ( expresion ) bloque l ; .
 
@@ -2863,33 +2922,34 @@ state 190
     IF              reduce using rule 40 (if -> IF ( expresion ) bloque l ; .)
     FOR             reduce using rule 40 (if -> IF ( expresion ) bloque l ; .)
     RETURN          reduce using rule 40 (if -> IF ( expresion ) bloque l ; .)
-    (               reduce using rule 40 (if -> IF ( expresion ) bloque l ; .)
+    WHILE           reduce using rule 40 (if -> IF ( expresion ) bloque l ; .)
+    PLAY            reduce using rule 40 (if -> IF ( expresion ) bloque l ; .)
     PRINT           reduce using rule 40 (if -> IF ( expresion ) bloque l ; .)
     }               reduce using rule 40 (if -> IF ( expresion ) bloque l ; .)
 
 
-state 191
+state 196
 
     (42) l -> ELSE bloque .
 
     ;               reduce using rule 42 (l -> ELSE bloque .)
 
 
-state 192
+state 197
 
     (95) s -> expresion t .
 
     )               reduce using rule 95 (s -> expresion t .)
 
 
-state 193
+state 198
 
     (96) t -> empty .
 
     )               reduce using rule 96 (t -> empty .)
 
 
-state 194
+state 199
 
     (97) t -> , . s
     (94) s -> . empty
@@ -2908,28 +2968,28 @@ state 194
     CTEBOOL         reduce using rule 106 (empty -> .)
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
-    NOT             shift and go to state 66
+    NOT             shift and go to state 82
 
-    expresion                      shift and go to state 175
-    m                              shift and go to state 65
-    s                              shift and go to state 202
-    empty                          shift and go to state 177
+    expresion                      shift and go to state 180
+    m                              shift and go to state 81
+    s                              shift and go to state 207
+    empty                          shift and go to state 182
 
-state 195
+state 200
 
     (93) callfunc -> CALL ID ( s ) . ;
 
-    ;               shift and go to state 203
+    ;               shift and go to state 208
 
 
-state 196
+state 201
 
     (85) inlistset -> SET ( . CTEE , expresion )
 
-    CTEE            shift and go to state 204
+    CTEE            shift and go to state 209
 
 
-state 197
+state 202
 
     (88) getlist -> GET ( . expresion )
     (44) expresion -> . m subexpresion
@@ -2937,7 +2997,7 @@ state 197
     (46) m -> . NOT
     (106) empty -> .
 
-    NOT             shift and go to state 66
+    NOT             shift and go to state 82
     (               reduce using rule 106 (empty -> .)
     -               reduce using rule 106 (empty -> .)
     ID              reduce using rule 106 (empty -> .)
@@ -2947,11 +3007,11 @@ state 197
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    expresion                      shift and go to state 205
-    m                              shift and go to state 65
-    empty                          shift and go to state 67
+    expresion                      shift and go to state 210
+    m                              shift and go to state 81
+    empty                          shift and go to state 83
 
-state 198
+state 203
 
     (89) removelist -> REMOVE ( . expresion )
     (44) expresion -> . m subexpresion
@@ -2959,7 +3019,7 @@ state 198
     (46) m -> . NOT
     (106) empty -> .
 
-    NOT             shift and go to state 66
+    NOT             shift and go to state 82
     (               reduce using rule 106 (empty -> .)
     -               reduce using rule 106 (empty -> .)
     ID              reduce using rule 106 (empty -> .)
@@ -2969,18 +3029,18 @@ state 198
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    expresion                      shift and go to state 206
-    m                              shift and go to state 65
-    empty                          shift and go to state 67
+    expresion                      shift and go to state 211
+    m                              shift and go to state 81
+    empty                          shift and go to state 83
 
-state 199
+state 204
 
     (87) length -> LENGTH ( . )
 
-    )               shift and go to state 207
+    )               shift and go to state 212
 
 
-state 200
+state 205
 
     (86) append -> APPEND ( . expresion )
     (44) expresion -> . m subexpresion
@@ -2988,7 +3048,7 @@ state 200
     (46) m -> . NOT
     (106) empty -> .
 
-    NOT             shift and go to state 66
+    NOT             shift and go to state 82
     (               reduce using rule 106 (empty -> .)
     -               reduce using rule 106 (empty -> .)
     ID              reduce using rule 106 (empty -> .)
@@ -2998,11 +3058,11 @@ state 200
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    expresion                      shift and go to state 208
-    m                              shift and go to state 65
-    empty                          shift and go to state 67
+    expresion                      shift and go to state 213
+    m                              shift and go to state 81
+    empty                          shift and go to state 83
 
-state 201
+state 206
 
     (43) for -> FOR ( asignacion expresion asignacion ) bloque ; .
 
@@ -3010,19 +3070,20 @@ state 201
     IF              reduce using rule 43 (for -> FOR ( asignacion expresion asignacion ) bloque ; .)
     FOR             reduce using rule 43 (for -> FOR ( asignacion expresion asignacion ) bloque ; .)
     RETURN          reduce using rule 43 (for -> FOR ( asignacion expresion asignacion ) bloque ; .)
-    (               reduce using rule 43 (for -> FOR ( asignacion expresion asignacion ) bloque ; .)
+    WHILE           reduce using rule 43 (for -> FOR ( asignacion expresion asignacion ) bloque ; .)
+    PLAY            reduce using rule 43 (for -> FOR ( asignacion expresion asignacion ) bloque ; .)
     PRINT           reduce using rule 43 (for -> FOR ( asignacion expresion asignacion ) bloque ; .)
     }               reduce using rule 43 (for -> FOR ( asignacion expresion asignacion ) bloque ; .)
 
 
-state 202
+state 207
 
     (97) t -> , s .
 
     )               reduce using rule 97 (t -> , s .)
 
 
-state 203
+state 208
 
     (93) callfunc -> CALL ID ( s ) ; .
 
@@ -3044,28 +3105,28 @@ state 203
     ,               reduce using rule 93 (callfunc -> CALL ID ( s ) ; .)
 
 
-state 204
+state 209
 
     (85) inlistset -> SET ( CTEE . , expresion )
 
-    ,               shift and go to state 209
+    ,               shift and go to state 214
 
 
-state 205
+state 210
 
     (88) getlist -> GET ( expresion . )
 
-    )               shift and go to state 210
+    )               shift and go to state 215
 
 
-state 206
+state 211
 
     (89) removelist -> REMOVE ( expresion . )
 
-    )               shift and go to state 211
+    )               shift and go to state 216
 
 
-state 207
+state 212
 
     (87) length -> LENGTH ( ) .
 
@@ -3087,14 +3148,14 @@ state 207
     ,               reduce using rule 87 (length -> LENGTH ( ) .)
 
 
-state 208
+state 213
 
     (86) append -> APPEND ( expresion . )
 
-    )               shift and go to state 212
+    )               shift and go to state 217
 
 
-state 209
+state 214
 
     (85) inlistset -> SET ( CTEE , . expresion )
     (44) expresion -> . m subexpresion
@@ -3102,7 +3163,7 @@ state 209
     (46) m -> . NOT
     (106) empty -> .
 
-    NOT             shift and go to state 66
+    NOT             shift and go to state 82
     (               reduce using rule 106 (empty -> .)
     -               reduce using rule 106 (empty -> .)
     ID              reduce using rule 106 (empty -> .)
@@ -3112,11 +3173,11 @@ state 209
     CTECHAR         reduce using rule 106 (empty -> .)
     CALL            reduce using rule 106 (empty -> .)
 
-    expresion                      shift and go to state 213
-    m                              shift and go to state 65
-    empty                          shift and go to state 67
+    expresion                      shift and go to state 218
+    m                              shift and go to state 81
+    empty                          shift and go to state 83
 
-state 210
+state 215
 
     (88) getlist -> GET ( expresion ) .
 
@@ -3138,7 +3199,7 @@ state 210
     ,               reduce using rule 88 (getlist -> GET ( expresion ) .)
 
 
-state 211
+state 216
 
     (89) removelist -> REMOVE ( expresion ) .
 
@@ -3160,7 +3221,7 @@ state 211
     ,               reduce using rule 89 (removelist -> REMOVE ( expresion ) .)
 
 
-state 212
+state 217
 
     (86) append -> APPEND ( expresion ) .
 
@@ -3182,14 +3243,14 @@ state 212
     ,               reduce using rule 86 (append -> APPEND ( expresion ) .)
 
 
-state 213
+state 218
 
     (85) inlistset -> SET ( CTEE , expresion . )
 
-    )               shift and go to state 214
+    )               shift and go to state 219
 
 
-state 214
+state 219
 
     (85) inlistset -> SET ( CTEE , expresion ) .
 
@@ -3213,16 +3274,16 @@ state 214
 WARNING: 
 WARNING: Conflicts:
 WARNING: 
-WARNING: shift/reduce conflict for ID in state 115 resolved as shift
+WARNING: shift/reduce conflict for ID in state 120 resolved as shift
 WARNING: reduce/reduce conflict in state 12 resolved using rule (a -> empty)
 WARNING: rejected rule (b -> empty) in state 12
 WARNING: reduce/reduce conflict in state 23 resolved using rule (c -> empty)
 WARNING: rejected rule (d -> empty) in state 23
-WARNING: reduce/reduce conflict in state 70 resolved using rule (i -> empty)
-WARNING: rejected rule (j -> empty) in state 70
-WARNING: reduce/reduce conflict in state 105 resolved using rule (f -> empty)
-WARNING: rejected rule (g -> empty) in state 105
+WARNING: reduce/reduce conflict in state 51 resolved using rule (f -> empty)
+WARNING: rejected rule (g -> empty) in state 51
+WARNING: reduce/reduce conflict in state 84 resolved using rule (i -> empty)
+WARNING: rejected rule (j -> empty) in state 84
 WARNING: Rule (b -> empty) is never reduced
 WARNING: Rule (d -> empty) is never reduced
-WARNING: Rule (j -> empty) is never reduced
 WARNING: Rule (g -> empty) is never reduced
+WARNING: Rule (j -> empty) is never reduced
