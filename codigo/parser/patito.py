@@ -178,17 +178,17 @@ def p_a(p):
 
 def p_b(p):
     '''b : empty
-         | a''''
+         | a'''
     pass
 
 def p_c(p):
     '''c : empty
-         | funcion d''''
+         | funcion d'''
     pass
 
 def p_d(p):
     '''d : empty
-         | c''''
+         | c'''
     pass
 
 def p_vars(p):
@@ -265,6 +265,10 @@ def p_k(p):
          | asiglista'''
     pass
 
+def p_asiglista(p):
+    'asiglista : NEW LIST "(" ")"'
+    pass
+
 def p_if(p):
     'if : IF "(" expresion ")" bloque l ";"'
     pass
@@ -317,8 +321,8 @@ def p_p(p):
          | NOTEQ nexp
          | ">" nexp
          | "<" nexp
-         | GTEQ nexp
-         | LTEQ nexp'''
+         | MTHANEQ nexp
+         | LTHANEQ nexp'''
     pass
 
 def p_nexp(p):
@@ -347,11 +351,11 @@ def p_varcte(p):
               | CTEF
               | CTEBOOL
               | callfunc
-              | CHAR'''
+              | CTECHAR'''
     pass
 
-def p_k(p):
-    '''k : empty
+def p_r(p):
+    '''r : empty
          | oplista'''
     pass
 
@@ -392,7 +396,7 @@ def p_while(p):
     pass
 
 def p_play(p):
-    'play : "(" NOTA , CTEE ")" ";"'
+    'play : "(" NOTA "," CTEE ")" ";"'
     pass
 
 def p_print(p):
@@ -423,7 +427,7 @@ def p_tipo(p):
 
 def p_u(p):
     '''u : empty
-         | LISTA'''
+         | LIST'''
     pass
 
 def p_y(p):
