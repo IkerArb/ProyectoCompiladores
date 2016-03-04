@@ -2,7 +2,7 @@ func parte1(int repeticiones){
   int i;
   bool switch;
   switch = true;
-  for(i = 0; i<repeticiones; i++){
+  for(i = 0; i<repeticiones; i=i+1){
     if(switch){
       play(C,1);
     }
