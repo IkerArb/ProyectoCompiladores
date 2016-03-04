@@ -1,22 +1,22 @@
-func parte1(int repeticiones){
-  int i;
-  bool switch;
+FUNC parte1(INT repeticiones){
+  INT i;
+  BOOL switch;
   switch = true;
-  for(i = 0; i<repeticiones; i=i+1){
-    if(switch){
-      play(C,1);
+  FOR(i = 0; i<repeticiones; i=i+1){
+    IF(switch){
+      PLAY(C,1);
     }
-    else{
-      play(E,1);
-    }
-  }
+    ELSE{
+      PLAY(E,1);
+    };
+  };
 }
 
 cancion(90){
-  double x;
+  DOUBLE x;
   x = 20;
-  while((x/10)>1){
-    play(A,0.25);
-  }
-  call parte1(15);
+  WHILE((x/10)>1){
+    PLAY(A,0.25);
+  };
+  CALL parte1(15);
 }
