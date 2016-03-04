@@ -11,106 +11,150 @@ if sys.version_info[0] >= 3:
     raw_input = input
 
 tokens = (
-    'PROG','IF','THEN','ELSE','PROC','END','INT','FLOAT',
-    'WHILE','READ','PRINT','VAR','NOTEQ','LTEQ','GTEQ',
-    'CTES','COMMENT','ID','CTEED','CTEEB','CTEEH','CTEF',
+    'VAR','FUNC','NEW','LIST','IF', 'ELSE',
+    'FOR','NOT','AND','OR','SET','APPEND',
+    'LENGTH','GET','REMOVE','NOTA','PRINT',
+    'CALL', 'RETURN', 'INT', 'CHAR', 'FLOAT',
+    'BOOL','NOTEQ', 'LTHANEQ', 'MTHANEQ', 'EQ',
+    'CTEF', 'CTEE', 'CTEBOOL', 'CTECHAR', 'ID',
     )
 
-literals = ['=','+','-','*','/', '(',')','{','}',':',',',';','>','<']
+literals = ['(',')',',',':',';', '{','}','*','/','',',',';','>','<']
 
 # Tokens
 
-def t_IF(t):
-    r'IF'
+def t_VAR(t):
+    r'VAR'
     return t
 
-def t_THEN(t):
-    r'THEN'
+def t_FUNC(t):
+    r'FUNC'
+    return t
+
+def t_NEW(t):
+    r'NEW'
+    return t
+
+def t_LIST(t):
+    r'LIST'
+    return t
+
+
+def t_IF(t):
+    r'IF'
     return t
 
 def t_ELSE(t):
     r'ELSE'
     return t
 
-def t_PROC(t):
-    r'PROC'
+def t_FOR(t):
+    r'FOR'
     return t
 
-def t_END(t):
-    r'END'
+def t_NOT(t):
+    r'NOT'
     return t
 
-def t_INT(t):
-    r'INT'
+def t_AND(t):
+    r'AND'
     return t
 
-def t_FLOAT(t):
-    r'FLOAT'
+def t_OR(t):
+    r'OR'
     return t
 
-def t_WHILE(t):
-    r'WHILE'
+def t_SET(t):
+    r'SET'
     return t
 
-def t_READ(t):
-    r'READ'
+def t_APPEND(t):
+    r'APPEND'
+    return t
+
+def t_LENGTH(t):
+    r'LENGTH'
+    return t
+
+def t_GET(t):
+    r'GET'
+    return t
+
+def t_REMOVE(t):
+    r'REMOVE'
+    return t
+
+def t_NOTA(t):
+    r'([A-G][1-7])|([A,C,D,F,G][#][1-7])'
     return t
 
 def t_PRINT(t):
     r'PRINT'
     return t
 
-def t_VAR(t):
-    r'VAR'
+def t_CALL(t):
+    r'CALL'
+    return t
+
+def t_RETURN(t):
+    r'RETURN'
+    return t
+
+def t_INT(t):
+    r'INT'
+    return t
+
+def t_CHAR(t):
+    r'CHAR'
+    return t
+
+def t_FLOAT(t):
+    r'FLOAT'
+    return t
+
+def t_BOOL(t):
+    r'BOOL'
     return t
 
 def t_NOTEQ(t):
-    r'<>'
+    r'!='
     return t
 
-def t_LTEQ(t):
+def t_LTHANEQ(t):
     r'<='
     return t
 
-def t_GTEQ(t):
+def t_MTHANEQ(t):
     r'>='
     return t
 
-def t_PROG(t):
-    r'PROG'
+def t_EQ(t):
+    r'=='
     return t
 
 def t_CTEF(t):
     r'[0-9]+([eE]([+]|[-])?|[.][0-9]+[eE]([+]|[-])?|[.])[0-9]+'
     t.value = float(t.value)
     return t
-
-def t_CTES(t):
-    r'\"[^\n"]*\"'
+def t_CTEE(t):
+    r'[0-9]+'
+    t.value = int(t.value)
     return t
 
-t_ignore = " \t\n"
+def t_CTECHAR(t):
+    r'\"[^\n"]\"'
+    return t
 
-def t_COMMENT(t):
-    r'\/\*([^*]|\n|[*][^\/])*\*\/'
+def t_CTEBOOL(t):
+    r'\"true\"| \"false\"'
+    t.value = bool(t.value)
     return t
 
 def t_ID(t):
     r'[A-Za-z]([_]?([a-zA-Z]|[0-9]))*'
     return t
 
-def t_CTEED(t):
-    r'[0-9]+'
-    t.value = int(t.value)
-    return t
-
-def t_CTEEB(t):
-    r'(0|1)+b'
-    return t
-
-def t_CTEEH(t):
-    r'[0-9]+[a-fA-F0-9]*[hH]'
-    return t
+t_ignore = " \t\n"
 
 def t_error(t):
     print("Illegal character '%s'" % t.value[0])

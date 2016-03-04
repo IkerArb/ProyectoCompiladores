@@ -1,0 +1,22 @@
+func parte1(int repeticiones){
+  int i;
+  bool switch;
+  switch = true;
+  for(i = 0; i<repeticiones; i=i+1){
+    if(switch){
+      play(C,1);
+    }
+    else{
+      play(E,1);
+    }
+  }
+}
+
+cancion(90){
+  double x;
+  x = 20;
+  while((x/10)>1){
+    play(A,0.25);
+  }
+  call parte1(15);
+}
