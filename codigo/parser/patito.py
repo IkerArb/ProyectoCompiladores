@@ -243,13 +243,18 @@ def p_v(p):
 
 def p_funcion(p):
     'funcion : FUNC tipo ID meterfuncion "(" params ")" f bloque'
-    scope.pop()
+    if p[4] != -1:
+        scope.pop()
     pass
 
 def p_meterfuncion(p):
     'meterfuncion : '
-    dir_procs[p[-1]] = [p[-2],{}]
-    scope.append(p[-1])
+    if p[-1] in dir_procs:
+        print "Funcion con ese ID ya existe en el programa"
+        p[0] = -1
+    else:
+        dir_procs[p[-1]] = [p[-2],{}]
+        scope.append(p[-1])
     pass
 
 def p_f(p):

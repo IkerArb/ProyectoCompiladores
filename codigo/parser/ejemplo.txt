@@ -8,6 +8,14 @@ FUNC INT parte1(INT repeticiones)
   switch = true;
 }
 
+FUNC FLOAT parte1(FLOAT repeticiones)
+  VAR i : INT;
+  VAR i : FLOAT;
+  VAR switch : BOOL;
+{
+  switch = true;
+}
+
 CANCION (90)
   VAR x : FLOAT;
 {
