@@ -6,6 +6,8 @@
 # -----------------------------------------------------------------------------
 
 import sys
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
 
 if sys.version_info[0] >= 3:
     raw_input = input
@@ -176,11 +178,25 @@ def t_error(t):
 import ply.lex as lex
 lex.lex()
 
+#diccionario de listas, pos0 = tipo, pos1 = vars
+dir_procs = {}
+scope = []
+pos_dics_var = 1
 # Parsing rules
 
+#estructura dir_proc = ["global",vars{}]
 def p_programa(p):
-    'programa : a c cancion'
+    'programa : creadirprocglobal a c cancion'
     print('done with file!\n')
+
+    pp.pprint(dir_procs)
+
+    pass
+
+def p_creadirprocglobal(p):
+    'creadirprocglobal : '
+    dir_procs['global'] = ['global',{}]
+    scope.append('global')
     pass
 
 def p_a(p):
@@ -205,19 +221,35 @@ def p_d(p):
 
 def p_vars(p):
     'vars : VAR v ":" tipo ";"'
+    aux_dic = dir_procs[scope[-1]][pos_dics_var]
+    if p[2] in aux_dic:
+        print "Variable con ese ID ya existe en ese scope"
+    else:
+        aux_dic[p[2]] = []
+        aux_dic[p[2]].append(p[4])
     pass
 
 def p_v(p):
-    'v : ID e'
+    'v : ID'
+    p[0] = p[1]
     pass
 
-def p_e(p):
-    '''e : empty
-         | "," v'''
-    pass
+#def p_e(p):
+#    '''e : empty
+#         | "," v'''
+#    pass
+
+# estructura de dir_proc = [tipo,vars{}]
 
 def p_funcion(p):
-    'funcion : FUNC tipo ID "(" params ")" f bloque'
+    'funcion : FUNC tipo ID meterfuncion "(" params ")" f bloque'
+    scope.pop()
+    pass
+
+def p_meterfuncion(p):
+    'meterfuncion : '
+    dir_procs[p[-1]] = [p[-2],{}]
+    scope.append(p[-1])
     pass
 
 def p_f(p):
@@ -232,7 +264,13 @@ def p_g(p):
 
 def p_params(p):
     '''params : empty
-              | tipo ID h'''
+              | tipo ID meterparams h'''
+    pass
+
+def p_meterparams(p):
+    'meterparams : '
+    dic_var = dir_procs[scope[-1]][pos_dics_var]
+    dic_var[p[-1]] = [p[-2]]
     pass
 
 def p_h(p):
@@ -254,8 +292,17 @@ def p_bloque(p):
     'bloque : "{" i "}"'
     pass
 
+# estructura de dir_proc = ['CANCION',vars{},tempo]
+
 def p_cancion(p):
-    'cancion : CANCION "(" CTEE ")" f bloque'
+    'cancion : CANCION "(" CTEE ")" metercancion f bloque'
+    scope.pop()
+    pass
+
+def p_metercancion(p):
+    'metercancion : '
+    scope.append(p[-4])
+    dir_procs[p[-4]] = [p[-4],{},p[-2]] #cancion tiene tempo como parametro extra en su lista
     pass
 
 def p_estatuto(p):
@@ -435,6 +482,7 @@ def p_return(p):
 
 def p_tipo(p):
     'tipo : u y'
+    p[0] = p[2]
     pass
 
 def p_u(p):
@@ -447,6 +495,7 @@ def p_y(p):
          | CHAR
          | FLOAT
          | BOOL'''
+    p[0] = p[1]
     pass
 
 def p_empty(t):
