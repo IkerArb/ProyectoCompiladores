@@ -178,8 +178,241 @@ def t_error(t):
 import ply.lex as lex
 lex.lex()
 
+
+###############################################
+## Cubo Semantico                            ##
+###############################################
+INT = 100
+CHAR = 200
+FLOAT = 300
+BOOL = 400
+MULT = 1
+DIV = 2
+AND = 3
+OR = 4
+EQEQ = 5
+NOTEQ = 6
+GT = 7
+LT = 8
+GTE = 9
+LTE = 10
+PLUS = 11
+MINUS = 12
+NOT = 13
+EQ = 14
+PLAY = 15
+PRINT = 16
+ERR = -1
+USELESS = -2
+
+cubo_semantico = {}
+
+#####################################
+## multiplication operation  cube  ##
+#####################################
+cubo_semantico[INT,INT,MULT]=INT
+cubo_semantico[INT,CHAR,MULT]=ERR
+cubo_semantico[INT,FLOAT,MULT]=FLOAT
+cubo_semantico[INT,BOOL,MULT]=ERR
+cubo_semantico[CHAR,CHAR,MULT]=ERR
+cubo_semantico[CHAR,FLOAT,MULT]=ERR
+cubo_semantico[CHAR,BOOL,MULT]=ERR
+cubo_semantico[FLOAT,FLOAT,MULT]=FLOAT
+cubo_semantico[FLOAT,BOOL,MULT]=ERR
+cubo_semantico[BOOL,BOOL,MULT]=ERR
+
+#####################################
+## division operation cube         ##
+#####################################
+cubo_semantico[INT,INT,DIV]=INT
+cubo_semantico[INT,CHAR,DIV]=ERR
+cubo_semantico[INT,FLOAT,DIV]=FLOAT
+cubo_semantico[INT,BOOL,DIV]=ERR
+cubo_semantico[CHAR,CHAR,DIV]=ERR
+cubo_semantico[CHAR,FLOAT,DIV]=ERR
+cubo_semantico[CHAR,BOOL,DIV]=ERR
+cubo_semantico[FLOAT,FLOAT,DIV]=FLOAT
+cubo_semantico[FLOAT,BOOL,DIV]=ERR
+cubo_semantico[BOOL,BOOL,DIV]=ERR
+
+#####################################
+## and operation cube              ##
+#####################################
+cubo_semantico[INT,INT,AND]=ERR
+cubo_semantico[INT,CHAR,AND]=ERR
+cubo_semantico[INT,FLOAT,AND]=ERR
+cubo_semantico[INT,BOOL,AND]=ERR
+cubo_semantico[CHAR,CHAR,AND]=ERR
+cubo_semantico[CHAR,FLOAT,AND]=ERR
+cubo_semantico[CHAR,BOOL,AND]=ERR
+cubo_semantico[FLOAT,FLOAT,AND]=ERR
+cubo_semantico[FLOAT,BOOL,AND]=ERR
+cubo_semantico[BOOL,BOOL,AND]=BOOL
+
+#####################################
+## or  operation cube              ##
+#####################################
+cubo_semantico[INT,INT,OR]=ERR
+cubo_semantico[INT,CHAR,OR]=ERR
+cubo_semantico[INT,FLOAT,OR]=ERR
+cubo_semantico[INT,BOOL,OR]=ERR
+cubo_semantico[CHAR,CHAR,OR]=ERR
+cubo_semantico[CHAR,FLOAT,OR]=ERR
+cubo_semantico[CHAR,BOOL,OR]=ERR
+cubo_semantico[FLOAT,FLOAT,OR]=ERR
+cubo_semantico[FLOAT,BOOL,OR]=ERR
+cubo_semantico[BOOL,BOOL,OR]=BOOL
+
+#####################################
+## ==  operation cube              ##
+#####################################
+cubo_semantico[INT,INT,EQEQ]=BOOL
+cubo_semantico[INT,CHAR,EQEQ]=ERR
+cubo_semantico[INT,FLOAT,EQEQ]=BOOL
+cubo_semantico[INT,BOOL,EQEQ]=ERR
+cubo_semantico[CHAR,CHAR,EQEQ]=BOOL
+cubo_semantico[CHAR,FLOAT,EQEQ]=ERR
+cubo_semantico[CHAR,BOOL,EQEQ]=ERR
+cubo_semantico[FLOAT,FLOAT,EQEQ]=BOOL
+cubo_semantico[FLOAT,BOOL,EQEQ]=ERR
+cubo_semantico[BOOL,BOOL,EQEQ]=BOOL
+
+#####################################
+## notequals  operation cube       ##
+#####################################
+cubo_semantico[INT,INT,NOTEQ]=BOOL
+cubo_semantico[INT,CHAR,NOTEQ]=ERR
+cubo_semantico[INT,FLOAT,NOTEQ]=BOOL
+cubo_semantico[INT,BOOL,NOTEQ]=ERR
+cubo_semantico[CHAR,CHAR,NOTEQ]=BOOL
+cubo_semantico[CHAR,FLOAT,NOTEQ]=ERR
+cubo_semantico[CHAR,BOOL,NOTEQ]=ERR
+cubo_semantico[FLOAT,FLOAT,NOTEQ]=BOOL
+cubo_semantico[FLOAT,BOOL,NOTEQ]=ERR
+cubo_semantico[BOOL,BOOL,NOTEQ]=BOOL
+
+
+#####################################
+## gt operation cube               ##
+#####################################
+cubo_semantico[INT,INT,GT]=BOOL
+cubo_semantico[INT,CHAR,GT]=ERR
+cubo_semantico[INT,FLOAT,GT]=BOOL
+cubo_semantico[INT,BOOL,GT]=ERR
+cubo_semantico[CHAR,CHAR,GT]=ERR
+cubo_semantico[CHAR,FLOAT,GT]=ERR
+cubo_semantico[CHAR,BOOL,GT]=ERR
+cubo_semantico[FLOAT,FLOAT,GT]=BOOL
+cubo_semantico[FLOAT,BOOL,GT]=ERR
+cubo_semantico[BOOL,BOOL,GT]=ERR
+
+#####################################
+## lt operation cube               ##
+#####################################
+cubo_semantico[INT,INT,LT]=BOOL
+cubo_semantico[INT,CHAR,LT]=ERR
+cubo_semantico[INT,FLOAT,LT]=BOOL
+cubo_semantico[INT,BOOL,LT]=ERR
+cubo_semantico[CHAR,CHAR,LT]=ERR
+cubo_semantico[CHAR,FLOAT,LT]=ERR
+cubo_semantico[CHAR,BOOL,LT]=ERR
+cubo_semantico[FLOAT,FLOAT,LT]=BOOL
+cubo_semantico[FLOAT,BOOL,LT]=ERR
+cubo_semantico[BOOL,BOOL,LT]=ERR
+
+#####################################
+## gte operation cube              ##
+#####################################
+cubo_semantico[INT,INT,GTE]=BOOL
+cubo_semantico[INT,CHAR,GTE]=ERR
+cubo_semantico[INT,FLOAT,GTE]=BOOL
+cubo_semantico[INT,BOOL,GTE]=ERR
+cubo_semantico[CHAR,CHAR,GTE]=ERR
+cubo_semantico[CHAR,FLOAT,GTE]=ERR
+cubo_semantico[CHAR,BOOL,GTE]=ERR
+cubo_semantico[FLOAT,FLOAT,GTE]=BOOL
+cubo_semantico[FLOAT,BOOL,GTE]=ERR
+cubo_semantico[BOOL,BOOL,GTE]=ERR
+
+#####################################
+## lte operation cube              ##
+#####################################
+cubo_semantico[INT,INT,LTE]=BOOL
+cubo_semantico[INT,CHAR,LTE]=ERR
+cubo_semantico[INT,FLOAT,LTE]=BOOL
+cubo_semantico[INT,BOOL,LTE]=ERR
+cubo_semantico[CHAR,CHAR,LTE]=ERR
+cubo_semantico[CHAR,FLOAT,LTE]=ERR
+cubo_semantico[CHAR,BOOL,LTE]=ERR
+cubo_semantico[FLOAT,FLOAT,LTE]=BOOL
+cubo_semantico[FLOAT,BOOL,LTE]=ERR
+cubo_semantico[BOOL,BOOL,LTE]=ERR
+
+#####################################
+## plus operation cube             ##
+#####################################
+cubo_semantico[INT,INT,PLUS]=INT
+cubo_semantico[INT,CHAR,PLUS]=ERR
+cubo_semantico[INT,FLOAT,PLUS]=FLOAT
+cubo_semantico[INT,BOOL,PLUS]=ERR
+cubo_semantico[CHAR,CHAR,PLUS]=ERR
+cubo_semantico[CHAR,FLOAT,PLUS]=ERR
+cubo_semantico[CHAR,BOOL,PLUS]=ERR
+cubo_semantico[FLOAT,FLOAT,PLUS]=FLOAT
+cubo_semantico[FLOAT,BOOL,PLUS]=ERR
+cubo_semantico[BOOL,BOOL,PLUS]=ERR
+
+#####################################
+## neg operation cube              ##
+#####################################
+cubo_semantico[INT,MINUS,USELESS]=INT
+cubo_semantico[CHAR,MINUS,USELESS]=ERR
+cubo_semantico[FLOAT,MINUS,USELESS]=FLOAT
+cubo_semantico[BOOL,MINUS,USELESS]=ERR
+
+#####################################
+## not operation cube              ##
+#####################################
+cubo_semantico[INT,NOT,USELESS]=ERR
+cubo_semantico[CHAR,NOT,USELESS]=ERR
+cubo_semantico[FLOAT,NOT,USELESS]=ERR
+cubo_semantico[BOOL,NOT,USELESS]=BOOL
+
+#####################################
+## equals operation cube           ##
+#####################################
+cubo_semantico[INT,INT,EQ]=INT
+cubo_semantico[INT,CHAR,EQ]=ERR
+cubo_semantico[INT,FLOAT,EQ]=ERR
+cubo_semantico[INT,BOOL,PLUS]=ERR
+cubo_semantico[CHAR,CHAR,PLUS]=CHAR
+cubo_semantico[CHAR,FLOAT,PLUS]=ERR
+cubo_semantico[CHAR,BOOL,PLUS]=ERR
+cubo_semantico[FLOAT,FLOAT,PLUS]=FLOAT
+cubo_semantico[FLOAT,BOOL,PLUS]=ERR
+cubo_semantico[BOOL,BOOL,PLUS]=BOOL
+
+####################################
+## PILAS AUXILIARES               ##
+####################################
+pilaO=[]
+pOper=[]
+pTipos=[]
+
+####################################
+## CUADRUPLOS                     ##
+####################################
+cuadruplos={}
+contCuad = 1
+
+####################################
+## TEMPORALES                     ##
+####################################
+contTemp=1001
+
 #diccionario de listas, pos0 = tipo, pos1 = vars
 dir_procs = {}
+auxDic = {}
 scope = []
 pos_dics_var = 1
 # Parsing rules
@@ -221,12 +454,13 @@ def p_d(p):
 
 def p_vars(p):
     'vars : VAR v ":" tipo ";"'
-    aux_dic = dir_procs[scope[-1]][pos_dics_var]
-    if p[2] in aux_dic:
+    auxDic = dir_procs[scope[-1]][pos_dics_var]
+    print auxDic
+    if p[2] in auxDic:
         print "Variable con ese ID ya existe en ese scope"
     else:
-        aux_dic[p[2]] = []
-        aux_dic[p[2]].append(p[4])
+        auxDic[p[2]] = []
+        auxDic[p[2]].append(p[4])
     pass
 
 def p_v(p):
@@ -321,7 +555,40 @@ def p_estatuto(p):
     pass
 
 def p_asignacion(p):
-    'asignacion : ID "=" k ";"'
+    'asignacion : ID "=" neur8  k ";"'
+    if pOper[-1] == EQ:
+        op = pOper.pop()
+        opdoDer = pilaO.pop()
+        tipoDer = pTipos.pop()
+        opdoIzq = pilaO.pop()
+        tipoIzq = pTipos.pop()
+        tipoRes = cubo_semantico[tipoIzq,tipoDer,op]
+        if tipoRes != ERR :
+            cuadruplos[contCuad] = [op,opdoIzq,opdoDer,contTemp]
+            contTemp+=1
+            contCuad+=1
+        else:
+            print("Type mismatch")
+            exit()
+    else:
+        print("Asignacion mal terminada")
+    pass
+
+#############################
+## punto neuralgico 8      ##
+#############################
+
+def p_neur8(p):
+    'neur8 : '
+    auxDic = dir_procs[scope[-1]][pos_dics_var]
+    print auxDic
+    if p[-2] in auxDic:
+        pilaO.append(p[-2])
+        pTipos.append(auxDic[p[-2]])
+        pOper.append(EQ)
+    else:
+        print "No existe tal variable a asignar"
+        exit()
     pass
 
 def p_k(p):
@@ -348,83 +615,353 @@ def p_for(p):
 
 def p_expresion(p):
     'expresion : m subexpresion'
+    if pOper[-1] == NOT:
+        op = pOper.pop()
+        opdoIzq = pilaO.pop()
+        tipoIzq = pTipos.pop()
+        tipoRes = cubo_semantico[tipoIzq,op,USELESS]
+        if tipoRes != ERR :
+            cuadruplos[contCuad] = [op,opdoIzq,"",contTemp]
+            pilaO.append(contTemp)
+            pTipos.append(tipoRes)
+            contTemp+=1
+            contCuad+=1
+        else:
+            print("Type mismatch")
+            exit()
     pass
 
 def p_m(p):
     '''m : empty
          | NOT'''
-    pass
-
-def p_termino(p):
-    'termino : factor n'
-    pass
-
-def p_n(p):
-    '''n : empty
-         | "*" termino
-         | "/" termino'''
+    pOper.append(NOT)
     pass
 
 def p_subexpresion(p):
-    'subexpresion : exp o'
+    'subexpresion : exp neur10 o'
+    pass
+
+#############################
+## punto neuralgico 10      ##
+#############################
+
+def p_neur10(p):
+    'neur10 : '
+    if pOper[-1] == AND or pOper[-1] == OR:
+        op = pOper.pop()
+        opdoDer = pilaO.pop()
+        tipoDer = pTipos.pop()
+        opdoIzq = pilaO.pop()
+        tipoIzq = pTipos.pop()
+        tipoRes = cubo_semantico[tipoIzq,tipoDer,op]
+        if tipoRes != ERR :
+            cuadruplos[contCuad] = [op,opdoIzq,opdoDer,contTemp]
+            pilaO.append(contTemp)
+            pTipos.append(tipoRes)
+            contTemp+=1
+            contCuad+=1
+        else:
+            print("Type mismatch")
+            exit()
     pass
 
 def p_o(p):
     '''o : empty
-         | AND subexpresion
-         | OR subexpresion'''
+         | AND neur9_1 subexpresion
+         | OR neur9_2 subexpresion'''
     pass
 
+#############################
+## punto neuralgico 9      ##
+#############################
+
+def p_neur9_1(p):
+    'neur9_1 : '
+    pOper.append(AND)
+    pass
+
+def p_neur9_2(p):
+    'neur9_2 : '
+    pOper.append(OR)
+    pass
+
+
 def p_exp(p):
-    'exp : nexp p'
+    'exp : nexp neur12 p'
+    pass
+
+#############################
+## punto neuralgico 12     ##
+#############################
+
+def p_neur12(p):
+    'neur12 : '
+    if pOper[-1] == EQEQ or pOper[-1] == NOTEQ or pOper[-1] == GT or pOper[-1] == LT or pOper[-1] == GTE or pOper[-1] == LTE:
+        op = pOper.pop()
+        opdoDer = pilaO.pop()
+        tipoDer = pTipos.pop()
+        opdoIzq = pilaO.pop()
+        tipoIzq = pTipos.pop()
+        tipoRes = cubo_semantico[tipoIzq,tipoDer,op]
+        if tipoRes != ERR :
+            cuadruplos[contCuad] = [op,opdoIzq,opdoDer,contTemp]
+            pilaO.append(contTemp)
+            pTipos.append(tipoRes)
+            contTemp+=1
+            contCuad+=1
+        else:
+            print("Type mismatch")
+            exit()
     pass
 
 def p_p(p):
     '''p : empty
-         | EQ nexp
-         | NOTEQ nexp
-         | ">" nexp
-         | "<" nexp
-         | MTHANEQ nexp
-         | LTHANEQ nexp'''
+         | EQ neur11_1 nexp
+         | NOTEQ neur11_2 nexp
+         | ">" neur11_3 nexp
+         | "<" neur11_4 nexp
+         | MTHANEQ neur11_5 nexp
+         | LTHANEQ neur11_6 nexp'''
+    pass
+
+#############################
+## punto neuralgico 11     ##
+#############################
+
+def p_neur11_1(p):
+    'neur11_1 : '
+    pOper.append(EQEQ)
+    pass
+
+def p_neur11_2(p):
+    'neur11_2 : '
+    pOper.append(NOTEQ)
+    pass
+
+def p_neur11_3(p):
+    'neur11_3 : '
+    pOper.append(GT)
+    pass
+
+def p_neur11_4(p):
+    'neur11_4 : '
+    pOper.append(LT)
+    pass
+
+def p_neur11_5(p):
+    'neur11_5 : '
+    pOper.append(GTE)
+    pass
+
+def p_neur11_6(p):
+    'neur11_6 : '
+    pOper.append(LTE)
     pass
 
 def p_nexp(p):
-    'nexp : termino q'
+    'nexp : termino neur5 q'
     pass
+
+#############################
+## punto neuralgico 5      ##
+#############################
+
+def p_neur5(p):
+    'neur5 : '
+    if pOper[-1] == PLUS or pOper[-1]== MINUS :
+        op = pOper.pop()
+        opdoDer = pilaO.pop()
+        tipoDer = pTipos.pop()
+        opdoIzq = pilaO.pop()
+        tipoIzq = pTipos.pop()
+        tipoRes = cubo_semantico[tipoIzq,tipoDer,op]
+        if tipoRes != ERR :
+            cuadruplos[contCuad] = [op,opdoIzq,opdoDer,contTemp]
+            pilaO.append(contTemp)
+            pTipos.append(tipoRes)
+            contTemp+=1
+            contCuad+=1
+        else:
+            print("Type mismatch")
+            exit()
+    pass
+
 
 def p_q(p):
     '''q : empty
-         | "+" nexp
-         | "-" nexp'''
+         | "+" neur3_1 nexp
+         | "-" neur3_2 nexp'''
+    pass
+
+#############################
+## punto neuralgico 3      ##
+#############################
+def p_neur3_1(p):
+    'neur3_1 : '
+    pOper.append(PLUS)
+    pass
+
+def p_neur3_2(p):
+    'neur3_2 : '
+    pOper.append(MINUS)
+    pass
+
+def p_termino(p):
+    'termino : factor neur4 n'
+    pass
+
+#############################
+## punto neuralgico 4      ##
+#############################
+
+def p_neur4(p):
+    'neur4 : '
+    if pOper[-1] == MULT or pOper[-1]== MULT :
+        op = pOper.pop()
+        opdoDer = pilaO.pop()
+        tipoDer = pTipos.pop()
+        opdoIzq = pilaO.pop()
+        tipoIzq = pTipos.pop()
+        tipoRes = cubo_semantico[tipoIzq,tipoDer,op]
+        if tipoRes != ERR :
+            cuadruplos[contCuad] = [op,opdoIzq,opdoDer,contTemp]
+            pilaO.append(contTemp)
+            pTipos.append(tipoRes)
+            contTemp+=1
+            contCuad+=1
+        else:
+            print("Type mismatch")
+            exit()
+    pass
+
+def p_n(p):
+    '''n : empty
+         | "*" neur2_1 termino
+         | "/" neur2_2 termino'''
+    pass
+
+#############################
+## punto neuralgico 2      ##
+#############################
+
+def p_neur2_1(p):
+    'neur2_1 : '
+    pOper.append(MULT)
+    pass
+
+def p_neur2_2(p):
+    'neur2_2 : '
+    pOper.append(DIV)
     pass
 
 def p_factor(p):
-    '''factor : "(" expresion ")"
-              | w varcte'''
+    '''factor : "(" neur6 expresion ")" neur7
+              | varcte neur1'''
     pass
 
-def p_w(p):
-    '''w : empty
-         | "-"'''
+#############################
+## punto neuralgico 6      ##
+#############################
+
+def p_neur6(p):
+    'neur6 : '
+    pOper.append("(")
+    pass
+
+#############################
+## punto neuralgico 7      ##
+#############################
+
+def p_neur7(p):
+    'neur7 : '
+    if pOper[-1] == "(" :
+        pOper.pop()
+    else:
+        print("Missing opening parenthesis")
+    pass
+
+#############################
+## punto neuralgico 1      ##
+#############################
+
+def p_neur1(p):
+    'neur1 : '
+    pilaO.append(p[-1])
     pass
 
 def p_varcte(p):
-    '''varcte : ID r
-              | CTEE
-              | CTEF
-              | CTEBOOL
+    '''varcte : ID r neurVar
+              | CTEE neurCteE
+              | CTEF neurCteF
+              | CTEBOOL neurCteB
               | callfunc
-              | CTECHAR'''
+              | CTECHAR neurCteCh'''
     pass
+
+#############################
+## punto neuralgico var    ##
+#############################
+
+def p_neurVar(p):
+    'neurVar : '
+    if pOper[-1] == -1:
+        auxDic = dir_procs[scope[-1]][pos_dics_var]
+        if p[-2] in auxDic:
+            pTipos.append(auxDic[p[-2]])
+        else:
+            print "No existe tal variable"
+            exit()
+    pass
+
+#############################
+## punto neuralgico int    ##
+#############################
+
+def p_neurCteE(p):
+    'neurCteE : '
+    pTipos.append(INT)
+    pass
+
+#############################
+## punto neuralgico char   ##
+#############################
+
+def p_neurCteF(p):
+    'neurCteF : '
+    pTipos.append(FLOAT)
+    pass
+
+#############################
+## punto neuralgico bool   ##
+#############################
+
+def p_neurCteB(p):
+    'neurCteB : '
+    pTipos.append(BOOL)
+    pass
+
+#############################
+## punto neuralgico char   ##
+#############################
+
+def p_neurCteCh(p):
+    'neurCteCh : '
+    pTipos.append(CHAR)
+    pass
+
 
 def p_r(p):
     '''r : empty
          | oplista'''
+    if p[1] == "":
+        p[0] = -1
+    else:
+        p[0] = 1
     pass
 
 def p_oplista(p):
     'oplista : ID "." x'
+    p[0] = p[3]
     pass
 
 def p_x(p):
@@ -433,26 +970,32 @@ def p_x(p):
          | length
          | getlist
          | removelist'''
+    p[0] = p[1]
     pass
 
 def p_inlistset(p):
     'inlistset : SET "(" CTEE "," expresion ")"'
+    p[0] = 1
     pass
 
 def p_append(p):
     'append : APPEND "(" expresion ")"'
+    p[0] = 2
     pass
 
 def p_length(p):
     'length : LENGTH "(" ")"'
+    p[0] = 3
     pass
 
 def p_getlist(p):
     'getlist : GET "(" expresion ")"'
+    p[0] = 4
     pass
 
 def p_removelist(p):
     'removelist : REMOVE "(" expresion ")"'
+    p[0] = 5
     pass
 
 def p_while(p):
@@ -461,10 +1004,19 @@ def p_while(p):
 
 def p_play(p):
     'play : PLAY "(" NOTA "," CTEE ")" ";"'
+    op = PLAY
+    opdoIzq = p[3]
+    opdoDer = p[5]
+    cuadruplos[contCuad] = [op,opdoIzq,opdoDer,""]
+    contCuad+=1
     pass
 
 def p_print(p):
     'print : PRINT expresion ";"'
+    op = PRINT
+    opdoIzq = p[2]
+    cuadruplos[contCuad] = [op,opdoIzq,"",""]
+    contCuad+=1
     pass
 
 def p_callfunc(p):
@@ -500,7 +1052,14 @@ def p_y(p):
          | CHAR
          | FLOAT
          | BOOL'''
-    p[0] = p[1]
+    if p[1]=="INT" :
+        p[0] = INT
+    elif p[1]=="CHAR" :
+        p[0] = CHAR
+    elif p[1]=="FLOAT" :
+        p[0] = FLOAT
+    elif p[1]=="BOOL" :
+        p[0] = BOOL
     pass
 
 def p_empty(t):

@@ -1,16 +1,15 @@
 VAR z : FLOAT;
 
 FUNC INT parte1(INT repeticiones)
-  VAR i : INT;
-  VAR i : FLOAT;
+
   VAR switch : BOOL;
+  VAR i : INT;
 {
   switch = true;
 }
 
 FUNC FLOAT parte1(FLOAT repeticiones)
   VAR i : INT;
-  VAR i : FLOAT;
   VAR switch : BOOL;
 {
   switch = true;
