@@ -160,7 +160,7 @@ def t_CTECHAR(t):
     return t
 
 def t_CTEBOOL(t):
-    r'\"true\"| \"false\"'
+    r'true| false'
     t.value = bool(t.value)
     return t
 
@@ -182,10 +182,43 @@ lex.lex()
 ###############################################
 ## Cubo Semantico                            ##
 ###############################################
+
+#diccionario padre
+cubo_semantico = {}
+
 INT = 100
+
+#diccionario donde INT es el primer operando
+cubo_semantico[INT] = {}
+
 CHAR = 200
+
+#diccionario donde CHAR es el primer operando
+cubo_semantico[CHAR] = {}
+
 FLOAT = 300
+
+#diccionario donde FLOAT es el primer operando
+cubo_semantico[FLOAT] = {}
+
 BOOL = 400
+
+#diccionario donde BOOL es el primer operando
+cubo_semantico[BOOL] = {}
+
+#diccionario de operaciones INT con INT
+
+cubo_semantico[INT][INT] = {}
+cubo_semantico[INT][FLOAT] = {}
+cubo_semantico[INT][CHAR] = {}
+cubo_semantico[INT][BOOL] = {}
+cubo_semantico[CHAR][CHAR] = {}
+cubo_semantico[CHAR][FLOAT] = {}
+cubo_semantico[CHAR][BOOL] = {}
+cubo_semantico[FLOAT][FLOAT] = {}
+cubo_semantico[FLOAT][BOOL] = {}
+cubo_semantico[BOOL][BOOL] = {}
+
 MULT = 1
 DIV = 2
 AND = 3
@@ -205,192 +238,194 @@ PRINT = 16
 ERR = -1
 USELESS = -2
 
-cubo_semantico = {}
-
 #####################################
 ## multiplication operation  cube  ##
 #####################################
-cubo_semantico[INT,INT,MULT]=INT
-cubo_semantico[INT,CHAR,MULT]=ERR
-cubo_semantico[INT,FLOAT,MULT]=FLOAT
-cubo_semantico[INT,BOOL,MULT]=ERR
-cubo_semantico[CHAR,CHAR,MULT]=ERR
-cubo_semantico[CHAR,FLOAT,MULT]=ERR
-cubo_semantico[CHAR,BOOL,MULT]=ERR
-cubo_semantico[FLOAT,FLOAT,MULT]=FLOAT
-cubo_semantico[FLOAT,BOOL,MULT]=ERR
-cubo_semantico[BOOL,BOOL,MULT]=ERR
+cubo_semantico[INT][INT][MULT]=INT
+cubo_semantico[INT][CHAR][MULT]=ERR
+cubo_semantico[INT][FLOAT][MULT]=FLOAT
+cubo_semantico[INT][BOOL][MULT]=ERR
+cubo_semantico[CHAR][CHAR][MULT]=ERR
+cubo_semantico[CHAR][FLOAT][MULT]=ERR
+cubo_semantico[CHAR][BOOL][MULT]=ERR
+cubo_semantico[FLOAT][FLOAT][MULT]=FLOAT
+cubo_semantico[FLOAT][BOOL][MULT]=ERR
+cubo_semantico[BOOL][BOOL][MULT]=ERR
 
 #####################################
 ## division operation cube         ##
 #####################################
-cubo_semantico[INT,INT,DIV]=INT
-cubo_semantico[INT,CHAR,DIV]=ERR
-cubo_semantico[INT,FLOAT,DIV]=FLOAT
-cubo_semantico[INT,BOOL,DIV]=ERR
-cubo_semantico[CHAR,CHAR,DIV]=ERR
-cubo_semantico[CHAR,FLOAT,DIV]=ERR
-cubo_semantico[CHAR,BOOL,DIV]=ERR
-cubo_semantico[FLOAT,FLOAT,DIV]=FLOAT
-cubo_semantico[FLOAT,BOOL,DIV]=ERR
-cubo_semantico[BOOL,BOOL,DIV]=ERR
+cubo_semantico[INT][INT][DIV]=INT
+cubo_semantico[INT][CHAR][DIV]=ERR
+cubo_semantico[INT][FLOAT][DIV]=FLOAT
+cubo_semantico[INT][BOOL][DIV]=ERR
+cubo_semantico[CHAR][CHAR][DIV]=ERR
+cubo_semantico[CHAR][FLOAT][DIV]=ERR
+cubo_semantico[CHAR][BOOL][DIV]=ERR
+cubo_semantico[FLOAT][FLOAT][DIV]=FLOAT
+cubo_semantico[FLOAT][BOOL][DIV]=ERR
+cubo_semantico[BOOL][BOOL][DIV]=ERR
 
 #####################################
 ## and operation cube              ##
 #####################################
-cubo_semantico[INT,INT,AND]=ERR
-cubo_semantico[INT,CHAR,AND]=ERR
-cubo_semantico[INT,FLOAT,AND]=ERR
-cubo_semantico[INT,BOOL,AND]=ERR
-cubo_semantico[CHAR,CHAR,AND]=ERR
-cubo_semantico[CHAR,FLOAT,AND]=ERR
-cubo_semantico[CHAR,BOOL,AND]=ERR
-cubo_semantico[FLOAT,FLOAT,AND]=ERR
-cubo_semantico[FLOAT,BOOL,AND]=ERR
-cubo_semantico[BOOL,BOOL,AND]=BOOL
+cubo_semantico[INT][INT][AND]=ERR
+cubo_semantico[INT][CHAR][AND]=ERR
+cubo_semantico[INT][FLOAT][AND]=ERR
+cubo_semantico[INT][BOOL][AND]=ERR
+cubo_semantico[CHAR][CHAR][AND]=ERR
+cubo_semantico[CHAR][FLOAT][AND]=ERR
+cubo_semantico[CHAR][BOOL][AND]=ERR
+cubo_semantico[FLOAT][FLOAT][AND]=ERR
+cubo_semantico[FLOAT][BOOL][AND]=ERR
+cubo_semantico[BOOL][BOOL][AND]=BOOL
 
 #####################################
 ## or  operation cube              ##
 #####################################
-cubo_semantico[INT,INT,OR]=ERR
-cubo_semantico[INT,CHAR,OR]=ERR
-cubo_semantico[INT,FLOAT,OR]=ERR
-cubo_semantico[INT,BOOL,OR]=ERR
-cubo_semantico[CHAR,CHAR,OR]=ERR
-cubo_semantico[CHAR,FLOAT,OR]=ERR
-cubo_semantico[CHAR,BOOL,OR]=ERR
-cubo_semantico[FLOAT,FLOAT,OR]=ERR
-cubo_semantico[FLOAT,BOOL,OR]=ERR
-cubo_semantico[BOOL,BOOL,OR]=BOOL
+cubo_semantico[INT][INT][OR]=ERR
+cubo_semantico[INT][CHAR][OR]=ERR
+cubo_semantico[INT][FLOAT][OR]=ERR
+cubo_semantico[INT][BOOL][OR]=ERR
+cubo_semantico[CHAR][CHAR][OR]=ERR
+cubo_semantico[CHAR][FLOAT][OR]=ERR
+cubo_semantico[CHAR][BOOL][OR]=ERR
+cubo_semantico[FLOAT][FLOAT][OR]=ERR
+cubo_semantico[FLOAT][BOOL][OR]=ERR
+cubo_semantico[BOOL][BOOL][OR]=BOOL
 
 #####################################
 ## ==  operation cube              ##
 #####################################
-cubo_semantico[INT,INT,EQEQ]=BOOL
-cubo_semantico[INT,CHAR,EQEQ]=ERR
-cubo_semantico[INT,FLOAT,EQEQ]=BOOL
-cubo_semantico[INT,BOOL,EQEQ]=ERR
-cubo_semantico[CHAR,CHAR,EQEQ]=BOOL
-cubo_semantico[CHAR,FLOAT,EQEQ]=ERR
-cubo_semantico[CHAR,BOOL,EQEQ]=ERR
-cubo_semantico[FLOAT,FLOAT,EQEQ]=BOOL
-cubo_semantico[FLOAT,BOOL,EQEQ]=ERR
-cubo_semantico[BOOL,BOOL,EQEQ]=BOOL
+cubo_semantico[INT][INT][EQEQ]=BOOL
+cubo_semantico[INT][CHAR][EQEQ]=ERR
+cubo_semantico[INT][FLOAT][EQEQ]=BOOL
+cubo_semantico[INT][BOOL][EQEQ]=ERR
+cubo_semantico[CHAR][CHAR][EQEQ]=BOOL
+cubo_semantico[CHAR][FLOAT][EQEQ]=ERR
+cubo_semantico[CHAR][BOOL][EQEQ]=ERR
+cubo_semantico[FLOAT][FLOAT][EQEQ]=BOOL
+cubo_semantico[FLOAT][BOOL][EQEQ]=ERR
+cubo_semantico[BOOL][BOOL][EQEQ]=BOOL
 
 #####################################
 ## notequals  operation cube       ##
 #####################################
-cubo_semantico[INT,INT,NOTEQ]=BOOL
-cubo_semantico[INT,CHAR,NOTEQ]=ERR
-cubo_semantico[INT,FLOAT,NOTEQ]=BOOL
-cubo_semantico[INT,BOOL,NOTEQ]=ERR
-cubo_semantico[CHAR,CHAR,NOTEQ]=BOOL
-cubo_semantico[CHAR,FLOAT,NOTEQ]=ERR
-cubo_semantico[CHAR,BOOL,NOTEQ]=ERR
-cubo_semantico[FLOAT,FLOAT,NOTEQ]=BOOL
-cubo_semantico[FLOAT,BOOL,NOTEQ]=ERR
-cubo_semantico[BOOL,BOOL,NOTEQ]=BOOL
+cubo_semantico[INT][INT][NOTEQ]=BOOL
+cubo_semantico[INT][CHAR][NOTEQ]=ERR
+cubo_semantico[INT][FLOAT][NOTEQ]=BOOL
+cubo_semantico[INT][BOOL][NOTEQ]=ERR
+cubo_semantico[CHAR][CHAR][NOTEQ]=BOOL
+cubo_semantico[CHAR][FLOAT][NOTEQ]=ERR
+cubo_semantico[CHAR][BOOL][NOTEQ]=ERR
+cubo_semantico[FLOAT][FLOAT][NOTEQ]=BOOL
+cubo_semantico[FLOAT][BOOL][NOTEQ]=ERR
+cubo_semantico[BOOL][BOOL][NOTEQ]=BOOL
 
 
 #####################################
 ## gt operation cube               ##
 #####################################
-cubo_semantico[INT,INT,GT]=BOOL
-cubo_semantico[INT,CHAR,GT]=ERR
-cubo_semantico[INT,FLOAT,GT]=BOOL
-cubo_semantico[INT,BOOL,GT]=ERR
-cubo_semantico[CHAR,CHAR,GT]=ERR
-cubo_semantico[CHAR,FLOAT,GT]=ERR
-cubo_semantico[CHAR,BOOL,GT]=ERR
-cubo_semantico[FLOAT,FLOAT,GT]=BOOL
-cubo_semantico[FLOAT,BOOL,GT]=ERR
-cubo_semantico[BOOL,BOOL,GT]=ERR
+cubo_semantico[INT][INT][GT]=BOOL
+cubo_semantico[INT][CHAR][GT]=ERR
+cubo_semantico[INT][FLOAT][GT]=BOOL
+cubo_semantico[INT][BOOL][GT]=ERR
+cubo_semantico[CHAR][CHAR][GT]=ERR
+cubo_semantico[CHAR][FLOAT][GT]=ERR
+cubo_semantico[CHAR][BOOL][GT]=ERR
+cubo_semantico[FLOAT][FLOAT][GT]=BOOL
+cubo_semantico[FLOAT][BOOL][GT]=ERR
+cubo_semantico[BOOL][BOOL][GT]=ERR
 
 #####################################
 ## lt operation cube               ##
 #####################################
-cubo_semantico[INT,INT,LT]=BOOL
-cubo_semantico[INT,CHAR,LT]=ERR
-cubo_semantico[INT,FLOAT,LT]=BOOL
-cubo_semantico[INT,BOOL,LT]=ERR
-cubo_semantico[CHAR,CHAR,LT]=ERR
-cubo_semantico[CHAR,FLOAT,LT]=ERR
-cubo_semantico[CHAR,BOOL,LT]=ERR
-cubo_semantico[FLOAT,FLOAT,LT]=BOOL
-cubo_semantico[FLOAT,BOOL,LT]=ERR
-cubo_semantico[BOOL,BOOL,LT]=ERR
+cubo_semantico[INT][INT][LT]=BOOL
+cubo_semantico[INT][CHAR][LT]=ERR
+cubo_semantico[INT][FLOAT][LT]=BOOL
+cubo_semantico[INT][BOOL][LT]=ERR
+cubo_semantico[CHAR][CHAR][LT]=ERR
+cubo_semantico[CHAR][FLOAT][LT]=ERR
+cubo_semantico[CHAR][BOOL][LT]=ERR
+cubo_semantico[FLOAT][FLOAT][LT]=BOOL
+cubo_semantico[FLOAT][BOOL][LT]=ERR
+cubo_semantico[BOOL][BOOL][LT]=ERR
 
 #####################################
 ## gte operation cube              ##
 #####################################
-cubo_semantico[INT,INT,GTE]=BOOL
-cubo_semantico[INT,CHAR,GTE]=ERR
-cubo_semantico[INT,FLOAT,GTE]=BOOL
-cubo_semantico[INT,BOOL,GTE]=ERR
-cubo_semantico[CHAR,CHAR,GTE]=ERR
-cubo_semantico[CHAR,FLOAT,GTE]=ERR
-cubo_semantico[CHAR,BOOL,GTE]=ERR
-cubo_semantico[FLOAT,FLOAT,GTE]=BOOL
-cubo_semantico[FLOAT,BOOL,GTE]=ERR
-cubo_semantico[BOOL,BOOL,GTE]=ERR
+cubo_semantico[INT][INT][GTE]=BOOL
+cubo_semantico[INT][CHAR][GTE]=ERR
+cubo_semantico[INT][FLOAT][GTE]=BOOL
+cubo_semantico[INT][BOOL][GTE]=ERR
+cubo_semantico[CHAR][CHAR][GTE]=ERR
+cubo_semantico[CHAR][FLOAT][GTE]=ERR
+cubo_semantico[CHAR][BOOL][GTE]=ERR
+cubo_semantico[FLOAT][FLOAT][GTE]=BOOL
+cubo_semantico[FLOAT][BOOL][GTE]=ERR
+cubo_semantico[BOOL][BOOL][GTE]=ERR
 
 #####################################
 ## lte operation cube              ##
 #####################################
-cubo_semantico[INT,INT,LTE]=BOOL
-cubo_semantico[INT,CHAR,LTE]=ERR
-cubo_semantico[INT,FLOAT,LTE]=BOOL
-cubo_semantico[INT,BOOL,LTE]=ERR
-cubo_semantico[CHAR,CHAR,LTE]=ERR
-cubo_semantico[CHAR,FLOAT,LTE]=ERR
-cubo_semantico[CHAR,BOOL,LTE]=ERR
-cubo_semantico[FLOAT,FLOAT,LTE]=BOOL
-cubo_semantico[FLOAT,BOOL,LTE]=ERR
-cubo_semantico[BOOL,BOOL,LTE]=ERR
+cubo_semantico[INT][INT][LTE]=BOOL
+cubo_semantico[INT][CHAR][LTE]=ERR
+cubo_semantico[INT][FLOAT][LTE]=BOOL
+cubo_semantico[INT][BOOL][LTE]=ERR
+cubo_semantico[CHAR][CHAR][LTE]=ERR
+cubo_semantico[CHAR][FLOAT][LTE]=ERR
+cubo_semantico[CHAR][BOOL][LTE]=ERR
+cubo_semantico[FLOAT][FLOAT][LTE]=BOOL
+cubo_semantico[FLOAT][BOOL][LTE]=ERR
+cubo_semantico[BOOL][BOOL][LTE]=ERR
 
 #####################################
 ## plus operation cube             ##
 #####################################
-cubo_semantico[INT,INT,PLUS]=INT
-cubo_semantico[INT,CHAR,PLUS]=ERR
-cubo_semantico[INT,FLOAT,PLUS]=FLOAT
-cubo_semantico[INT,BOOL,PLUS]=ERR
-cubo_semantico[CHAR,CHAR,PLUS]=ERR
-cubo_semantico[CHAR,FLOAT,PLUS]=ERR
-cubo_semantico[CHAR,BOOL,PLUS]=ERR
-cubo_semantico[FLOAT,FLOAT,PLUS]=FLOAT
-cubo_semantico[FLOAT,BOOL,PLUS]=ERR
-cubo_semantico[BOOL,BOOL,PLUS]=ERR
+cubo_semantico[INT][INT][PLUS]=INT
+cubo_semantico[INT][CHAR][PLUS]=ERR
+cubo_semantico[INT][FLOAT][PLUS]=FLOAT
+cubo_semantico[INT][BOOL][PLUS]=ERR
+cubo_semantico[CHAR][CHAR][PLUS]=ERR
+cubo_semantico[CHAR][FLOAT][PLUS]=ERR
+cubo_semantico[CHAR][BOOL][PLUS]=ERR
+cubo_semantico[FLOAT][FLOAT][PLUS]=FLOAT
+cubo_semantico[FLOAT][BOOL][PLUS]=ERR
+cubo_semantico[BOOL][BOOL][PLUS]=ERR
 
 #####################################
 ## neg operation cube              ##
 #####################################
-cubo_semantico[INT,MINUS,USELESS]=INT
-cubo_semantico[CHAR,MINUS,USELESS]=ERR
-cubo_semantico[FLOAT,MINUS,USELESS]=FLOAT
-cubo_semantico[BOOL,MINUS,USELESS]=ERR
+cubo_semantico[INT][MINUS]=INT
+cubo_semantico[CHAR][MINUS]=ERR
+cubo_semantico[FLOAT][MINUS]=FLOAT
+cubo_semantico[BOOL][MINUS]=ERR
 
 #####################################
 ## not operation cube              ##
 #####################################
-cubo_semantico[INT,NOT,USELESS]=ERR
-cubo_semantico[CHAR,NOT,USELESS]=ERR
-cubo_semantico[FLOAT,NOT,USELESS]=ERR
-cubo_semantico[BOOL,NOT,USELESS]=BOOL
+cubo_semantico[INT][NOT]=ERR
+cubo_semantico[CHAR][NOT]=ERR
+cubo_semantico[FLOAT][NOT]=ERR
+cubo_semantico[BOOL][NOT]=BOOL
 
 #####################################
 ## equals operation cube           ##
 #####################################
-cubo_semantico[INT,INT,EQ]=INT
-cubo_semantico[INT,CHAR,EQ]=ERR
-cubo_semantico[INT,FLOAT,EQ]=ERR
-cubo_semantico[INT,BOOL,PLUS]=ERR
-cubo_semantico[CHAR,CHAR,PLUS]=CHAR
-cubo_semantico[CHAR,FLOAT,PLUS]=ERR
-cubo_semantico[CHAR,BOOL,PLUS]=ERR
-cubo_semantico[FLOAT,FLOAT,PLUS]=FLOAT
-cubo_semantico[FLOAT,BOOL,PLUS]=ERR
-cubo_semantico[BOOL,BOOL,PLUS]=BOOL
+cubo_semantico[INT][INT][EQ]=INT
+cubo_semantico[INT][CHAR][EQ]=ERR
+cubo_semantico[INT][FLOAT][EQ]=ERR
+cubo_semantico[INT][BOOL][EQ]=ERR
+cubo_semantico[CHAR][CHAR][EQ]=CHAR
+cubo_semantico[CHAR][FLOAT][EQ]=ERR
+cubo_semantico[CHAR][BOOL][EQ]=ERR
+cubo_semantico[FLOAT][FLOAT][EQ]=FLOAT
+cubo_semantico[FLOAT][BOOL][EQ]=ERR
+cubo_semantico[BOOL][BOOL][EQ]=BOOL
+
+### Caso especial para igualdad #####
+cubo_semantico[FLOAT][INT] = {}
+cubo_semantico[FLOAT][INT][EQ] = FLOAT
 
 ####################################
 ## PILAS AUXILIARES               ##
@@ -409,6 +444,7 @@ contCuad = 1
 ## TEMPORALES                     ##
 ####################################
 contTemp=1001
+
 
 #diccionario de listas, pos0 = tipo, pos1 = vars
 dir_procs = {}
@@ -455,7 +491,6 @@ def p_d(p):
 def p_vars(p):
     'vars : VAR v ":" tipo ";"'
     auxDic = dir_procs[scope[-1]][pos_dics_var]
-    print auxDic
     if p[2] in auxDic:
         print "Variable con ese ID ya existe en ese scope"
     else:
@@ -486,6 +521,7 @@ def p_meterfuncion(p):
     if p[-1] in dir_procs:
         print "Funcion con ese ID ya existe en el programa"
         p[0] = -1
+        exit()
     else:
         dir_procs[p[-1]] = [p[-2],{}]
         scope.append(p[-1])
@@ -556,13 +592,21 @@ def p_estatuto(p):
 
 def p_asignacion(p):
     'asignacion : ID "=" neur8  k ";"'
+    global contTemp
+    global contCuad
+    print pilaO
+    print pTipos
+    print contTemp
     if pOper[-1] == EQ:
         op = pOper.pop()
         opdoDer = pilaO.pop()
         tipoDer = pTipos.pop()
         opdoIzq = pilaO.pop()
         tipoIzq = pTipos.pop()
-        tipoRes = cubo_semantico[tipoIzq,tipoDer,op]
+        if tipoDer in cubo_semantico[tipoIzq]:
+            tipoRes = cubo_semantico[tipoIzq][tipoDer][op]
+        else:
+            tipoRes = cubo_semantico[tipoDer][tipoIzq][op]
         if tipoRes != ERR :
             cuadruplos[contCuad] = [op,opdoIzq,opdoDer,contTemp]
             contTemp+=1
@@ -584,7 +628,7 @@ def p_neur8(p):
     print auxDic
     if p[-2] in auxDic:
         pilaO.append(p[-2])
-        pTipos.append(auxDic[p[-2]])
+        pTipos.append(auxDic[p[-2]][0])
         pOper.append(EQ)
     else:
         print "No existe tal variable a asignar"
@@ -615,11 +659,13 @@ def p_for(p):
 
 def p_expresion(p):
     'expresion : m subexpresion'
+    global contTemp
+    global contCuad
     if pOper[-1] == NOT:
         op = pOper.pop()
         opdoIzq = pilaO.pop()
         tipoIzq = pTipos.pop()
-        tipoRes = cubo_semantico[tipoIzq,op,USELESS]
+        tipoRes = cubo_semantico[tipoIzq][op]
         if tipoRes != ERR :
             cuadruplos[contCuad] = [op,opdoIzq,"",contTemp]
             pilaO.append(contTemp)
@@ -634,7 +680,8 @@ def p_expresion(p):
 def p_m(p):
     '''m : empty
          | NOT'''
-    pOper.append(NOT)
+    if p[1] == "NOT":
+        pOper.append(NOT)
     pass
 
 def p_subexpresion(p):
@@ -647,13 +694,18 @@ def p_subexpresion(p):
 
 def p_neur10(p):
     'neur10 : '
+    global contTemp
+    global contCuad
     if pOper[-1] == AND or pOper[-1] == OR:
         op = pOper.pop()
         opdoDer = pilaO.pop()
         tipoDer = pTipos.pop()
         opdoIzq = pilaO.pop()
         tipoIzq = pTipos.pop()
-        tipoRes = cubo_semantico[tipoIzq,tipoDer,op]
+        if tipoDer in cubo_semantico[tipoIzq]:
+            tipoRes = cubo_semantico[tipoIzq][tipoDer][op]
+        else:
+            tipoRes = cubo_semantico[tipoDer][tipoIzq][op]
         if tipoRes != ERR :
             cuadruplos[contCuad] = [op,opdoIzq,opdoDer,contTemp]
             pilaO.append(contTemp)
@@ -696,13 +748,18 @@ def p_exp(p):
 
 def p_neur12(p):
     'neur12 : '
+    global contTemp
+    global contCuad
     if pOper[-1] == EQEQ or pOper[-1] == NOTEQ or pOper[-1] == GT or pOper[-1] == LT or pOper[-1] == GTE or pOper[-1] == LTE:
         op = pOper.pop()
         opdoDer = pilaO.pop()
         tipoDer = pTipos.pop()
         opdoIzq = pilaO.pop()
         tipoIzq = pTipos.pop()
-        tipoRes = cubo_semantico[tipoIzq,tipoDer,op]
+        if tipoDer in cubo_semantico[tipoIzq]:
+            tipoRes = cubo_semantico[tipoIzq][tipoDer][op]
+        else:
+            tipoRes = cubo_semantico[tipoDer][tipoIzq][op]
         if tipoRes != ERR :
             cuadruplos[contCuad] = [op,opdoIzq,opdoDer,contTemp]
             pilaO.append(contTemp)
@@ -768,13 +825,18 @@ def p_nexp(p):
 
 def p_neur5(p):
     'neur5 : '
+    global contTemp
+    global contCuad
     if pOper[-1] == PLUS or pOper[-1]== MINUS :
         op = pOper.pop()
         opdoDer = pilaO.pop()
         tipoDer = pTipos.pop()
         opdoIzq = pilaO.pop()
         tipoIzq = pTipos.pop()
-        tipoRes = cubo_semantico[tipoIzq,tipoDer,op]
+        if tipoDer in cubo_semantico[tipoIzq]:
+            tipoRes = cubo_semantico[tipoIzq][tipoDer][op]
+        else:
+            tipoRes = cubo_semantico[tipoDer][tipoIzq][op]
         if tipoRes != ERR :
             cuadruplos[contCuad] = [op,opdoIzq,opdoDer,contTemp]
             pilaO.append(contTemp)
@@ -816,13 +878,18 @@ def p_termino(p):
 
 def p_neur4(p):
     'neur4 : '
+    global contTemp
+    global contCuad
     if pOper[-1] == MULT or pOper[-1]== MULT :
         op = pOper.pop()
         opdoDer = pilaO.pop()
         tipoDer = pTipos.pop()
         opdoIzq = pilaO.pop()
         tipoIzq = pTipos.pop()
-        tipoRes = cubo_semantico[tipoIzq,tipoDer,op]
+        if tipoDer in cubo_semantico[tipoIzq]:
+            tipoRes = cubo_semantico[tipoIzq][tipoDer][op]
+        else:
+            tipoRes = cubo_semantico[tipoDer][tipoIzq][op]
         if tipoRes != ERR :
             cuadruplos[contCuad] = [op,opdoIzq,opdoDer,contTemp]
             pilaO.append(contTemp)
@@ -896,6 +963,7 @@ def p_varcte(p):
               | CTEBOOL neurCteB
               | callfunc
               | CTECHAR neurCteCh'''
+    p[0] = p[1]
     pass
 
 #############################
@@ -1004,6 +1072,7 @@ def p_while(p):
 
 def p_play(p):
     'play : PLAY "(" NOTA "," CTEE ")" ";"'
+    global contCuad
     op = PLAY
     opdoIzq = p[3]
     opdoDer = p[5]
@@ -1013,6 +1082,7 @@ def p_play(p):
 
 def p_print(p):
     'print : PRINT expresion ";"'
+    global contCuad
     op = PRINT
     opdoIzq = p[2]
     cuadruplos[contCuad] = [op,opdoIzq,"",""]
@@ -1069,6 +1139,7 @@ def p_empty(t):
 def p_error(p):
     if p:
         print("Syntax error at '%s'" % p.value)
+        exit()
     else:
         print("Syntax error at EOF")
 

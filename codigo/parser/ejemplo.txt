@@ -8,7 +8,7 @@ FUNC INT parte1(INT repeticiones)
   switch = true;
 }
 
-FUNC FLOAT parte1(FLOAT repeticiones)
+FUNC FLOAT parte2(FLOAT repeticiones)
   VAR i : INT;
   VAR switch : BOOL;
 {
