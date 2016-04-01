@@ -1,0 +1,150 @@
+//////////////////////////////////////////////////////////////////////////
+/                                                                        /
+/ Expresiones regulares                                                  /
+/                                                                        /
+//////////////////////////////////////////////////////////////////////////
+
+IF -> 'IF'
+THEN -> 'THEN'
+ELSE -> 'ELSE'
+PROC -> 'PROC'
+END -> 'END'
+INT -> 'INT'
+FLOAT -> 'FLOAT'
+WHILE -> 'WHILE'
+READ -> 'READ'
+PRINT -> 'PRINT'
+VAR -> 'VAR'
+NOTEQ -> '<>'
+LTEQ -> '<='
+GTEQ -> '>='
+PROG -> 'PROG'
+CTEF -> [0-9]+([eE]([+]|[-])?|[.][0-9]+[eE]([+]|[-])?|[.])[0-9]+
+CTES -> \"[^\n"]*\"
+COMMENT -> \/\*([^*]|\n|[*][^\/])*\*\/
+ID -> [A-Za-z]([_]?([a-zA-Z]|[0-9]))*
+CTEED -> [0-9]+
+CTEEB -> (0|1)+b
+CTEEH -> [0-9]+[a-fA-F0-9]*[hH]
+ignore -> " ", \t, \n
+literales -> '=','+','-','*','/', '(',')','{','}',':',',',';','>','<'
+
+//////////////////////////////////////////////////////////////////////////
+/                                                                        /
+/ Gramática                                                              /
+/                                                                        /
+//////////////////////////////////////////////////////////////////////////
+
+programa
+  PROG ID ";" v bloque
+
+v
+  empty
+  | vars
+
+vars
+  VAR a
+
+a
+  b ":" tipo ";" f
+
+f
+  empty
+  | a
+
+b
+  ID c
+
+c
+  empty
+  | "," b
+
+tipo
+  INT
+  | FLOAT
+
+bloque
+  "{" d "}"
+
+d
+  empty
+  | estatuto d
+
+estatuto
+  asignacion
+  | condicion
+  | escritura
+
+asignacion
+  ID "=" expresion ";"
+
+expresion
+  exp i
+
+i
+  empty
+  | ">" exp
+  | "<" exp
+  | NOTEQ exp
+
+escritura
+  PRINT "(" g ")" ";"
+
+g
+  expresion h
+  | CTES h
+
+h
+  empty
+  | "," g
+
+exp
+  termino k
+
+k
+  empty
+  | "+" exp
+  | "-" exp
+
+factor
+  "(" expresion ")"
+  | m varcte
+
+m
+  empty
+  | "+"
+
+condicion
+  IF "(" expresion ")" bloque j ";"
+
+j
+  empty
+  | ELSE bloque
+
+termino
+  factor l
+
+l
+  empty
+  | "*" termino
+  | "/" termino
+
+varcte
+  ID
+  | CTEED
+  | CTEF
+
+empty
+  ""
+
+
+//////////////////////////////////////////////////////////////////////////
+/                                                                        /
+/ Instrucciones                                                          /
+/                                                                        /
+//////////////////////////////////////////////////////////////////////////
+
+crear un archivo de pruebas o utilizar los archivos de prueba dentro
+del directorio
+
+correr el comando: python patito.py NOMBREARCHIVO

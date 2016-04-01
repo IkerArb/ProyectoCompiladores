@@ -22,5 +22,8 @@ CANCION (90)
   WHILE((x/10)>1){
     PLAY(A1,4);
   };
+  FOR(x=0;x==3;x=x+3;){
+    PLAY(G4,2);
+  };
   x= CALL parte1(15);;
 }

@@ -200,6 +200,7 @@ PLAY = 15
 PRINT = 16
 GOTO = 17
 GOTOF = 18
+GOTOV = 19
 ERR = -1
 USELESS = -2
 
@@ -451,13 +452,14 @@ contCuad = 1
 ####################################
 contTemp=1001
 
+from collections import deque
 
 #diccionario de listas, pos0 = tipo, pos1 = vars
 dir_procs = {}
 auxDic = {}
 scope = []
 pos_dics_var = 1
-pSaltos = []
+pSaltos = deque([])
 # Parsing rules
 
 #estructura dir_proc = ["global",vars{}]
@@ -663,8 +665,6 @@ def p_asignacion(p):
             tipoRes = cubo_semantico[tipoDer][tipoIzq][op]
         if tipoRes != ERR :
             cuadruplos[contCuad] = [op,opdoIzq,opdoDer,contTemp]
-            pTipos.append(tipoRes)
-            pilaO.append(contTemp)
             contTemp+=1
             contCuad+=1
         else:
@@ -766,8 +766,74 @@ def p_neur15(p):
 ######################################
 
 def p_for(p):
-    'for : FOR "(" asignacion expresion asignacion ")" bloque ";"'
+    'for : FOR "(" asignacion neur18 expresion ";" neur19 asignacion ")" neur21 bloque ";" neur20'
     pass
+
+######################################
+## punto neuralgico 18              ##
+######################################
+
+def p_neur18(p):
+    'neur18 : '
+    global contCuad
+    pSaltos.append(contCuad)
+    pass
+
+######################################
+## punto neuralgico 19              ##
+######################################
+
+def p_neur19(p):
+    'neur19 : '
+    global contCuad
+    if pTipos[-1] == BOOL:
+        pTipos.pop()
+        opdoIzq = pilaO.pop()
+        op = GOTOV
+        cuadruplos[contCuad] = [op,opdoIzq,"",""]
+        contCuad+=1
+        pSaltos.append(contCuad-1)
+        op = GOTOF
+        cuadruplos[contCuad] = [op,opdoIzq,"",""]
+        contCuad+=1
+        pSaltos.append(contCuad-1)
+        pSaltos.append(contCuad)
+    else:
+        print ("Tiene que tener un booleano como resultado de expresion")
+        exit()
+    pass
+
+
+######################################
+## punto neuralgico 21              ##
+######################################
+
+def p_neur21(p):
+    'neur21 : '
+    global contCuad
+    op = GOTO
+    ciclo = pSaltos.popleft()
+    cuadruplos[contCuad] = [op,"","",ciclo]
+    contCuad+=1
+    verdadero = pSaltos.popleft()
+    cuadruplos[verdadero][3] = contCuad
+    pass
+
+######################################
+## punto neuralgico 20              ##
+######################################
+
+def p_neur20(p):
+    'neur20 : '
+    global contCuad
+    op = GOTO
+    asigna = pSaltos.pop()
+    cuadruplos[contCuad] = [op,"","",asigna]
+    contCuad+=1
+    falso = pSaltos.pop()
+    cuadruplos[falso][3] = contCuad
+    pass
+
 
 ######################################
 ## expresion                        ##
@@ -1121,10 +1187,14 @@ def p_neurVar(p):
     if p[-1] == -1:
         auxDic = dir_procs[scope[-1]][pos_dics_var]
         if p[-2] in auxDic:
-            pTipos.append(auxDic[p[-2]])
+            pTipos.append(auxDic[p[-2]][0])
         else:
             print "No existe tal variable"
             exit()
+    elif p[-1] == 1 or p[-1] == 2 or p[-1] == 4:
+        pTipos.append(BOOL)
+    elif p[-1] == 3:
+        pTipos.append(INT)
     pass
 
 #############################
@@ -1167,7 +1237,7 @@ def p_neurCteCh(p):
 def p_r(p):
     '''r : empty
          | oplista'''
-    if p[1] == "":
+    if p[1] == None:
         p[0] = -1
     else:
         p[0] = 1
@@ -1241,7 +1311,7 @@ def p_removelist(p):
 ######################################
 
 def p_while(p):
-    'while : WHILE "(" neur16 expresion ")" neur13 bloque neur17 ";"'
+    'while : WHILE "(" neur16 expresion ")" neur13 bloque ";" neur17'
     pass
 
 #############################
