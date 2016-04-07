@@ -19,7 +19,7 @@ tokens = (
     'CALL', 'RETURN', 'INT', 'CHAR', 'FLOAT',
     'BOOL','NOTEQ', 'LTHANEQ', 'MTHANEQ', 'EQ',
     'CTEF', 'CTEE', 'CTEBOOL', 'CTECHAR', 'ID',
-    'CANCION','WHILE','PLAY'
+    'CANCION','WHILE','PLAY','VOID'
     )
 
 literals = ['(',')',',',':',';', '{','}','*','/','',',',';','>','<','=','+']
@@ -27,6 +27,10 @@ literals = ['(',')',',',':',';', '{','}','*','/','',',',';','>','<','=','+']
 # Tokens
 def t_PLAY(t):
     r'PLAY'
+    return t
+
+def t_VOID(t):
+    r'VOID'
     return t
 
 def t_WHILE(t):
@@ -201,6 +205,10 @@ PRINT = 16
 GOTO = 17
 GOTOF = 18
 GOTOV = 19
+ENDPROC = 20
+ERA = 21
+PARAMETRO = 22
+GOSUB = 23
 ERR = -1
 USELESS = -2
 
@@ -454,12 +462,19 @@ contTemp=1001
 
 from collections import deque
 
-#diccionario de listas, pos0 = tipo, pos1 = vars
+#diccionario de listas, pos0 = tipo, pos1 = vars, pos2 = direccion inicio,
+#                       pos3 = tam, pos4 = params,
 dir_procs = {}
 auxDic = {}
 scope = []
+pos_dics_tipo = 0
 pos_dics_var = 1
+pos_dics_dir_inicio = 2
+pos_dics_tam = 3
+pos_dics_params = 4
 pSaltos = deque([])
+auxParamCount = 0
+auxFuncDestinoDir = None
 # Parsing rules
 
 #estructura dir_proc = ["global",vars{}]
@@ -469,12 +484,14 @@ pSaltos = deque([])
 ######################################
 
 def p_programa(p):
-    'programa : creadirprocglobal a c cancion'
+    'programa : creadirprocglobal a neur22 c cancion'
     print('done with file!\n')
 
     pp.pprint(dir_procs)
     pp.pprint(cuadruplos)
     print pOper
+    print pilaO
+    print pTipos
     pass
 
 ###########################################
@@ -483,7 +500,7 @@ def p_programa(p):
 
 def p_creadirprocglobal(p):
     'creadirprocglobal : '
-    dir_procs['global'] = ['global',{}]
+    dir_procs['global'] = ['global',{},None,{'vi':0,'vf':0,'vc':0,'vb':0,'ti':0,'tf':0,'tc':0,'tb':0},[]]
     scope.append('global')
     pass
 
@@ -496,6 +513,20 @@ def p_b(p):
     '''b : empty
          | a'''
     pass
+
+##########################
+## punto neuralgico 22  ##
+##########################
+
+def p_neur22(p):
+    'neur22 : '
+    global contCuad
+    op = GOTO
+    cuadruplos[contCuad] = [op,None,None,None]
+    contCuad+=1
+    pSaltos.append(contCuad-1)
+    pass
+
 
 def p_c(p):
     '''c : empty
@@ -513,12 +544,22 @@ def p_d(p):
 
 def p_vars(p):
     'vars : VAR v ":" tipo ";"'
+    global dir_procs
     auxDic = dir_procs[scope[-1]][pos_dics_var]
     if p[2] in auxDic:
         print "Variable con ese ID ya existe en ese scope"
+        exit()
     else:
         auxDic[p[2]] = []
         auxDic[p[2]].append(p[4])
+        if p[4] == INT:
+            dir_procs[scope[-1]][pos_dics_tam]['vi']+=1
+        elif p[4] == FLOAT:
+            dir_procs[scope[-1]][pos_dics_tam]['vf']+=1
+        elif p[4] == CHAR:
+            dir_procs[scope[-1]][pos_dics_tam]['vc']+=1
+        else:
+            dir_procs[scope[-1]][pos_dics_tam]['vb']+=1
     pass
 
 def p_v(p):
@@ -538,9 +579,36 @@ def p_v(p):
 ######################################
 
 def p_funcion(p):
-    'funcion : FUNC tipo ID meterfuncion "(" params ")" f bloque'
+    'funcion : FUNC z ID meterfuncion "(" params ")" f neur23 bloque'
+    global contCuad
+    global pos_dics_tipo
+    global pos_dics_var
     if p[4] != -1:
+        if (not(scope[-1] in dir_procs["global"][pos_dics_var]) and (dir_procs[scope[-1]][pos_dics_tipo] != None)):
+            print "Falta regresar parametro de salida en funcion"
+            exit()
         scope.pop()
+        op = ENDPROC
+        cuadruplos[contCuad]=[op,None,None,None]
+        contCuad += 1
+    pass
+
+def p_z(p):
+    '''z : INT
+         | CHAR
+         | FLOAT
+         | BOOL
+         | VOID'''
+    if p[1]=="INT" :
+        p[0] = INT
+    elif p[1]=="CHAR" :
+        p[0] = CHAR
+    elif p[1]=="FLOAT" :
+        p[0] = FLOAT
+    elif p[1]=="BOOL" :
+        p[0] = BOOL
+    else:
+        p[0] = None
     pass
 
 ######################################
@@ -554,8 +622,19 @@ def p_meterfuncion(p):
         p[0] = -1
         exit()
     else:
-        dir_procs[p[-1]] = [p[-2],{}]
+        dir_procs[p[-1]] = [p[-2],{},None,{'vi':0,'vf':0,'vc':0,'vb':0,'ti':0,'tf':0,'tc':0,'tb':0},[]]
         scope.append(p[-1])
+    pass
+
+##########################
+## punto neuralgico 23  ##
+##########################
+
+def p_neur23(p):
+    'neur23 : '
+    global dir_procs
+    global contCuad
+    dir_procs[scope[-1]][pos_dics_dir_inicio] = contCuad
     pass
 
 def p_f(p):
@@ -583,8 +662,23 @@ def p_params(p):
 
 def p_meterparams(p):
     'meterparams : '
-    dic_var = dir_procs[scope[-1]][pos_dics_var]
-    dic_var[p[-1]] = [p[-2]]
+    global dir_procs
+    auxDic = dir_procs[scope[-1]][pos_dics_var]
+    if p[-1] in auxDic:
+        print "Parametro con ese ID ya existe en ese scope"
+        exit()
+    else:
+        auxDic[p[-1]] = []
+        auxDic[p[-1]].append(p[-2])
+        dir_procs[scope[-1]][pos_dics_params].append(p[-2])
+        if p[-2] == INT:
+            dir_procs[scope[-1]][pos_dics_tam]['vi']+=1
+        elif p[-2] == FLOAT:
+            dir_procs[scope[-1]][pos_dics_tam]['vf']+=1
+        elif p[-2] == CHAR:
+            dir_procs[scope[-1]][pos_dics_tam]['vc']+=1
+        else:
+            dir_procs[scope[-1]][pos_dics_tam]['vb']+=1
     pass
 
 def p_h(p):
@@ -627,8 +721,11 @@ def p_cancion(p):
 
 def p_metercancion(p):
     'metercancion : '
+    global contCuad
     scope.append(p[-4])
-    dir_procs[p[-4]] = [p[-4],{},p[-2]] #cancion tiene tempo como parametro extra en su lista
+    dir_procs[p[-4]] = [p[-4],{},None,{'vi':0,'vf':0,'vc':0,'vb':0,'ti':0,'tf':0,'tc':0,'tb':0},[],p[-2]] #cancion tiene tempo como parametro extra en su lista
+    saltoInicial = pSaltos.pop()
+    cuadruplos[saltoInicial][3] = contCuad
     pass
 
 #############################
@@ -642,7 +739,8 @@ def p_estatuto(p):
                 | return
                 | while
                 | play
-                | print'''
+                | print
+                | callvoidfunc'''
     pass
 
 #############################
@@ -653,18 +751,28 @@ def p_asignacion(p):
     'asignacion : ID "=" neur8  k ";"'
     global contTemp
     global contCuad
+    global dir_procs
+    global scope
     if pOper[-1] == EQ:
         op = pOper.pop()
-        opdoDer = pilaO.pop()
-        tipoDer = pTipos.pop()
+        igualdad = pilaO.pop()
+        tipoIgualdad = pTipos.pop()
         opdoIzq = pilaO.pop()
         tipoIzq = pTipos.pop()
-        if tipoDer in cubo_semantico[tipoIzq] and op in cubo_semantico[tipoIzq][tipoDer]:
-            tipoRes = cubo_semantico[tipoIzq][tipoDer][op]
+        if tipoIgualdad in cubo_semantico[tipoIzq] and op in cubo_semantico[tipoIzq][tipoIgualdad]:
+            tipoRes = cubo_semantico[tipoIzq][tipoIgualdad][op]
         else:
-            tipoRes = cubo_semantico[tipoDer][tipoIzq][op]
+            tipoRes = cubo_semantico[tipoIgualdad][tipoIzq][op]
         if tipoRes != ERR :
-            cuadruplos[contCuad] = [op,opdoIzq,opdoDer,contTemp]
+            cuadruplos[contCuad] = [op,opdoIzq,None,igualdad]
+            if tipoRes == INT:
+                dir_procs[scope[-1]][pos_dics_tam]['ti']+=1
+            elif tipoRes == FLOAT:
+                dir_procs[scope[-1]][pos_dics_tam]['tf']+=1
+            elif tipoRes == CHAR:
+                dir_procs[scope[-1]][pos_dics_tam]['tc']+=1
+            else:
+                dir_procs[scope[-1]][pos_dics_tam]['tb']+=1
             contTemp+=1
             contCuad+=1
         else:
@@ -672,6 +780,7 @@ def p_asignacion(p):
             exit()
     else:
         print("Asignacion mal terminada")
+        exit()
     pass
 
 #############################
@@ -722,7 +831,7 @@ def p_neur13(p):
         pTipos.pop()
         opdoIzq = pilaO.pop()
         op = GOTOF
-        cuadruplos[contCuad] = [op,opdoIzq,"",""]
+        cuadruplos[contCuad] = [op,opdoIzq,None,None]
         contCuad+=1
         pSaltos.append(contCuad-1)
     else:
@@ -744,7 +853,7 @@ def p_neur14(p):
     global contCuad
     op = GOTO
     falso = pSaltos.pop()
-    cuadruplos[contCuad] = [op,"","",""]
+    cuadruplos[contCuad] = [op,None,None,None]
     contCuad += 1
     pSaltos.append(contCuad-1)
     cuadruplos[falso][3] = contCuad
@@ -790,11 +899,11 @@ def p_neur19(p):
         pTipos.pop()
         opdoIzq = pilaO.pop()
         op = GOTOV
-        cuadruplos[contCuad] = [op,opdoIzq,"",""]
+        cuadruplos[contCuad] = [op,opdoIzq,None,None]
         contCuad+=1
         pSaltos.append(contCuad-1)
         op = GOTOF
-        cuadruplos[contCuad] = [op,opdoIzq,"",""]
+        cuadruplos[contCuad] = [op,opdoIzq,None,None]
         contCuad+=1
         pSaltos.append(contCuad-1)
         pSaltos.append(contCuad)
@@ -813,7 +922,7 @@ def p_neur21(p):
     global contCuad
     op = GOTO
     ciclo = pSaltos.popleft()
-    cuadruplos[contCuad] = [op,"","",ciclo]
+    cuadruplos[contCuad] = [op,None,None,ciclo]
     contCuad+=1
     verdadero = pSaltos.popleft()
     cuadruplos[verdadero][3] = contCuad
@@ -828,7 +937,7 @@ def p_neur20(p):
     global contCuad
     op = GOTO
     asigna = pSaltos.pop()
-    cuadruplos[contCuad] = [op,"","",asigna]
+    cuadruplos[contCuad] = [op,None,None,asigna]
     contCuad+=1
     falso = pSaltos.pop()
     cuadruplos[falso][3] = contCuad
@@ -850,9 +959,17 @@ def p_expresion(p):
             tipoIzq = pTipos.pop()
             tipoRes = cubo_semantico[tipoIzq][op]
             if tipoRes != ERR :
-                cuadruplos[contCuad] = [op,opdoIzq,"",contTemp]
+                cuadruplos[contCuad] = [op,opdoIzq,None,contTemp]
                 pilaO.append(contTemp)
                 pTipos.append(tipoRes)
+                if tipoRes == INT:
+                    dir_procs[scope[-1]][pos_dics_tam]['ti']+=1
+                elif tipoRes == FLOAT:
+                    dir_procs[scope[-1]][pos_dics_tam]['tf']+=1
+                elif tipoRes == CHAR:
+                    dir_procs[scope[-1]][pos_dics_tam]['tc']+=1
+                else:
+                    dir_procs[scope[-1]][pos_dics_tam]['tb']+=1
                 contTemp+=1
                 contCuad+=1
             else:
@@ -898,6 +1015,14 @@ def p_neur10(p):
                 cuadruplos[contCuad] = [op,opdoIzq,opdoDer,contTemp]
                 pilaO.append(contTemp)
                 pTipos.append(tipoRes)
+                if tipoRes == INT:
+                    dir_procs[scope[-1]][pos_dics_tam]['ti']+=1
+                elif tipoRes == FLOAT:
+                    dir_procs[scope[-1]][pos_dics_tam]['tf']+=1
+                elif tipoRes == CHAR:
+                    dir_procs[scope[-1]][pos_dics_tam]['tc']+=1
+                else:
+                    dir_procs[scope[-1]][pos_dics_tam]['tb']+=1
                 contTemp+=1
                 contCuad+=1
             else:
@@ -957,6 +1082,14 @@ def p_neur12(p):
                 cuadruplos[contCuad] = [op,opdoIzq,opdoDer,contTemp]
                 pilaO.append(contTemp)
                 pTipos.append(tipoRes)
+                if tipoRes == INT:
+                    dir_procs[scope[-1]][pos_dics_tam]['ti']+=1
+                elif tipoRes == FLOAT:
+                    dir_procs[scope[-1]][pos_dics_tam]['tf']+=1
+                elif tipoRes == CHAR:
+                    dir_procs[scope[-1]][pos_dics_tam]['tc']+=1
+                else:
+                    dir_procs[scope[-1]][pos_dics_tam]['tb']+=1
                 contTemp+=1
                 contCuad+=1
             else:
@@ -1039,6 +1172,14 @@ def p_neur5(p):
                 cuadruplos[contCuad] = [op,opdoIzq,opdoDer,contTemp]
                 pilaO.append(contTemp)
                 pTipos.append(tipoRes)
+                if tipoRes == INT:
+                    dir_procs[scope[-1]][pos_dics_tam]['ti']+=1
+                elif tipoRes == FLOAT:
+                    dir_procs[scope[-1]][pos_dics_tam]['tf']+=1
+                elif tipoRes == CHAR:
+                    dir_procs[scope[-1]][pos_dics_tam]['tc']+=1
+                else:
+                    dir_procs[scope[-1]][pos_dics_tam]['tb']+=1
                 contTemp+=1
                 contCuad+=1
             else:
@@ -1098,6 +1239,14 @@ def p_neur4(p):
                 cuadruplos[contCuad] = [op,opdoIzq,opdoDer,contTemp]
                 pilaO.append(contTemp)
                 pTipos.append(tipoRes)
+                if tipoRes == INT:
+                    dir_procs[scope[-1]][pos_dics_tam]['ti']+=1
+                elif tipoRes == FLOAT:
+                    dir_procs[scope[-1]][pos_dics_tam]['tf']+=1
+                elif tipoRes == CHAR:
+                    dir_procs[scope[-1]][pos_dics_tam]['tc']+=1
+                else:
+                    dir_procs[scope[-1]][pos_dics_tam]['tb']+=1
                 contTemp+=1
                 contCuad+=1
             else:
@@ -1153,6 +1302,7 @@ def p_neur7(p):
         pOper.pop()
     else:
         print("Missing opening parenthesis")
+        exit()
     pass
 
 #############################
@@ -1173,7 +1323,7 @@ def p_varcte(p):
               | CTEE neurCteE
               | CTEF neurCteF
               | CTEBOOL neurCteB
-              | callfunc
+              | callreturnfunc
               | CTECHAR neurCteCh'''
     p[0] = p[1]
     pass
@@ -1334,7 +1484,7 @@ def p_neur17(p):
     op = GOTO
     falso = pSaltos.pop()
     ciclo = pSaltos.pop()
-    cuadruplos[contCuad] = [op,"","",ciclo]
+    cuadruplos[contCuad] = [op,None,None,ciclo]
     contCuad += 1
     cuadruplos[falso][3] = contCuad
     pass
@@ -1349,7 +1499,7 @@ def p_play(p):
     op = PLAY
     opdoIzq = p[3]
     opdoDer = p[5]
-    cuadruplos[contCuad] = [op,opdoIzq,opdoDer,""]
+    cuadruplos[contCuad] = [op,opdoIzq,opdoDer,None]
     contCuad+=1
     pass
 
@@ -1362,26 +1512,113 @@ def p_print(p):
     global contCuad
     op = PRINT
     opdoIzq = p[2]
-    cuadruplos[contCuad] = [op,opdoIzq,"",""]
+    cuadruplos[contCuad] = [op,opdoIzq,None,None]
     contCuad+=1
     pass
 
 ######################################
-## callfunc                         ##
+## callreturnfunc                   ##
 ######################################
 
-def p_callfunc(p):
-    'callfunc : CALL ID "(" s ")" ";"'
+def p_callreturnfunc(p):
+    'callreturnfunc : CALL ID neur24 "(" s ")" neur26 ";"'
+    global pos_dics_tipo
+    p[0] = p[2]
+    pTipos.append(dir_procs[p[2]][pos_dics_tipo])
     pass
 
 def p_s(p):
     '''s : empty
-         | expresion t'''
+         | expresion neur25 t'''
+    pass
+
+#############################
+## punto neuralgico 25     ##
+#############################
+
+def p_neur25(p):
+    'neur25 : '
+    global dir_procs
+    global contCuad
+    global auxParamCount
+    global auxFuncDestinoDir
+    if len(pilaO)>0:
+        argumento = pilaO.pop()
+        tipoarg = pTipos.pop()
+        if tipoarg == dir_procs[auxFuncDestinoDir][pos_dics_params][auxParamCount] or (tipoarg == INT and dir_procs[auxFuncDestinoDir][pos_dics_params][auxParamCount]==FLOAT):
+            auxParamCount += 1
+            op = PARAMETRO
+            cuadruplos[contCuad] = [op,argumento,None,auxParamCount]
+            contCuad+=1
+        else:
+            print "Error en declaracion de parametros"
+            exit()
+    else:
+        argumento = None
+        tipoarg = None
+    # try:
+    #     i = dir_procs[auxFuncDestinoDir][pos_dics_params][auxParamCount][auxParamCount]
+    # except IndexError:
+    #     print ""
+
     pass
 
 def p_t(p):
     '''t : empty
          | "," s'''
+    pass
+
+#############################
+## callvoidfunc            ##
+#############################
+
+def p_callvoidfunc(p):
+    'callvoidfunc : CALL ID neur24 "(" s ")" neur26 ";"'
+    pass
+
+#############################
+## punto neuralgico 24     ##
+#############################
+
+def p_neur24(p):
+    'neur24 : '
+    global contCuad
+    global auxParamCount
+    global auxFuncDestinoDir
+    global pOper
+    if p[-1] in dir_procs:
+        auxFuncDestinoDir = p[-1]
+        auxParamCount = 0
+        op = ERA
+        cuadruplos[contCuad] = [op,p[-1],None,None]
+        contCuad += 1
+        pOper.append(PARAMETRO)
+    else:
+        print "Funcion con ese id no existe"
+        exit()
+    pass
+
+#############################
+## punto neuralgico 26     ##
+#############################
+
+def p_neur26(p):
+    'neur26 : '
+    global auxParamCount
+    global auxFuncDestinoDir
+    global contCuad
+    if auxParamCount != len(dir_procs[auxFuncDestinoDir][pos_dics_params]):
+        print "Error en cantidad de parametros"
+        exit()
+    else:
+        op = GOSUB
+        if(pOper[-1] == PARAMETRO):
+            pOper.pop()
+        else:
+            print "Llamada a funcion con operaciones pendientes"
+            exit()
+        cuadruplos[contCuad] = [GOSUB,auxFuncDestinoDir,None,None]
+        contCuad += 1
     pass
 
 ######################################
@@ -1390,6 +1627,16 @@ def p_t(p):
 
 def p_return(p):
     'return : RETURN "(" expresion ")" ";"'
+    global pos_dics_tipo
+    global pos_dics_var
+    retorno = pilaO.pop()
+    tipoRetorno = pTipos.pop()
+    if tipoRetorno == dir_procs[scope[-1]][pos_dics_tipo] or (tipoRetorno == INT and dir_procs[scope[-1]][pos_dics_tipo] == FLOAT):
+        dir_procs["global"][pos_dics_var][scope[-1]] = []
+        dir_procs["global"][pos_dics_var][scope[-1]].append(dir_procs[scope[-1]][pos_dics_tipo])
+    else:
+        print "Error en el tipo de retorno dado"
+        exit()
     pass
 
 ######################################
