@@ -456,9 +456,105 @@ cuadruplos={}
 contCuad = 1
 
 ####################################
-## TEMPORALES                     ##
+## Variables globales enteras     ##
 ####################################
-contTemp=1001
+var_glob_int = 1000
+
+####################################
+## Variables globales flotantes   ##
+####################################
+var_glob_float = 3000
+var_glob_float_inicio = 3000
+
+####################################
+## Variables globales booleanas   ##
+####################################
+var_glob_bool = 5000
+var_glob_bool_inicio = 5000
+
+####################################
+## Variables globales char        ##
+####################################
+var_glob_char = 7000
+var_glob_char_inicio = 7000
+
+####################################
+## Variables locales enteras      ##
+####################################
+var_loc_int = 9000
+var_loc_int_inicio = 9000
+
+####################################
+## Variables locales flotantes    ##
+####################################
+var_loc_float = 11000
+var_loc_float_inicio = 11000
+
+####################################
+## Variables locales booleanas    ##
+####################################
+var_loc_bool = 13000
+var_loc_bool_inicio = 13000
+
+####################################
+## Variables locales char         ##
+####################################
+var_loc_char = 15000
+var_loc_char_inicio = 15000
+
+##################################################
+## Variables locales temporales enteras         ##
+##################################################
+var_loc_temp_int = 17000
+var_loc_temp_int_inicio = 17000
+
+##################################################
+## Variables locales temporales flotantes       ##
+##################################################
+var_loc_temp_float = 21000
+var_loc_temp_float_inicio = 21000
+
+##################################################
+## Variables locales temporales booleanas       ##
+##################################################
+var_loc_temp_bool = 25000
+var_loc_temp_bool_inicio = 25000
+
+##################################################
+## Variables locales temporales char            ##
+##################################################
+var_loc_temp_char = 29000
+var_loc_temp_char_inicio = 29000
+
+################################
+## Constantes enteras         ##
+################################
+cte_int = 33000
+cte_int_inicio = 33000
+
+################################
+## Constantes flotantes       ##
+################################
+cte_float = 37000
+cte_float_inicio = 37000
+
+################################
+## Constantes booleanas       ##
+################################
+cte_bool = 41000
+cte_bool_inicio = 41000
+
+################################
+## Constantes char            ##
+################################
+cte_char = 45000
+cte_char_inicio = 45000
+
+################################
+## Constantes notas            ##
+################################
+cte_nota = 49000
+cte_nota_inicio = 49000
 
 from collections import deque
 
@@ -472,9 +568,13 @@ pos_dics_var = 1
 pos_dics_dir_inicio = 2
 pos_dics_tam = 3
 pos_dics_params = 4
+pos_vars_tipo = 0
+pos_vars_dir_virtual = 1
+pos_vars_dim = 2
 pSaltos = deque([])
 auxParamCount = 0
 auxFuncDestinoDir = None
+ctes = {}
 # Parsing rules
 
 #estructura dir_proc = ["global",vars{}]
@@ -485,6 +585,8 @@ auxFuncDestinoDir = None
 
 def p_programa(p):
     'programa : creadirprocglobal a neur22 c cancion'
+    dir_procs[scope[-1]][pos_dics_var] = {}
+
     print('done with file!\n')
 
     pp.pprint(dir_procs)
@@ -492,6 +594,7 @@ def p_programa(p):
     print pOper
     print pilaO
     print pTipos
+    print pSaltos
     pass
 
 ###########################################
@@ -545,21 +648,94 @@ def p_d(p):
 def p_vars(p):
     'vars : VAR v ":" tipo ";"'
     global dir_procs
+    global var_glob_int
+    global var_glob_float
+    global var_glob_float_inicio
+    global var_glob_bool
+    global var_glob_bool_inicio
+    global var_glob_char
+    global var_glob_char_inicio
+
+    global var_loc_int
+    global var_loc_int_inicio
+    global var_loc_float
+    global var_loc_float_inicio
+    global var_loc_bool
+    global var_loc_bool_inicio
+    global var_loc_char
+    global var_loc_char_inicio
+
+    global var_temp_loc_int_inicio
     auxDic = dir_procs[scope[-1]][pos_dics_var]
     if p[2] in auxDic:
         print "Variable con ese ID ya existe en ese scope"
         exit()
     else:
-        auxDic[p[2]] = []
-        auxDic[p[2]].append(p[4])
+        auxDic[p[2]] = [p[4],None,None]
         if p[4] == INT:
             dir_procs[scope[-1]][pos_dics_tam]['vi']+=1
+            if scope[-1] == 'global':
+                if var_glob_int + 1 < var_glob_float_inicio:
+                    auxDic[p[2]][pos_vars_dir_virtual] = var_glob_int
+                    var_glob_int += 1
+                else:
+                    print "Overflow de variables enteras globales"
+                    exit()
+            else:
+                if var_loc_int + 1 < var_loc_float_inicio:
+                    auxDic[p[2]][pos_vars_dir_virtual] = var_loc_int
+                    var_loc_int += 1
+                else:
+                    print "Overflow de variables enteras locales"
+                    exit()
         elif p[4] == FLOAT:
             dir_procs[scope[-1]][pos_dics_tam]['vf']+=1
+            if scope[-1] == 'global':
+                if var_glob_float + 1 < var_glob_bool_inicio:
+                    auxDic[p[2]][pos_vars_dir_virtual] = var_glob_float
+                    var_glob_float += 1
+                else:
+                    print "Overflow de variables flotantes globales"
+                    exit()
+            else:
+                if var_loc_float + 1 < var_loc_bool_inicio:
+                    auxDic[p[2]][pos_vars_dir_virtual] = var_loc_float
+                    var_loc_float += 1
+                else:
+                    print "Overflow de variables flotantes locales"
+                    exit()
         elif p[4] == CHAR:
             dir_procs[scope[-1]][pos_dics_tam]['vc']+=1
+            if scope[-1] == 'global':
+                if var_glob_char + 1 < var_loc_int_inicio:
+                    auxDic[p[2]][pos_vars_dir_virtual] = var_glob_char
+                    var_glob_char += 1
+                else:
+                    print "Overflow de variables char globales"
+                    exit()
+            else:
+                if var_loc_char + 1 < var_temp_loc_int_inicio:
+                    auxDic[p[2]][pos_vars_dir_virtual] = var_loc_char
+                    var_loc_char += 1
+                else:
+                    print "Overflow de variables char locales"
+                    exit()
         else:
             dir_procs[scope[-1]][pos_dics_tam]['vb']+=1
+            if scope[-1] == 'global':
+                if var_glob_bool + 1 < var_glob_char_inicio:
+                    auxDic[p[2]][pos_vars_dir_virtual] = var_glob_bool
+                    var_glob_bool += 1
+                else:
+                    print "Overflow de variables booleanas globales"
+                    exit()
+            else:
+                if var_loc_bool + 1 < var_loc_char_inicio:
+                    auxDic[p[2]][pos_vars_dir_virtual] = var_loc_bool
+                    var_loc_bool += 1
+                else:
+                    print "Overflow de variables booleanas locales"
+                    exit()
     pass
 
 def p_v(p):
@@ -587,6 +763,14 @@ def p_funcion(p):
         if (not(scope[-1] in dir_procs["global"][pos_dics_var]) and (dir_procs[scope[-1]][pos_dics_tipo] != None)):
             print "Falta regresar parametro de salida en funcion"
             exit()
+        dir_procs[scope[-1]][pos_dics_var] = {}
+        var_loc_int = var_loc_int_inicio
+        var_loc_float = var_loc_float_inicio
+        var_loc_bool = var_loc_bool_inicio
+        var_loc_char = var_loc_char_inicio
+        var_loc_temp_int = var_loc_temp_int_inicio
+        var_loc_temp_float = var_loc_temp_float_inicio
+        var_loc_temp_bool = var_loc_temp_bool_inicio
         scope.pop()
         op = ENDPROC
         cuadruplos[contCuad]=[op,None,None,None]
@@ -663,22 +847,56 @@ def p_params(p):
 def p_meterparams(p):
     'meterparams : '
     global dir_procs
+
+    global var_loc_int
+    global var_loc_int_inicio
+    global var_loc_float
+    global var_loc_float_inicio
+    global var_loc_bool
+    global var_loc_bool_inicio
+    global var_loc_char
+    global var_loc_char_inicio
+
+    global var_temp_loc_int_inicio
     auxDic = dir_procs[scope[-1]][pos_dics_var]
     if p[-1] in auxDic:
         print "Parametro con ese ID ya existe en ese scope"
         exit()
     else:
-        auxDic[p[-1]] = []
-        auxDic[p[-1]].append(p[-2])
+        auxDic[p[-1]] = [p[-2],None,None]
         dir_procs[scope[-1]][pos_dics_params].append(p[-2])
         if p[-2] == INT:
             dir_procs[scope[-1]][pos_dics_tam]['vi']+=1
+            if var_loc_int + 1 < var_loc_float_inicio:
+                auxDic[p[-1]][pos_vars_dir_virtual] = var_loc_int
+                var_loc_int += 1
+            else:
+                print "Overflow de variables enteras locales"
+                exit()
         elif p[-2] == FLOAT:
             dir_procs[scope[-1]][pos_dics_tam]['vf']+=1
+            if var_loc_float + 1 < var_loc_bool_inicio:
+                auxDic[p[-1]][pos_vars_dir_virtual] = var_loc_float
+                var_loc_float += 1
+            else:
+                print "Overflow de variables flotantes locales"
+                exit()
         elif p[-2] == CHAR:
             dir_procs[scope[-1]][pos_dics_tam]['vc']+=1
+            if var_loc_char + 1 < var_temp_loc_int_inicio:
+                auxDic[p[-1]][pos_vars_dir_virtual] = var_loc_char
+                var_loc_char += 1
+            else:
+                print "Overflow de variables char locales"
+                exit()
         else:
             dir_procs[scope[-1]][pos_dics_tam]['vb']+=1
+            if var_loc_bool + 1 < var_loc_char_inicio:
+                auxDic[p[-1]][pos_vars_dir_virtual] = var_loc_bool
+                var_loc_bool += 1
+            else:
+                print "Overflow de variables booleanas locales"
+                exit()
     pass
 
 def p_h(p):
@@ -712,6 +930,14 @@ def p_bloque(p):
 
 def p_cancion(p):
     'cancion : CANCION "(" CTEE ")" metercancion f bloque'
+    dir_procs[scope[-1]][pos_dics_var] = {}
+    var_loc_int = var_loc_int_inicio
+    var_loc_float = var_loc_float_inicio
+    var_loc_bool = var_loc_bool_inicio
+    var_loc_char = var_loc_char_inicio
+    var_loc_temp_int = var_loc_temp_int_inicio
+    var_loc_temp_float = var_loc_temp_float_inicio
+    var_loc_temp_bool = var_loc_temp_bool_inicio
     scope.pop()
     pass
 
@@ -749,31 +975,21 @@ def p_estatuto(p):
 
 def p_asignacion(p):
     'asignacion : ID "=" neur8  k ";"'
-    global contTemp
     global contCuad
     global dir_procs
     global scope
     if pOper[-1] == EQ:
         op = pOper.pop()
-        igualdad = pilaO.pop()
-        tipoIgualdad = pTipos.pop()
         opdoIzq = pilaO.pop()
         tipoIzq = pTipos.pop()
-        if tipoIgualdad in cubo_semantico[tipoIzq] and op in cubo_semantico[tipoIzq][tipoIgualdad]:
-            tipoRes = cubo_semantico[tipoIzq][tipoIgualdad][op]
-        else:
+        igualdad = pilaO.pop()
+        tipoIgualdad = pTipos.pop()
+        if tipoIzq in cubo_semantico[tipoIgualdad] and op in cubo_semantico[tipoIgualdad][tipoIzq]:
             tipoRes = cubo_semantico[tipoIgualdad][tipoIzq][op]
+        else:
+            tipoRes = cubo_semantico[tipoIzq][tipoIgualdad][op]
         if tipoRes != ERR :
             cuadruplos[contCuad] = [op,opdoIzq,None,igualdad]
-            if tipoRes == INT:
-                dir_procs[scope[-1]][pos_dics_tam]['ti']+=1
-            elif tipoRes == FLOAT:
-                dir_procs[scope[-1]][pos_dics_tam]['tf']+=1
-            elif tipoRes == CHAR:
-                dir_procs[scope[-1]][pos_dics_tam]['tc']+=1
-            else:
-                dir_procs[scope[-1]][pos_dics_tam]['tb']+=1
-            contTemp+=1
             contCuad+=1
         else:
             print("Type mismatch")
@@ -791,7 +1007,7 @@ def p_neur8(p):
     'neur8 : '
     auxDic = dir_procs[scope[-1]][pos_dics_var]
     if p[-2] in auxDic:
-        pilaO.append(p[-2])
+        pilaO.append(auxDic[p[-2]][pos_vars_dir_virtual])
         pTipos.append(auxDic[p[-2]][0])
         pOper.append(EQ)
     else:
@@ -817,7 +1033,7 @@ def p_asiglista(p):
 ######################################
 
 def p_if(p):
-    'if : IF "(" expresion ")" neur13 bloque l ";"'
+    'if : IF "(" expresion ")" neur13 bloque l ";" neur15'
     pass
 
 #############################
@@ -840,7 +1056,7 @@ def p_neur13(p):
     pass
 
 def p_l(p):
-    '''l : empty neur15
+    '''l : empty
          | ELSE neur14 bloque'''
     pass
 
@@ -950,8 +1166,18 @@ def p_neur20(p):
 
 def p_expresion(p):
     'expresion : m subexpresion'
-    global contTemp
     global contCuad
+
+    global var_loc_temp_int
+    global var_loc_temp_int_inicio
+    global var_loc_temp_float
+    global var_loc_temp_float_inicio
+    global var_loc_temp_bool
+    global var_loc_temp_bool_inicio
+    global var_loc_temp_char
+    global var_loc_temp_char_inicio
+
+    global cte_int_inicio
     if pOper:
         if pOper[-1] == NOT:
             op = pOper.pop()
@@ -959,18 +1185,46 @@ def p_expresion(p):
             tipoIzq = pTipos.pop()
             tipoRes = cubo_semantico[tipoIzq][op]
             if tipoRes != ERR :
-                cuadruplos[contCuad] = [op,opdoIzq,None,contTemp]
-                pilaO.append(contTemp)
-                pTipos.append(tipoRes)
                 if tipoRes == INT:
                     dir_procs[scope[-1]][pos_dics_tam]['ti']+=1
+                    if var_loc_temp_int + 1 < var_loc_temp_float_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,None,var_loc_temp_int]
+                        pilaO.append(var_loc_temp_int)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_int += 1
+                    else:
+                        print "Overflow de temporales enteras"
+                        exit()
                 elif tipoRes == FLOAT:
                     dir_procs[scope[-1]][pos_dics_tam]['tf']+=1
+                    if var_loc_temp_float + 1 < var_loc_temp_bool_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,None,var_loc_temp_float]
+                        pilaO.append(var_loc_temp_float)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_float += 1
+                    else:
+                        print "Overflow de temporales flotantes"
+                        exit()
                 elif tipoRes == CHAR:
                     dir_procs[scope[-1]][pos_dics_tam]['tc']+=1
+                    if var_loc_temp_char + 1 < cte_int_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,None,var_loc_temp_char]
+                        pilaO.append(var_loc_temp_char)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_char += 1
+                    else:
+                        print "Overflow de temporales char"
+                        exit()
                 else:
                     dir_procs[scope[-1]][pos_dics_tam]['tb']+=1
-                contTemp+=1
+                    if var_loc_temp_bool + 1 < var_loc_temp_char_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,None,var_loc_temp_bool]
+                        pilaO.append(var_loc_bool)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_bool += 1
+                    else:
+                        print "Overflow de temporales bool"
+                        exit()
                 contCuad+=1
             else:
                 print("Type mismatch")
@@ -998,8 +1252,18 @@ def p_subexpresion(p):
 
 def p_neur10(p):
     'neur10 : '
-    global contTemp
     global contCuad
+
+    global var_loc_temp_int
+    global var_loc_temp_int
+    global var_loc_temp_float
+    global var_loc_temp_float_inicio
+    global var_loc_temp_bool
+    global var_loc_temp_bool_inicio
+    global var_loc_temp_char
+    global var_loc_temp_char_inicio
+
+    global cte_int_inicio
     if pOper:
         if pOper[-1] == AND or pOper[-1] == OR:
             op = pOper.pop()
@@ -1012,18 +1276,48 @@ def p_neur10(p):
             else:
                 tipoRes = cubo_semantico[tipoDer][tipoIzq][op]
             if tipoRes != ERR :
-                cuadruplos[contCuad] = [op,opdoIzq,opdoDer,contTemp]
-                pilaO.append(contTemp)
-                pTipos.append(tipoRes)
                 if tipoRes == INT:
                     dir_procs[scope[-1]][pos_dics_tam]['ti']+=1
+                    if var_loc_temp_int + 1 < var_loc_temp_float_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_int]
+                        pilaO.append(var_loc_temp_int)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_int += 1
+                    else:
+                        print "Overflow de temporales enteras"
+                        exit()
                 elif tipoRes == FLOAT:
                     dir_procs[scope[-1]][pos_dics_tam]['tf']+=1
+                    if var_loc_temp_float + 1 < var_loc_temp_bool_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_float]
+                        pilaO.append(var_loc_temp_float)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_float += 1
+                    else:
+                        print var_loc_temp_float
+                        print var_loc_bool_inicio
+                        print "Overflow de temporales flotantes"
+                        exit()
                 elif tipoRes == CHAR:
                     dir_procs[scope[-1]][pos_dics_tam]['tc']+=1
+                    if var_loc_temp_char + 1 < cte_int_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_char]
+                        pilaO.append(var_loc_temp_char)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_char += 1
+                    else:
+                        print "Overflow de temporales char"
+                        exit()
                 else:
                     dir_procs[scope[-1]][pos_dics_tam]['tb']+=1
-                contTemp+=1
+                    if var_loc_temp_bool + 1 < var_loc_temp_char_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_bool]
+                        pilaO.append(var_loc_bool)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_bool += 1
+                    else:
+                        print "Overflow de temporales bool"
+                        exit()
                 contCuad+=1
             else:
                 print("Type mismatch")
@@ -1065,8 +1359,18 @@ def p_exp(p):
 
 def p_neur12(p):
     'neur12 : '
-    global contTemp
     global contCuad
+
+    global var_loc_temp_int
+    global var_loc_temp_int_inicio
+    global var_loc_temp_float
+    global var_loc_temp_float_inicio
+    global var_loc_temp_bool
+    global var_loc_temp_bool_inicio
+    global var_loc_temp_char
+    global var_loc_temp_char_inicio
+
+    global cte_int_inicio
     if pOper:
         if pOper[-1] == EQEQ or pOper[-1] == NOTEQ or pOper[-1] == GT or pOper[-1] == LT or pOper[-1] == GTE or pOper[-1] == LTE:
             op = pOper.pop()
@@ -1079,18 +1383,48 @@ def p_neur12(p):
             else:
                 tipoRes = cubo_semantico[tipoDer][tipoIzq][op]
             if tipoRes != ERR :
-                cuadruplos[contCuad] = [op,opdoIzq,opdoDer,contTemp]
-                pilaO.append(contTemp)
-                pTipos.append(tipoRes)
                 if tipoRes == INT:
                     dir_procs[scope[-1]][pos_dics_tam]['ti']+=1
+                    if var_loc_temp_int + 1 < var_loc_temp_float_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_int]
+                        pilaO.append(var_loc_temp_int)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_int += 1
+                    else:
+                        print "Overflow de temporales enteras"
+                        exit()
                 elif tipoRes == FLOAT:
                     dir_procs[scope[-1]][pos_dics_tam]['tf']+=1
+                    if var_loc_temp_float + 1 < var_loc_temp_bool_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_float]
+                        pilaO.append(var_loc_temp_float)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_float += 1
+                    else:
+                        print var_loc_temp_float
+                        print var_loc_bool_inicio
+                        print "Overflow de temporales flotantes"
+                        exit()
                 elif tipoRes == CHAR:
                     dir_procs[scope[-1]][pos_dics_tam]['tc']+=1
+                    if var_loc_temp_char + 1 < cte_int_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_char]
+                        pilaO.append(var_loc_temp_char)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_char += 1
+                    else:
+                        print "Overflow de temporales char"
+                        exit()
                 else:
                     dir_procs[scope[-1]][pos_dics_tam]['tb']+=1
-                contTemp+=1
+                    if var_loc_temp_bool + 1 < var_loc_temp_char_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_bool]
+                        pilaO.append(var_loc_bool)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_bool += 1
+                    else:
+                        print "Overflow de temporales bool"
+                        exit()
                 contCuad+=1
             else:
                 print("Type mismatch")
@@ -1155,8 +1489,18 @@ def p_nexp(p):
 
 def p_neur5(p):
     'neur5 : '
-    global contTemp
     global contCuad
+
+    global var_loc_temp_int
+    global var_loc_temp_int_inicio
+    global var_loc_temp_float
+    global var_loc_temp_float_inicio
+    global var_loc_temp_bool
+    global var_loc_temp_bool_inicio
+    global var_loc_temp_char
+    global var_loc_temp_char_inicio
+
+    global cte_int_inicio
     if pOper:
         if pOper[-1] == PLUS or pOper[-1]== MINUS :
             op = pOper.pop()
@@ -1169,18 +1513,48 @@ def p_neur5(p):
             else:
                 tipoRes = cubo_semantico[tipoDer][tipoIzq][op]
             if tipoRes != ERR :
-                cuadruplos[contCuad] = [op,opdoIzq,opdoDer,contTemp]
-                pilaO.append(contTemp)
-                pTipos.append(tipoRes)
                 if tipoRes == INT:
                     dir_procs[scope[-1]][pos_dics_tam]['ti']+=1
+                    if var_loc_temp_int + 1 < var_loc_temp_float_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_int]
+                        pilaO.append(var_loc_temp_int)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_int += 1
+                    else:
+                        print "Overflow de temporales enteras"
+                        exit()
                 elif tipoRes == FLOAT:
                     dir_procs[scope[-1]][pos_dics_tam]['tf']+=1
+                    if var_loc_temp_float + 1 < var_loc_temp_bool_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_float]
+                        pilaO.append(var_loc_temp_float)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_float += 1
+                    else:
+                        print var_loc_temp_float
+                        print var_loc_bool_inicio
+                        print "Overflow de temporales flotantes"
+                        exit()
                 elif tipoRes == CHAR:
                     dir_procs[scope[-1]][pos_dics_tam]['tc']+=1
+                    if var_loc_temp_char + 1 < cte_int_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_char]
+                        pilaO.append(var_loc_temp_char)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_char += 1
+                    else:
+                        print "Overflow de temporales char"
+                        exit()
                 else:
                     dir_procs[scope[-1]][pos_dics_tam]['tb']+=1
-                contTemp+=1
+                    if var_loc_temp_bool + 1 < var_loc_char_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_bool]
+                        pilaO.append(var_loc_bool)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_bool += 1
+                    else:
+                        print "Overflow de temporales bool"
+                        exit()
                 contCuad+=1
             else:
                 print("Type mismatch")
@@ -1221,9 +1595,19 @@ def p_termino(p):
 
 def p_neur4(p):
     'neur4 : '
-    global contTemp
     global contCuad
     global pOper
+
+    global var_loc_temp_int
+    global var_loc_temp_int_inicio
+    global var_loc_temp_float
+    global var_loc_temp_float_inicio
+    global var_loc_temp_bool
+    global var_loc_temp_bool_inicio
+    global var_loc_temp_char
+    global var_loc_temp_char_inicio
+
+    global cte_int_inicio
     if pOper:
         if pOper[-1] == MULT or pOper[-1]== DIV :
             op = pOper.pop()
@@ -1236,18 +1620,48 @@ def p_neur4(p):
             else:
                 tipoRes = cubo_semantico[tipoDer][tipoIzq][op]
             if tipoRes != ERR :
-                cuadruplos[contCuad] = [op,opdoIzq,opdoDer,contTemp]
-                pilaO.append(contTemp)
-                pTipos.append(tipoRes)
                 if tipoRes == INT:
                     dir_procs[scope[-1]][pos_dics_tam]['ti']+=1
+                    if var_loc_temp_int + 1 < var_loc_temp_float_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_int]
+                        pilaO.append(var_loc_temp_int)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_int += 1
+                    else:
+                        print "Overflow de temporales enteras"
+                        exit()
                 elif tipoRes == FLOAT:
                     dir_procs[scope[-1]][pos_dics_tam]['tf']+=1
+                    if var_loc_temp_float + 1 < var_loc_temp_bool_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_float]
+                        pilaO.append(var_loc_temp_float)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_float += 1
+                    else:
+                        print var_loc_temp_float
+                        print var_loc_bool_inicio
+                        print "Overflow de temporales flotantes"
+                        exit()
                 elif tipoRes == CHAR:
                     dir_procs[scope[-1]][pos_dics_tam]['tc']+=1
+                    if var_loc_temp_char + 1 < cte_int_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_char]
+                        pilaO.append(var_loc_temp_char)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_char += 1
+                    else:
+                        print "Overflow de temporales char"
+                        exit()
                 else:
                     dir_procs[scope[-1]][pos_dics_tam]['tb']+=1
-                contTemp+=1
+                    if var_loc_temp_bool + 1 < var_loc_char_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_bool]
+                        pilaO.append(var_loc_bool)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_bool += 1
+                    else:
+                        print "Overflow de temporales bool"
+                        exit()
                 contCuad+=1
             else:
                 print("Type mismatch")
@@ -1280,7 +1694,7 @@ def p_neur2_2(p):
 
 def p_factor(p):
     '''factor : "(" neur6 expresion ")" neur7
-              | varcte neur1'''
+              | varcte'''
     pass
 
 #############################
@@ -1309,10 +1723,10 @@ def p_neur7(p):
 ## punto neuralgico 1      ##
 #############################
 
-def p_neur1(p):
-    'neur1 : '
-    pilaO.append(p[-1])
-    pass
+# def p_neur1(p):
+#     'neur1 : '
+#     pilaO.append(p[-1])
+#     pass
 
 ######################################
 ## varcte                           ##
@@ -1338,6 +1752,7 @@ def p_neurVar(p):
         auxDic = dir_procs[scope[-1]][pos_dics_var]
         if p[-2] in auxDic:
             pTipos.append(auxDic[p[-2]][0])
+            pilaO.append(auxDic[p[-2]][pos_vars_dir_virtual])
         else:
             print "No existe tal variable"
             exit()
@@ -1353,7 +1768,18 @@ def p_neurVar(p):
 
 def p_neurCteE(p):
     'neurCteE : '
+    global cte_int
+    global cte_float_inicio
+    global ctes
     pTipos.append(INT)
+    if (not p[-1] in ctes):
+        if cte_int + 1 < cte_float_inicio:
+            ctes[p[-1]] = cte_int
+            cte_int += 1
+        else:
+            print "Overflow de constantes enteras"
+            exit()
+    pilaO.append(ctes[p[-1]])
     pass
 
 #############################
@@ -1362,7 +1788,18 @@ def p_neurCteE(p):
 
 def p_neurCteF(p):
     'neurCteF : '
+    global cte_float
+    global cte_bool_inicio
+    global ctes
     pTipos.append(FLOAT)
+    if (not p[-1] in ctes):
+        if cte_float + 1 < cte_bool_inicio:
+            ctes[p[-1]] = cte_float
+            cte_float += 1
+        else:
+            print "Overflow de constantes flotantes"
+            exit()
+    pilaO.append(ctes[p[-1]])
     pass
 
 #############################
@@ -1371,7 +1808,18 @@ def p_neurCteF(p):
 
 def p_neurCteB(p):
     'neurCteB : '
+    global cte_bool
+    global cte_char_inicio
+    global ctes
     pTipos.append(BOOL)
+    if (not p[-1] in ctes):
+        if cte_bool + 1 < cte_char_inicio:
+            ctes[p[-1]] = cte_bool
+            cte_bool += 1
+        else:
+            print "Overflow de constantes booleanas"
+            exit()
+    pilaO.append(ctes[p[-1]])
     pass
 
 #############################
@@ -1380,7 +1828,18 @@ def p_neurCteB(p):
 
 def p_neurCteCh(p):
     'neurCteCh : '
+    global cte_char
+    global cte_nota_inicio
+    global ctes
     pTipos.append(CHAR)
+    if (not p[-1] in ctes):
+        if cte_char + 1 < cte_nota_inicio:
+            ctes[p[-1]] = cte_char
+            cte_char += 1
+        else:
+            print "Overflow de constantes char"
+            exit()
+    pilaO.append(ctes[p[-1]])
     pass
 
 
@@ -1496,9 +1955,23 @@ def p_neur17(p):
 def p_play(p):
     'play : PLAY "(" NOTA "," CTEE ")" ";"'
     global contCuad
+    global ctes
+    global cte_nota
+    global cte_int
+    global cte_float_inicio
     op = PLAY
-    opdoIzq = p[3]
-    opdoDer = p[5]
+    if (not p[3] in ctes):
+        ctes[p[3]] = cte_nota
+        cte_nota += 1
+    opdoIzq = ctes[p[3]]
+    if(not p[5] in ctes):
+        if cte_int + 1 < cte_float_inicio:
+            ctes[p[5]] = cte_int
+            cte_int +=1
+        else:
+            print "Overflow de constantes enteras"
+            exit()
+    opdoDer = ctes[p[5]]
     cuadruplos[contCuad] = [op,opdoIzq,opdoDer,None]
     contCuad+=1
     pass
@@ -1523,7 +1996,8 @@ def p_print(p):
 def p_callreturnfunc(p):
     'callreturnfunc : CALL ID neur24 "(" s ")" neur26 ";"'
     global pos_dics_tipo
-    p[0] = p[2]
+    dir_virtual = dir_procs['global'][pos_dics_var][p[2]][pos_vars_dir_virtual]
+    pilaO.append(dir_virtual)
     pTipos.append(dir_procs[p[2]][pos_dics_tipo])
     pass
 
@@ -1629,11 +2103,51 @@ def p_return(p):
     'return : RETURN "(" expresion ")" ";"'
     global pos_dics_tipo
     global pos_dics_var
+
+    global var_glob_int
+    global var_glob_float
+    global var_glob_float_inicio
+    global var_glob_bool
+    global var_glob_bool_inicio
+    global var_glob_char
+    global var_glob_char_inicio
+
+    global var_loc_int_inicio
     retorno = pilaO.pop()
     tipoRetorno = pTipos.pop()
     if tipoRetorno == dir_procs[scope[-1]][pos_dics_tipo] or (tipoRetorno == INT and dir_procs[scope[-1]][pos_dics_tipo] == FLOAT):
-        dir_procs["global"][pos_dics_var][scope[-1]] = []
-        dir_procs["global"][pos_dics_var][scope[-1]].append(dir_procs[scope[-1]][pos_dics_tipo])
+        if dir_procs[scope[-1]][pos_dics_tipo] == INT:
+            dir_procs["global"][pos_dics_tam]['vi']+=1
+            if var_glob_int + 1 < var_glob_float_inicio:
+                dir_procs["global"][pos_dics_var][scope[-1]] = [dir_procs[scope[-1]][pos_dics_tipo],var_glob_int,None]
+                var_glob_int += 1
+            else:
+                print "Overflow de variables enteras globales"
+                exit()
+        elif dir_procs[scope[-1]][pos_dics_tipo] == FLOAT:
+            dir_procs["global"][pos_dics_tam]['vf']+=1
+            if var_glob_float + 1 < var_glob_bool_inicio:
+                dir_procs["global"][pos_dics_var][scope[-1]] = [dir_procs[scope[-1]][pos_dics_tipo],var_glob_float,None]
+                var_glob_float += 1
+            else:
+                print "Overflow de variables enteras globales"
+                exit()
+        elif dir_procs[scope[-1]][pos_dics_tipo] == CHAR:
+            dir_procs["global"][pos_dics_tam]['vc']+=1
+            if var_glob_char + 1 < var_loc_int_inicio:
+                dir_procs["global"][pos_dics_var][scope[-1]] = [dir_procs[scope[-1]][pos_dics_tipo],var_glob_char,None]
+                var_glob_char += 1
+            else:
+                print "Overflow de variables enteras globales"
+                exit()
+        else:
+            dir_procs["global"][pos_dics_tam]['vb']+=1
+            if var_glob_bool + 1 < var_glob_char_inicio:
+                dir_procs["global"][pos_dics_var][scope[-1]] = [dir_procs[scope[-1]][pos_dics_tipo],var_glob_bool,None]
+                var_glob_bool += 1
+            else:
+                print "Overflow de variables enteras globales"
+                exit()
     else:
         print "Error en el tipo de retorno dado"
         exit()
