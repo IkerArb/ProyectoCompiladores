@@ -1,0 +1,37 @@
+FUNC INT fibIteration(INT n)
+  VAR x : INT;
+  VAR y : INT;
+  VAR z : INT;
+  VAR i : INT;
+{
+    x = 0;
+    y = 1;
+    z = 1;
+    FOR (i = 0; i < n; i=i+1;) {
+        x = y;
+        y = z;
+        z = x + y;
+    };
+    RETURN (x);
+}
+
+FUNC INT fibRecursion(INT  n) {
+  PRINT n;
+  IF ((n == 1) OR (n == 0)) {
+      RETURN (n);
+  };
+  RETURN (CALL fibRecursion(n - 1); + CALL fibRecursion(n - 2););
+}
+
+CANCION (90)
+  VAR x : FLOAT;
+  VAR y : FLOAT LIST(10);
+  VAR z : FLOAT;
+  VAR t : INT LIST(8);
+{
+  t[5] = -(31+2);
+  t[6] = 10;
+  x = t[5];
+  PRINT x;
+  PRINT t[6];
+}

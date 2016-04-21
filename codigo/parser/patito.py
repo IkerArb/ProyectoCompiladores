@@ -9,6 +9,8 @@ import sys
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
 
+
+
 if sys.version_info[0] >= 3:
     raw_input = input
 
@@ -22,7 +24,7 @@ tokens = (
     'CANCION','WHILE','PLAY','VOID'
     )
 
-literals = ['(',')',',',':',';', '{','}','*','/','',',',';','>','<','=','+']
+literals = ['(',')',',',':',';', '{','}','*','/','',',',';','>','<','=','+','-','[',']']
 
 # Tokens
 def t_PLAY(t):
@@ -182,6 +184,8 @@ def t_error(t):
 import ply.lex as lex
 lex.lex()
 
+
+
 ###############################################
 ## Operaciones                               ##
 ###############################################
@@ -209,6 +213,8 @@ ENDPROC = 20
 ERA = 21
 PARAMETRO = 22
 GOSUB = 23
+VERIFICA = 24
+NEG = 25
 ERR = -1
 USELESS = -2
 
@@ -409,12 +415,18 @@ cubo_semantico[FLOAT][BOOL][PLUS]=ERR
 cubo_semantico[BOOL][BOOL][PLUS]=ERR
 
 #####################################
-## neg operation cube              ##
+## minus operation cube            ##
 #####################################
-cubo_semantico[INT][MINUS]=INT
-cubo_semantico[CHAR][MINUS]=ERR
-cubo_semantico[FLOAT][MINUS]=FLOAT
-cubo_semantico[BOOL][MINUS]=ERR
+cubo_semantico[INT][INT][MINUS]=INT
+cubo_semantico[INT][CHAR][MINUS]=ERR
+cubo_semantico[INT][FLOAT][MINUS]=FLOAT
+cubo_semantico[INT][BOOL][MINUS]=ERR
+cubo_semantico[CHAR][CHAR][MINUS]=ERR
+cubo_semantico[CHAR][FLOAT][MINUS]=ERR
+cubo_semantico[CHAR][BOOL][MINUS]=ERR
+cubo_semantico[FLOAT][FLOAT][MINUS]=FLOAT
+cubo_semantico[FLOAT][BOOL][MINUS]=ERR
+cubo_semantico[BOOL][BOOL][MINUS]=ERR
 
 #####################################
 ## not operation cube              ##
@@ -442,6 +454,15 @@ cubo_semantico[BOOL][BOOL][EQ]=BOOL
 cubo_semantico[FLOAT][INT] = {}
 cubo_semantico[FLOAT][INT][EQ] = FLOAT
 
+
+#####################################
+## neg operation cube              ##
+#####################################
+cubo_semantico[INT][NEG]=INT
+cubo_semantico[CHAR][NEG]=ERR
+cubo_semantico[FLOAT][NEG]=FLOAT
+cubo_semantico[BOOL][NEG]=ERR
+
 ####################################
 ## PILAS AUXILIARES               ##
 ####################################
@@ -459,6 +480,7 @@ contCuad = 1
 ## Variables globales enteras     ##
 ####################################
 var_glob_int = 1000
+var_glob_int_inicio = 1000
 
 ####################################
 ## Variables globales flotantes   ##
@@ -568,16 +590,32 @@ pos_dics_var = 1
 pos_dics_dir_inicio = 2
 pos_dics_tam = 3
 pos_dics_params = 4
+
 pos_vars_tipo = 0
 pos_vars_dir_virtual = 1
 pos_vars_dim = 2
+
 pSaltos = deque([])
 auxParamCount = 0
 auxFuncDestinoDir = None
 ctes = {}
+pos_cuads_op = 0
+pos_cuads_opdoIzq = 1
+pos_cuads_opdoDer = 2
+pos_cuads_res = 3
 # Parsing rules
 
 #estructura dir_proc = ["global",vars{}]
+
+# ######################################
+# ## maquina virtual                  ##
+# ######################################
+#
+# def comienzaMaqVirtual():
+#     print "comenzamos maq virtual"
+#     return;
+
+
 
 ######################################
 ## programa                         ##
@@ -585,7 +623,7 @@ ctes = {}
 
 def p_programa(p):
     'programa : creadirprocglobal a neur22 c cancion'
-    dir_procs[scope[-1]][pos_dics_var] = {}
+    #dir_procs[scope[-1]][pos_dics_var] = {}
 
     print('done with file!\n')
 
@@ -646,7 +684,7 @@ def p_d(p):
 ######################################
 
 def p_vars(p):
-    'vars : VAR v ":" tipo ";"'
+    'vars : VAR v ":" tipo u ";"'
     global dir_procs
     global var_glob_int
     global var_glob_float
@@ -671,68 +709,78 @@ def p_vars(p):
         print "Variable con ese ID ya existe en ese scope"
         exit()
     else:
-        auxDic[p[2]] = [p[4],None,None]
+        if p[5] == "NA":
+            dim = 1
+        elif p[5] <= 0:
+            print "Dimension no valida"
+            exit()
+        else:
+            dim = p[5]
+        if dim == 1:
+            auxDic[p[2]] = [p[4],None,None]
+        else:
+            auxDic[p[2]] = [p[4],None,[dim-1,0]]
         if p[4] == INT:
-            dir_procs[scope[-1]][pos_dics_tam]['vi']+=1
+            dir_procs[scope[-1]][pos_dics_tam]['vi']+=dim
             if scope[-1] == 'global':
-                if var_glob_int + 1 < var_glob_float_inicio:
+                if var_glob_int + dim < var_glob_float_inicio:
                     auxDic[p[2]][pos_vars_dir_virtual] = var_glob_int
-                    var_glob_int += 1
+                    var_glob_int += dim
                 else:
                     print "Overflow de variables enteras globales"
                     exit()
             else:
-                if var_loc_int + 1 < var_loc_float_inicio:
+                if var_loc_int + dim < var_loc_float_inicio:
                     auxDic[p[2]][pos_vars_dir_virtual] = var_loc_int
-                    var_loc_int += 1
+                    var_loc_int += dim
                 else:
                     print "Overflow de variables enteras locales"
                     exit()
         elif p[4] == FLOAT:
-            dir_procs[scope[-1]][pos_dics_tam]['vf']+=1
+            dir_procs[scope[-1]][pos_dics_tam]['vf']+=dim
             if scope[-1] == 'global':
-                if var_glob_float + 1 < var_glob_bool_inicio:
+                if var_glob_float + dim < var_glob_bool_inicio:
                     auxDic[p[2]][pos_vars_dir_virtual] = var_glob_float
-                    var_glob_float += 1
+                    var_glob_float += dim
                 else:
                     print "Overflow de variables flotantes globales"
                     exit()
             else:
-                if var_loc_float + 1 < var_loc_bool_inicio:
+                if var_loc_float + dim < var_loc_bool_inicio:
                     auxDic[p[2]][pos_vars_dir_virtual] = var_loc_float
-                    var_loc_float += 1
+                    var_loc_float += dim
                 else:
                     print "Overflow de variables flotantes locales"
                     exit()
         elif p[4] == CHAR:
-            dir_procs[scope[-1]][pos_dics_tam]['vc']+=1
+            dir_procs[scope[-1]][pos_dics_tam]['vc']+=dim
             if scope[-1] == 'global':
-                if var_glob_char + 1 < var_loc_int_inicio:
+                if var_glob_char + dim < var_loc_int_inicio:
                     auxDic[p[2]][pos_vars_dir_virtual] = var_glob_char
-                    var_glob_char += 1
+                    var_glob_char += dim
                 else:
                     print "Overflow de variables char globales"
                     exit()
             else:
-                if var_loc_char + 1 < var_temp_loc_int_inicio:
+                if var_loc_char + dim < var_temp_loc_int_inicio:
                     auxDic[p[2]][pos_vars_dir_virtual] = var_loc_char
-                    var_loc_char += 1
+                    var_loc_char += dim
                 else:
                     print "Overflow de variables char locales"
                     exit()
         else:
-            dir_procs[scope[-1]][pos_dics_tam]['vb']+=1
+            dir_procs[scope[-1]][pos_dics_tam]['vb']+=dim
             if scope[-1] == 'global':
-                if var_glob_bool + 1 < var_glob_char_inicio:
+                if var_glob_bool + dim < var_glob_char_inicio:
                     auxDic[p[2]][pos_vars_dir_virtual] = var_glob_bool
-                    var_glob_bool += 1
+                    var_glob_bool += dim
                 else:
                     print "Overflow de variables booleanas globales"
                     exit()
             else:
-                if var_loc_bool + 1 < var_loc_char_inicio:
+                if var_loc_bool + dim < var_loc_char_inicio:
                     auxDic[p[2]][pos_vars_dir_virtual] = var_loc_bool
-                    var_loc_bool += 1
+                    var_loc_bool += dim
                 else:
                     print "Overflow de variables booleanas locales"
                     exit()
@@ -763,7 +811,7 @@ def p_funcion(p):
         if (not(scope[-1] in dir_procs["global"][pos_dics_var]) and (dir_procs[scope[-1]][pos_dics_tipo] != None)):
             print "Falta regresar parametro de salida en funcion"
             exit()
-        dir_procs[scope[-1]][pos_dics_var] = {}
+        #dir_procs[scope[-1]][pos_dics_var] = {}
         var_loc_int = var_loc_int_inicio
         var_loc_float = var_loc_float_inicio
         var_loc_bool = var_loc_bool_inicio
@@ -771,6 +819,7 @@ def p_funcion(p):
         var_loc_temp_int = var_loc_temp_int_inicio
         var_loc_temp_float = var_loc_temp_float_inicio
         var_loc_temp_bool = var_loc_temp_bool_inicio
+        var_loc_temp_char = var_loc_temp_char_inicio
         scope.pop()
         op = ENDPROC
         cuadruplos[contCuad]=[op,None,None,None]
@@ -801,11 +850,27 @@ def p_z(p):
 
 def p_meterfuncion(p):
     'meterfuncion : '
+    global var_loc_int
+    global var_loc_float
+    global var_loc_bool
+    global var_loc_char
+    global var_loc_temp_int
+    global var_loc_temp_float
+    global var_loc_temp_bool
+    global var_loc_temp_char
     if p[-1] in dir_procs:
         print "Funcion con ese ID ya existe en el programa"
         p[0] = -1
         exit()
     else:
+        var_loc_int = var_loc_int_inicio
+        var_loc_float = var_loc_float_inicio
+        var_loc_bool = var_loc_bool_inicio
+        var_loc_char = var_loc_char_inicio
+        var_loc_temp_int = var_loc_temp_int_inicio
+        var_loc_temp_float = var_loc_temp_float_inicio
+        var_loc_temp_bool = var_loc_temp_bool_inicio
+        var_loc_temp_char = var_loc_temp_char_inicio
         dir_procs[p[-1]] = [p[-2],{},None,{'vi':0,'vf':0,'vc':0,'vb':0,'ti':0,'tf':0,'tc':0,'tb':0},[]]
         scope.append(p[-1])
     pass
@@ -930,14 +995,7 @@ def p_bloque(p):
 
 def p_cancion(p):
     'cancion : CANCION "(" CTEE ")" metercancion f bloque'
-    dir_procs[scope[-1]][pos_dics_var] = {}
-    var_loc_int = var_loc_int_inicio
-    var_loc_float = var_loc_float_inicio
-    var_loc_bool = var_loc_bool_inicio
-    var_loc_char = var_loc_char_inicio
-    var_loc_temp_int = var_loc_temp_int_inicio
-    var_loc_temp_float = var_loc_temp_float_inicio
-    var_loc_temp_bool = var_loc_temp_bool_inicio
+    #dir_procs[scope[-1]][pos_dics_var] = {}
     scope.pop()
     pass
 
@@ -949,6 +1007,22 @@ def p_metercancion(p):
     'metercancion : '
     global contCuad
     scope.append(p[-4])
+    global var_loc_int
+    global var_loc_float
+    global var_loc_bool
+    global var_loc_char
+    global var_loc_temp_int
+    global var_loc_temp_float
+    global var_loc_temp_bool
+    global var_loc_temp_char
+    var_loc_int = var_loc_int_inicio
+    var_loc_float = var_loc_float_inicio
+    var_loc_bool = var_loc_bool_inicio
+    var_loc_char = var_loc_char_inicio
+    var_loc_temp_int = var_loc_temp_int_inicio
+    var_loc_temp_float = var_loc_temp_float_inicio
+    var_loc_temp_bool = var_loc_temp_bool_inicio
+    var_loc_temp_char = var_loc_temp_char_inicio
     dir_procs[p[-4]] = [p[-4],{},None,{'vi':0,'vf':0,'vc':0,'vb':0,'ti':0,'tf':0,'tc':0,'tb':0},[],p[-2]] #cancion tiene tempo como parametro extra en su lista
     saltoInicial = pSaltos.pop()
     cuadruplos[saltoInicial][3] = contCuad
@@ -974,7 +1048,7 @@ def p_estatuto(p):
 #############################
 
 def p_asignacion(p):
-    'asignacion : ID "=" neur8  k ";"'
+    'asignacion : ID asiglista "=" neur8  expresion ";"'
     global contCuad
     global dir_procs
     global scope
@@ -1006,26 +1080,28 @@ def p_asignacion(p):
 def p_neur8(p):
     'neur8 : '
     auxDic = dir_procs[scope[-1]][pos_dics_var]
-    if p[-2] in auxDic:
-        pilaO.append(auxDic[p[-2]][pos_vars_dir_virtual])
-        pTipos.append(auxDic[p[-2]][0])
-        pOper.append(EQ)
-    else:
-        print "No existe tal variable a asignar"
-        exit()
+    if p[-2] == -1:
+        if p[-3] in auxDic:
+            pilaO.append(auxDic[p[-3]][pos_vars_dir_virtual])
+            pTipos.append(auxDic[p[-3]][0])
+        else:
+            print "No existe tal variable a asignar"
+            exit()
+    pOper.append(EQ)
     pass
 
-def p_k(p):
-    '''k : expresion
-         | asiglista'''
-    pass
 
 ######################################
 ## asiglista                        ##
 ######################################
 
 def p_asiglista(p):
-    'asiglista : NEW LIST "(" ")"'
+    '''asiglista : empty
+                 | accesoVarDim'''
+    if p[1] == None:
+        p[0] = -1
+    else:
+        p[0] = 1
     pass
 
 ######################################
@@ -1137,11 +1213,19 @@ def p_neur21(p):
     'neur21 : '
     global contCuad
     op = GOTO
-    ciclo = pSaltos.popleft()
+    auxPila = []
+    i = 0
+    while i < 3:
+        auxPila.append(pSaltos.pop())
+        i += 1
+        pass
+    ciclo = pSaltos.pop()
     cuadruplos[contCuad] = [op,None,None,ciclo]
     contCuad+=1
-    verdadero = pSaltos.popleft()
+    verdadero = auxPila.pop()
     cuadruplos[verdadero][3] = contCuad
+    pSaltos.append(auxPila.pop())
+    pSaltos.append(auxPila.pop())
     pass
 
 ######################################
@@ -1219,7 +1303,7 @@ def p_expresion(p):
                     dir_procs[scope[-1]][pos_dics_tam]['tb']+=1
                     if var_loc_temp_bool + 1 < var_loc_temp_char_inicio:
                         cuadruplos[contCuad] = [op,opdoIzq,None,var_loc_temp_bool]
-                        pilaO.append(var_loc_bool)
+                        pilaO.append(var_loc_temp_bool)
                         pTipos.append(tipoRes)
                         var_loc_temp_bool += 1
                     else:
@@ -1262,7 +1346,6 @@ def p_neur10(p):
     global var_loc_temp_bool_inicio
     global var_loc_temp_char
     global var_loc_temp_char_inicio
-
     global cte_int_inicio
     if pOper:
         if pOper[-1] == AND or pOper[-1] == OR:
@@ -1294,8 +1377,6 @@ def p_neur10(p):
                         pTipos.append(tipoRes)
                         var_loc_temp_float += 1
                     else:
-                        print var_loc_temp_float
-                        print var_loc_bool_inicio
                         print "Overflow de temporales flotantes"
                         exit()
                 elif tipoRes == CHAR:
@@ -1312,7 +1393,7 @@ def p_neur10(p):
                     dir_procs[scope[-1]][pos_dics_tam]['tb']+=1
                     if var_loc_temp_bool + 1 < var_loc_temp_char_inicio:
                         cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_bool]
-                        pilaO.append(var_loc_bool)
+                        pilaO.append(var_loc_temp_bool)
                         pTipos.append(tipoRes)
                         var_loc_temp_bool += 1
                     else:
@@ -1369,7 +1450,6 @@ def p_neur12(p):
     global var_loc_temp_bool_inicio
     global var_loc_temp_char
     global var_loc_temp_char_inicio
-
     global cte_int_inicio
     if pOper:
         if pOper[-1] == EQEQ or pOper[-1] == NOTEQ or pOper[-1] == GT or pOper[-1] == LT or pOper[-1] == GTE or pOper[-1] == LTE:
@@ -1401,8 +1481,6 @@ def p_neur12(p):
                         pTipos.append(tipoRes)
                         var_loc_temp_float += 1
                     else:
-                        print var_loc_temp_float
-                        print var_loc_bool_inicio
                         print "Overflow de temporales flotantes"
                         exit()
                 elif tipoRes == CHAR:
@@ -1419,7 +1497,7 @@ def p_neur12(p):
                     dir_procs[scope[-1]][pos_dics_tam]['tb']+=1
                     if var_loc_temp_bool + 1 < var_loc_temp_char_inicio:
                         cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_bool]
-                        pilaO.append(var_loc_bool)
+                        pilaO.append(var_loc_temp_bool)
                         pTipos.append(tipoRes)
                         var_loc_temp_bool += 1
                     else:
@@ -1531,8 +1609,6 @@ def p_neur5(p):
                         pTipos.append(tipoRes)
                         var_loc_temp_float += 1
                     else:
-                        print var_loc_temp_float
-                        print var_loc_bool_inicio
                         print "Overflow de temporales flotantes"
                         exit()
                 elif tipoRes == CHAR:
@@ -1549,7 +1625,7 @@ def p_neur5(p):
                     dir_procs[scope[-1]][pos_dics_tam]['tb']+=1
                     if var_loc_temp_bool + 1 < var_loc_char_inicio:
                         cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_bool]
-                        pilaO.append(var_loc_bool)
+                        pilaO.append(var_loc_temp_bool)
                         pTipos.append(tipoRes)
                         var_loc_temp_bool += 1
                     else:
@@ -1586,7 +1662,7 @@ def p_neur3_2(p):
 ######################################
 
 def p_termino(p):
-    'termino : factor neur4 n'
+    'termino : meteneg factor neur4 n'
     pass
 
 #############################
@@ -1638,8 +1714,6 @@ def p_neur4(p):
                         pTipos.append(tipoRes)
                         var_loc_temp_float += 1
                     else:
-                        print var_loc_temp_float
-                        print var_loc_bool_inicio
                         print "Overflow de temporales flotantes"
                         exit()
                 elif tipoRes == CHAR:
@@ -1656,7 +1730,7 @@ def p_neur4(p):
                     dir_procs[scope[-1]][pos_dics_tam]['tb']+=1
                     if var_loc_temp_bool + 1 < var_loc_char_inicio:
                         cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_bool]
-                        pilaO.append(var_loc_bool)
+                        pilaO.append(var_loc_temp_bool)
                         pTipos.append(tipoRes)
                         var_loc_temp_bool += 1
                     else:
@@ -1695,6 +1769,81 @@ def p_neur2_2(p):
 def p_factor(p):
     '''factor : "(" neur6 expresion ")" neur7
               | varcte'''
+    global contCuad
+    global pOper
+
+    global var_loc_temp_int
+    global var_loc_temp_int_inicio
+    global var_loc_temp_float
+    global var_loc_temp_float_inicio
+    global var_loc_temp_bool
+    global var_loc_temp_bool_inicio
+    global var_loc_temp_char
+    global var_loc_temp_char_inicio
+
+    global cte_int_inicio
+    if pOper:
+        if pOper[-1] == NEG:
+            op = pOper.pop()
+            opdoIzq = pilaO.pop()
+            tipoIzq = pTipos.pop()
+            tipoRes = cubo_semantico[tipoIzq][op]
+            if tipoRes != ERR :
+                if tipoRes == INT:
+                    dir_procs[scope[-1]][pos_dics_tam]['ti']+=1
+                    if var_loc_temp_int + 1 < var_loc_temp_float_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,None,var_loc_temp_int]
+                        pilaO.append(var_loc_temp_int)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_int += 1
+                    else:
+                        print "Overflow de temporales enteras"
+                        exit()
+                elif tipoRes == FLOAT:
+                    dir_procs[scope[-1]][pos_dics_tam]['tf']+=1
+                    if var_loc_temp_float + 1 < var_loc_temp_bool_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,None,var_loc_temp_float]
+                        pilaO.append(var_loc_temp_float)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_float += 1
+                    else:
+                        print "Overflow de temporales flotantes"
+                        exit()
+                elif tipoRes == CHAR:
+                    dir_procs[scope[-1]][pos_dics_tam]['tc']+=1
+                    if var_loc_temp_char + 1 < cte_int_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,None,var_loc_temp_char]
+                        pilaO.append(var_loc_temp_char)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_char += 1
+                    else:
+                        print "Overflow de temporales char"
+                        exit()
+                else:
+                    dir_procs[scope[-1]][pos_dics_tam]['tb']+=1
+                    if var_loc_temp_bool + 1 < var_loc_char_inicio:
+                        cuadruplos[contCuad] = [op,opdoIzq,None,var_loc_temp_bool]
+                        pilaO.append(var_loc_temp_bool)
+                        pTipos.append(tipoRes)
+                        var_loc_temp_bool += 1
+                    else:
+                        print "Overflow de temporales bool"
+                        exit()
+                contCuad+=1
+            else:
+                print("Type mismatch")
+                exit()
+    pass
+
+#############################
+## meteneg                 ##
+#############################
+
+def p_meteneg(p):
+    '''meteneg : empty
+               | "-" '''
+    if p[1] == "-":
+        pOper.append(NEG)
     pass
 
 #############################
@@ -1756,10 +1905,6 @@ def p_neurVar(p):
         else:
             print "No existe tal variable"
             exit()
-    elif p[-1] == 1 or p[-1] == 2 or p[-1] == 4:
-        pTipos.append(BOOL)
-    elif p[-1] == 3:
-        pTipos.append(INT)
     pass
 
 #############################
@@ -1812,14 +1957,22 @@ def p_neurCteB(p):
     global cte_char_inicio
     global ctes
     pTipos.append(BOOL)
-    if (not p[-1] in ctes):
+
+    #############################################
+    # fix para que el True no lo confunda con 1 #
+    #############################################
+    if p[-1]:
+        boolConst = 'tru'
+    else:
+        boolConst = 'fals'
+    if (not boolConst in ctes):
         if cte_bool + 1 < cte_char_inicio:
-            ctes[p[-1]] = cte_bool
+            ctes[boolConst] = cte_bool
             cte_bool += 1
         else:
             print "Overflow de constantes booleanas"
             exit()
-    pilaO.append(ctes[p[-1]])
+    pilaO.append(ctes[boolConst])
     pass
 
 #############################
@@ -1857,43 +2010,97 @@ def p_r(p):
 ######################################
 
 def p_oplista(p):
-    'oplista : ID "." x'
-    p[0] = p[3]
-    pass
-
-def p_x(p):
-    '''x : inlistset
-         | append
-         | length
-         | getlist
-         | removelist'''
+    '''oplista : accesoVarDim
+               | length'''
     p[0] = p[1]
     pass
 
 ######################################
-## inlistset                        ##
+## accesoVarDim                     ##
 ######################################
 
-def p_inlistset(p):
-    'inlistset : SET "(" CTEE "," expresion ")"'
+def p_accesoVarDim(p):
+    'accesoVarDim : "[" neur27 nexp "]"'
     p[0] = 1
+    global contCuad
+    global var_loc_temp_int
+    global var_loc_temp_int
+    global var_loc_temp_float
+    global var_loc_temp_float_inicio
+    global var_loc_temp_bool
+    global var_loc_temp_bool_inicio
+    global var_loc_temp_char
+    global var_loc_temp_char_inicio
+    global cte_int_inicio
+    global cte_int
+    global cte_float_inicio
+
+    if p[-1] in dir_procs[scope[-1]][pos_dics_var]:
+        if dir_procs[scope[-1]][pos_dics_var][p[-1]][pos_vars_dim] != None:
+            op = VERIFICA
+            opdoIzq = pilaO[-1]
+            opdoDer = dir_procs[scope[-1]][pos_dics_var][p[-1]][pos_vars_dim][1]
+            res = dir_procs[scope[-1]][pos_dics_var][p[-1]][pos_vars_dim][0]
+            cuadruplos[contCuad] = [op,opdoIzq,opdoDer,res]
+            contCuad += 1
+            op = PLUS
+            opdoIzq = pilaO.pop()
+            pTipos.pop()
+            aux = dir_procs[scope[-1]][pos_dics_var][p[-1]][pos_vars_dir_virtual]
+            if (not aux in ctes):
+                if cte_int + 1 < cte_float_inicio:
+                    ctes[aux] = cte_int
+                    cte_int += 1
+                else:
+                    print "Overflow de constantes enteras"
+                    exit()
+            opdoDer = ctes[aux]
+            dir_procs[scope[-1]][pos_dics_tam]['ti']+=1
+            if var_loc_temp_int + 1 < var_loc_temp_float_inicio:
+                cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_int]
+                contCuad += 1
+                pilaO.append("("+str(var_loc_temp_int)+")")
+                var_loc_temp_int += 1
+            else:
+                print "Overflow de temporales enteras"
+                exit()
+            pTipos.append(dir_procs[scope[-1]][pos_dics_var][p[-1]][pos_vars_tipo])
+            if pOper[-1] == '[':
+                pOper.pop()
+        else:
+            print "No es una variable dimensionada"
+            exit()
+    else:
+        print "No existe tal variable"
+        exit()
+
+    pass
+
+
+################################
+## neur 27                    ##
+################################
+
+def p_neur27(p):
+    'neur27 : '
+    pOper.append('[')
     pass
 
 ######################################
 ## append                           ##
 ######################################
 
-def p_append(p):
-    'append : APPEND "(" expresion ")"'
-    p[0] = 2
-    pass
+# def p_append(p):
+#     'append : APPEND "(" expresion ")"'
+#     p[0] = 2
+#     pass
 
 ######################################
 ## length                           ##
 ######################################
 
 def p_length(p):
-    'length : LENGTH "(" ")"'
+    'length : "." LENGTH "(" ")"'
     p[0] = 3
     pass
 
@@ -1901,19 +2108,19 @@ def p_length(p):
 ## getlist                          ##
 ######################################
 
-def p_getlist(p):
-    'getlist : GET "(" expresion ")"'
-    p[0] = 4
-    pass
+# def p_getlist(p):
+#     'getlist : GET "(" expresion ")"'
+#     p[0] = 4
+#     pass
 
 ######################################
 ## removelist                       ##
 ######################################
 
-def p_removelist(p):
-    'removelist : REMOVE "(" expresion ")"'
-    p[0] = 5
-    pass
+# def p_removelist(p):
+#     'removelist : REMOVE "(" expresion ")"'
+#     p[0] = 5
+#     pass
 
 ######################################
 ## while                            ##
@@ -1984,7 +2191,8 @@ def p_print(p):
     'print : PRINT expresion ";"'
     global contCuad
     op = PRINT
-    opdoIzq = p[2]
+    opdoIzq = pilaO.pop()
+    pTipos.pop()
     cuadruplos[contCuad] = [op,opdoIzq,None,None]
     contCuad+=1
     pass
@@ -1996,9 +2204,62 @@ def p_print(p):
 def p_callreturnfunc(p):
     'callreturnfunc : CALL ID neur24 "(" s ")" neur26 ";"'
     global pos_dics_tipo
+    global var_loc_temp_int
+    global var_loc_temp_int_inicio
+    global var_loc_temp_float
+    global var_loc_temp_float_inicio
+    global var_loc_temp_bool
+    global var_loc_temp_bool_inicio
+    global var_loc_temp_char
+    global var_loc_temp_char_inicio
+    global contCuad
+
+    global cte_int_inicio
     dir_virtual = dir_procs['global'][pos_dics_var][p[2]][pos_vars_dir_virtual]
-    pilaO.append(dir_virtual)
-    pTipos.append(dir_procs[p[2]][pos_dics_tipo])
+    tipo = dir_procs['global'][pos_dics_var][p[2]][pos_vars_tipo]
+    op = EQ
+    opdoIzq = dir_virtual
+    if tipo == INT:
+        dir_procs[scope[-1]][pos_dics_tam]['ti']+=1
+        if var_loc_temp_int + 1 < var_loc_temp_float_inicio:
+            cuadruplos[contCuad] = [op,opdoIzq,None,var_loc_temp_int]
+            pilaO.append(var_loc_temp_int)
+            pTipos.append(tipo)
+            var_loc_temp_int += 1
+        else:
+            print "Overflow de temporales enteras"
+            exit()
+    elif tipo == FLOAT:
+        dir_procs[scope[-1]][pos_dics_tam]['tf']+=1
+        if var_loc_temp_float + 1 < var_loc_temp_bool_inicio:
+            cuadruplos[contCuad] = [op,opdoIzq,None,var_loc_temp_float]
+            pilaO.append(var_loc_temp_float)
+            pTipos.append(tipo)
+            var_loc_temp_float += 1
+        else:
+            print "Overflow de temporales flotantes"
+            exit()
+    elif tipo == CHAR:
+        dir_procs[scope[-1]][pos_dics_tam]['tc']+=1
+        if var_loc_temp_char + 1 < cte_int_inicio:
+            cuadruplos[contCuad] = [op,opdoIzq,None,var_loc_temp_char]
+            pilaO.append(var_loc_temp_char)
+            pTipos.append(tipo)
+            var_loc_temp_char += 1
+        else:
+            print "Overflow de temporales char"
+            exit()
+    else:
+        dir_procs[scope[-1]][pos_dics_tam]['tb']+=1
+        if var_loc_temp_bool + 1 < var_loc_temp_char_inicio:
+            cuadruplos[contCuad] = [op,opdoIzq,None,var_loc_temp_bool]
+            pilaO.append(var_loc_temp_bool)
+            pTipos.append(tipo)
+            var_loc_temp_bool += 1
+        else:
+            print "Overflow de temporales bool"
+            exit()
+    contCuad+=1
     pass
 
 def p_s(p):
@@ -2020,9 +2281,16 @@ def p_neur25(p):
         argumento = pilaO.pop()
         tipoarg = pTipos.pop()
         if tipoarg == dir_procs[auxFuncDestinoDir][pos_dics_params][auxParamCount] or (tipoarg == INT and dir_procs[auxFuncDestinoDir][pos_dics_params][auxParamCount]==FLOAT):
-            auxParamCount += 1
             op = PARAMETRO
-            cuadruplos[contCuad] = [op,argumento,None,auxParamCount]
+            if tipoarg == INT:
+                cuadruplos[contCuad] = [op,argumento,None,var_loc_int_inicio + auxParamCount]
+            elif tipoarg == FLOAT:
+                cuadruplos[contCuad] = [op,argumento,None,var_loc_float_inicio + auxParamCount]
+            elif tipoRes == CHAR:
+                cuadruplos[contCuad] = [op,argumento,None,var_loc_char_inicio + auxParamCount]
+            else:
+                cuadruplos[contCuad] = [op,argumento,None,var_loc_bool_inicio + auxParamCount]
+            auxParamCount += 1
             contCuad+=1
         else:
             print "Error en declaracion de parametros"
@@ -2103,7 +2371,7 @@ def p_return(p):
     'return : RETURN "(" expresion ")" ";"'
     global pos_dics_tipo
     global pos_dics_var
-
+    global contCuad
     global var_glob_int
     global var_glob_float
     global var_glob_float_inicio
@@ -2115,42 +2383,56 @@ def p_return(p):
     global var_loc_int_inicio
     retorno = pilaO.pop()
     tipoRetorno = pTipos.pop()
+    op = EQ
     if tipoRetorno == dir_procs[scope[-1]][pos_dics_tipo] or (tipoRetorno == INT and dir_procs[scope[-1]][pos_dics_tipo] == FLOAT):
-        if dir_procs[scope[-1]][pos_dics_tipo] == INT:
-            dir_procs["global"][pos_dics_tam]['vi']+=1
-            if var_glob_int + 1 < var_glob_float_inicio:
-                dir_procs["global"][pos_dics_var][scope[-1]] = [dir_procs[scope[-1]][pos_dics_tipo],var_glob_int,None]
-                var_glob_int += 1
-            else:
-                print "Overflow de variables enteras globales"
-                exit()
-        elif dir_procs[scope[-1]][pos_dics_tipo] == FLOAT:
-            dir_procs["global"][pos_dics_tam]['vf']+=1
-            if var_glob_float + 1 < var_glob_bool_inicio:
-                dir_procs["global"][pos_dics_var][scope[-1]] = [dir_procs[scope[-1]][pos_dics_tipo],var_glob_float,None]
-                var_glob_float += 1
-            else:
-                print "Overflow de variables enteras globales"
-                exit()
-        elif dir_procs[scope[-1]][pos_dics_tipo] == CHAR:
-            dir_procs["global"][pos_dics_tam]['vc']+=1
-            if var_glob_char + 1 < var_loc_int_inicio:
-                dir_procs["global"][pos_dics_var][scope[-1]] = [dir_procs[scope[-1]][pos_dics_tipo],var_glob_char,None]
-                var_glob_char += 1
-            else:
-                print "Overflow de variables enteras globales"
-                exit()
+        if scope[-1] in dir_procs["global"][pos_dics_var]:
+            var_aux = dir_procs["global"][pos_dics_var][scope[-1]][pos_vars_dir_virtual]
+            cuadruplos[contCuad] = [op,retorno,None,var_aux]
         else:
-            dir_procs["global"][pos_dics_tam]['vb']+=1
-            if var_glob_bool + 1 < var_glob_char_inicio:
-                dir_procs["global"][pos_dics_var][scope[-1]] = [dir_procs[scope[-1]][pos_dics_tipo],var_glob_bool,None]
-                var_glob_bool += 1
+            if dir_procs[scope[-1]][pos_dics_tipo] == INT:
+                dir_procs["global"][pos_dics_tam]['vi']+=1
+                if var_glob_int + 1 < var_glob_float_inicio:
+                    dir_procs["global"][pos_dics_var][scope[-1]] = [dir_procs[scope[-1]][pos_dics_tipo],var_glob_int,None]
+                    cuadruplos[contCuad] = [op,retorno,None,var_glob_int]
+                    var_glob_int += 1
+                else:
+                    print "Overflow de variables enteras globales"
+                    exit()
+            elif dir_procs[scope[-1]][pos_dics_tipo] == FLOAT:
+                dir_procs["global"][pos_dics_tam]['vf']+=1
+                if var_glob_float + 1 < var_glob_bool_inicio:
+                    dir_procs["global"][pos_dics_var][scope[-1]] = [dir_procs[scope[-1]][pos_dics_tipo],var_glob_float,None]
+                    cuadruplos[contCuad] = [op,retorno,None,var_glob_float]
+                    var_glob_float += 1
+                else:
+                    print "Overflow de variables enteras globales"
+                    exit()
+            elif dir_procs[scope[-1]][pos_dics_tipo] == CHAR:
+                dir_procs["global"][pos_dics_tam]['vc']+=1
+                if var_glob_char + 1 < var_loc_int_inicio:
+                    dir_procs["global"][pos_dics_var][scope[-1]] = [dir_procs[scope[-1]][pos_dics_tipo],var_glob_char,None]
+                    cuadruplos[contCuad] = [op,retorno,None,var_glob_char]
+                    var_glob_char += 1
+                else:
+                    print "Overflow de variables enteras globales"
+                    exit()
             else:
-                print "Overflow de variables enteras globales"
-                exit()
+                dir_procs["global"][pos_dics_tam]['vb']+=1
+                if var_glob_bool + 1 < var_glob_char_inicio:
+                    dir_procs["global"][pos_dics_var][scope[-1]] = [dir_procs[scope[-1]][pos_dics_tipo],var_glob_bool,None]
+                    cuadruplos[contCuad] = [op,retorno,None,var_glob_bool]
+                    var_glob_bool += 1
+                else:
+                    print "Overflow de variables enteras globales"
+                    exit()
+        contCuad += 1
     else:
         print "Error en el tipo de retorno dado"
         exit()
+
+    op = ENDPROC
+    cuadruplos[contCuad]=[op,None,None,None]
+    contCuad += 1
     pass
 
 ######################################
@@ -2158,13 +2440,26 @@ def p_return(p):
 ######################################
 
 def p_tipo(p):
-    'tipo : u y'
-    p[0] = p[2]
+    'tipo : y'
+    p[0] = p[1]
     pass
 
 def p_u(p):
     '''u : empty
-         | LIST'''
+         | LIST "(" CTEE ")"'''
+    global cte_int
+    global ctes
+    if p[1] == None:
+        p[0] = "NA"
+    else:
+        # if(not p[3] in ctes):
+        #     if cte_int + 1 < cte_float_inicio:
+        #         ctes[p[3]] = cte_int
+        #         cte_int +=1
+        #     else:
+        #         print "Overflow de constantes enteras"
+        #         exit()
+        p[0] = p[3]
     pass
 
 def p_y(p):
@@ -2200,3 +2495,883 @@ f = open(str(sys.argv[1]), 'r')
 s = f.read()
 f.close()
 yacc.parse(s)
+
+import memoria
+###########################
+## funcion search        ##
+###########################
+def search(values, searchFor):
+    for k in values:
+        if searchFor == values[k]:
+            return k
+    return None
+
+
+################################################
+## funcion de operaciones maq virtual         ##
+################################################
+def func_maq_virtual():
+    global current_cuad
+    global memoriaGlobal
+    global memoriaActiva
+    global memoriaDormida
+    op = cuadruplos[current_cuad][0]
+    print cuadruplos[current_cuad]
+    opdoIzq = cuadruplos[current_cuad][1]
+    if isinstance(opdoIzq,basestring):
+        opdoIzq = int(opdoIzq[1:-1])
+        if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
+            opdoIzq = memoriaGlobal.ints[opdoIzq]
+        elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
+            opdoIzq = memoriaGlobal.floats[opdoIzq]
+        elif opdoIzq >= var_glob_bool_inicio and opdoIzq < var_glob_char_inicio:
+            opdoIzq = memoriaGlobal.bools[opdoIzq]
+        elif opdoIzq >= var_glob_char_inicio and opdoIzq < var_loc_int_inicio:
+            opdoIzq = memoriaGlobal.chars[opdoIzq]
+        elif (opdoIzq >= var_loc_int_inicio and opdoIzq < var_loc_float_inicio) or (opdoIzq >= var_loc_temp_int_inicio and opdoIzq < var_loc_temp_float_inicio):
+            opdoIzq = memoriaActiva.ints[opdoIzq]
+        elif (opdoIzq >= var_loc_float_inicio and opdoIzq < var_loc_bool_inicio) or (opdoIzq >= var_loc_temp_float_inicio and opdoIzq < var_loc_temp_bool_inicio):
+            opdoIzq = memoriaActiva.floats[opdoIzq]
+        elif (opdoIzq >= var_loc_bool_inicio and opdoIzq < var_loc_char_inicio) or (opdoIzq >= var_loc_temp_bool_inicio and opdoIzq < var_loc_temp_char_inicio):
+            opdoIzq = memoriaActiva.bools[opdoIzq]
+        elif (opdoIzq >= var_loc_char_inicio and opdoIzq < var_loc_temp_int_inicio) or (opdoIzq >= var_loc_temp_char_inicio and opdoIzq < cte_int_inicio):
+            opdoIzq = memoriaActiva.chars[opdoIzq]
+        elif opdoIzq >= cte_int_inicio and opdoIzq < cte_float_inicio:
+            opdoIzq = int(search(ctes,opdoIzq))
+        elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
+            opdoIzq = float(search(ctes,opdoIzq))
+        elif opdoIzq >= cte_bool_inicio and opdoIzq < cte_char_inicio:
+            if search(ctes,opdoIzq) == 'tru':
+                opdoIzq = True
+            else:
+                opdoIzq = False
+        elif opdoIzq >= cte_char_inicio:
+            opdoIzq = search(ctes,opdoIzq)
+    opdoDer = cuadruplos[current_cuad][2]
+    if isinstance(opdoDer,basestring):
+        opdoDer = int(opdoDer[1:-1])
+        if opdoDer >= var_glob_int_inicio and opdoDer < var_glob_float_inicio:
+            opdoDer = memoriaGlobal.ints[opdoDer]
+        elif opdoDer >= var_glob_float_inicio and opdoDer < var_glob_bool_inicio:
+            opdoDer = memoriaGlobal.floats[opdoDer]
+        elif opdoDer >= var_glob_bool_inicio and opdoDer < var_glob_char_inicio:
+            opdoDer = memoriaGlobal.bools[opdoDer]
+        elif opdoDer >= var_glob_char_inicio and opdoDer < var_loc_int_inicio:
+            opdoDer = memoriaGlobal.chars[opdoDer]
+        elif (opdoDer >= var_loc_int_inicio and opdoDer < var_loc_float_inicio) or (opdoDer >= var_loc_temp_int_inicio and opdoDer < var_loc_temp_float_inicio):
+            opdoDer = memoriaActiva.ints[opdoDer]
+        elif (opdoDer >= var_loc_float_inicio and opdoDer < var_loc_bool_inicio) or (opdoDer >= var_loc_temp_float_inicio and opdoDer < var_loc_temp_bool_inicio):
+            opdoDer = memoriaActiva.floats[opdoDer]
+        elif (opdoDer >= var_loc_bool_inicio and opdoDer < var_loc_char_inicio) or (opdoDer >= var_loc_temp_bool_inicio and opdoDer < var_loc_temp_char_inicio):
+            opdoDer = memoriaActiva.bools[opdoDer]
+        elif (opdoDer >= var_loc_char_inicio and opdoDer < var_loc_temp_int_inicio) or (opdoDer >= var_loc_temp_char_inicio and opdoDer < cte_int_inicio):
+            opdoDer = memoriaActiva.chars[opdoDer]
+        elif opdoDer >= cte_int_inicio and opdoDer < cte_float_inicio:
+            opdoDer = int(search(ctes,opdoDer))
+        elif opdoDer >= cte_float_inicio and opdoDer < cte_bool_inicio:
+            opdoDer = float(search(ctes,opdoDer))
+        elif opdoDer >= cte_bool_inicio and opdoDer < cte_char_inicio:
+            if search(ctes,opdoDer) == 'tru':
+                opdoDer = True
+            else:
+                opdoDer = False
+        elif opdoDer >= cte_char_inicio:
+            opdoDer = search(ctes,opdoDer)
+    resultado = cuadruplos[current_cuad][3]
+    if isinstance(resultado,basestring):
+        resultado = int(resultado[1:-1])
+        if resultado >= var_glob_int_inicio and resultado < var_glob_float_inicio:
+            resultado = memoriaGlobal.ints[resultado]
+        elif resultado >= var_glob_float_inicio and resultado < var_glob_bool_inicio:
+            resultado = memoriaGlobal.floats[resultado]
+        elif resultado >= var_glob_bool_inicio and resultado < var_glob_char_inicio:
+            resultado = memoriaGlobal.bools[resultado]
+        elif resultado >= var_glob_char_inicio and resultado < var_loc_int_inicio:
+            resultado = memoriaGlobal.chars[resultado]
+        elif (resultado >= var_loc_int_inicio and resultado < var_loc_float_inicio) or (resultado >= var_loc_temp_int_inicio and resultado < var_loc_temp_float_inicio):
+            resultado = memoriaActiva.ints[resultado]
+        elif (resultado >= var_loc_float_inicio and resultado < var_loc_bool_inicio) or (resultado >= var_loc_temp_float_inicio and resultado < var_loc_temp_bool_inicio):
+            resultado = memoriaActiva.floats[resultado]
+        elif (resultado >= var_loc_bool_inicio and resultado < var_loc_char_inicio) or (resultado >= var_loc_temp_bool_inicio and resultado < var_loc_temp_char_inicio):
+            resultado = memoriaActiva.bools[resultado]
+        elif (resultado >= var_loc_char_inicio and resultado < var_loc_temp_int_inicio) or (resultado >= var_loc_temp_char_inicio and resultado < cte_int_inicio):
+            resultado = memoriaActiva.chars[resultado]
+        elif resultado >= cte_int_inicio and resultado < cte_float_inicio:
+            resultado = int(search(ctes,resultado))
+        elif resultado >= cte_float_inicio and resultado < cte_bool_inicio:
+            resultado = float(search(ctes,resultado))
+        elif resultado >= cte_bool_inicio and resultado < cte_char_inicio:
+            if search(ctes,resultado) == 'tru':
+                resultado = True
+            else:
+                resultado = False
+        elif resultado >= cte_char_inicio:
+            resultado = search(ctes,resultado)
+    dato1 = None
+    dato2 = None
+    if op == MULT:
+
+        if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
+            dato1 = memoriaGlobal.ints[opdoIzq]
+        elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
+            dato1 = memoriaGlobal.floats[opdoIzq]
+        elif (opdoIzq >= var_loc_int_inicio and opdoIzq < var_loc_float_inicio) or (opdoIzq >= var_loc_temp_int_inicio and opdoIzq < var_loc_temp_float_inicio):
+            dato1 = memoriaActiva.ints[opdoIzq]
+        elif (opdoIzq >= var_loc_float_inicio and opdoIzq < var_loc_bool_inicio) or (opdoIzq >= var_loc_temp_float_inicio and opdoIzq < var_loc_temp_bool_inicio):
+            dato1 = memoriaActiva.floats[opdoIzq]
+        elif opdoIzq >= cte_int_inicio and opdoIzq < cte_float_inicio:
+            dato1 = int(search(ctes,opdoIzq))
+        elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
+            dato1 = float(search(ctes,opdoIzq))
+
+        if opdoDer >= var_glob_int_inicio and opdoDer < var_glob_float_inicio:
+            dato2 = memoriaGlobal.ints[opdoDer]
+        elif opdoDer >= var_glob_float_inicio and opdoDer < var_glob_bool_inicio:
+            dato2 = memoriaGlobal.floats[opdoDer]
+        elif (opdoDer >= var_loc_int_inicio and opdoDer < var_loc_float_inicio) or (opdoDer >= var_loc_temp_int_inicio and opdoDer < var_loc_temp_float_inicio):
+            dato2 = memoriaActiva.ints[opdoDer]
+        elif (opdoDer >= var_loc_float_inicio and opdoDer < var_loc_bool_inicio) or (opdoDer >= var_loc_temp_float_inicio and opdoDer < var_loc_temp_bool_inicio):
+            dato2 = memoriaActiva.floats[opdoDer]
+        elif opdoDer >= cte_int_inicio and opdoDer < cte_float_inicio:
+            dato2 = int(search(ctes,opdoDer))
+        elif opdoDer >= cte_float_inicio and opdoDer < cte_bool_inicio:
+            dato2 = float(search(ctes,opdoDer))
+
+
+        res = dato1 * dato2
+
+        if resultado >= var_glob_int_inicio and resultado < var_glob_float_inicio:
+            memoriaGlobal.ints[resultado] = res
+        elif resultado >= var_glob_float_inicio and resultado < var_glob_bool_inicio:
+            memoriaGlobal.floats[resultado] = res
+        elif (resultado >= var_loc_int_inicio and resultado < var_loc_float_inicio) or (resultado >= var_loc_temp_int_inicio and resultado < var_loc_temp_float_inicio):
+            memoriaActiva.ints[resultado] = res
+        elif (resultado >= var_loc_float_inicio and resultado < var_loc_bool_inicio) or (resultado >= var_loc_temp_float_inicio and resultado < var_loc_temp_bool_inicio):
+            memoriaActiva.floats[resultado] = res
+
+        current_cuad +=1
+
+    elif op == DIV:
+        if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
+            dato1 = memoriaGlobal.ints[opdoIzq]
+        elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
+            dato1 = memoriaGlobal.floats[opdoIzq]
+        elif (opdoIzq >= var_loc_int_inicio and opdoIzq < var_loc_float_inicio) or (opdoIzq >= var_loc_temp_int_inicio and opdoIzq < var_loc_temp_float_inicio):
+            dato1 = memoriaActiva.ints[opdoIzq]
+        elif (opdoIzq >= var_loc_float_inicio and opdoIzq < var_loc_bool_inicio) or (opdoIzq >= var_loc_temp_float_inicio and opdoIzq < var_loc_temp_bool_inicio):
+            dato1 = memoriaActiva.floats[opdoIzq]
+        elif opdoIzq >= cte_int_inicio and opdoIzq < cte_float_inicio:
+            dato1 = int(search(ctes,opdoIzq))
+        elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
+            dato1 = float(search(ctes,opdoIzq))
+
+        if opdoDer >= var_glob_int_inicio and opdoDer < var_glob_float_inicio:
+            dato2 = memoriaGlobal.ints[opdoDer]
+        elif opdoDer >= var_glob_float_inicio and opdoDer < var_glob_bool_inicio:
+            dato2 = memoriaGlobal.floats[opdoDer]
+        elif (opdoDer >= var_loc_int_inicio and opdoDer < var_loc_float_inicio) or (opdoDer >= var_loc_temp_int_inicio and opdoDer < var_loc_temp_float_inicio):
+            dato2 = memoriaActiva.ints[opdoDer]
+        elif (opdoDer >= var_loc_float_inicio and opdoDer < var_loc_bool_inicio) or (opdoDer >= var_loc_temp_float_inicio and opdoDer < var_loc_temp_bool_inicio):
+            dato2 = memoriaActiva.floats[opdoDer]
+        elif opdoDer >= cte_int_inicio and opdoDer < cte_float_inicio:
+            dato2 = int(search(ctes,opdoDer))
+        elif opdoDer >= cte_float_inicio and opdoDer < cte_bool_inicio:
+            dato2 = float(search(ctes,opdoDer))
+
+        res = dato1 / dato2
+
+        if resultado >= var_glob_int_inicio and resultado < var_glob_float_inicio:
+            memoriaGlobal.ints[resultado] = res
+        elif resultado >= var_glob_float_inicio and resultado < var_glob_bool_inicio:
+            memoriaGlobal.floats[resultado] = res
+        elif (resultado >= var_loc_int_inicio and resultado < var_loc_float_inicio) or (resultado >= var_loc_temp_int_inicio and resultado < var_loc_temp_float_inicio):
+            memoriaActiva.ints[resultado] = res
+        elif (resultado >= var_loc_float_inicio and resultado < var_loc_bool_inicio) or (resultado >= var_loc_temp_float_inicio and resultado < var_loc_temp_bool_inicio):
+            memoriaActiva.floats[resultado] = res
+
+        current_cuad +=1
+
+    elif op == AND:
+
+        if opdoIzq >= var_glob_bool_inicio and opdoIzq < var_glob_char_inicio:
+            dato1 = memoriaGlobal.bools[opdoIzq]
+        elif (opdoIzq >= var_loc_bool_inicio and opdoIzq < var_loc_char_inicio) or (opdoIzq >= var_loc_temp_bool_inicio and opdoIzq < var_loc_temp_char_inicio):
+            dato1 = memoriaActiva.bools[opdoIzq]
+        elif opdoIzq >= cte_bool_inicio and opdoIzq < cte_char_inicio:
+            if search(ctes,opdoIzq) == 'tru':
+                dato1 = True
+            else:
+                dato1 = False
+
+        if opdoDer >= var_glob_bool_inicio and opdoDer < var_glob_char_inicio:
+            dato2 = memoriaGlobal.bools[opdoDer]
+        elif (opdoDer >= var_loc_bool_inicio and opdoDer < var_loc_char_inicio) or (opdoDer >= var_loc_temp_bool_inicio and opdoDer < var_loc_temp_char_inicio):
+            dato2 = memoriaActiva.bools[opdoDer]
+        elif opdoDer >= cte_bool_inicio and opdoDer < cte_char_inicio:
+            if search(ctes,opdoDer) == 'tru':
+                dato2 = True
+            else:
+                dato2 = False
+
+
+        res = dato1 and dato2
+
+        if resultado >= var_glob_bool_inicio and resultado < var_glob_char_inicio:
+            memoriaGlobal.bools[resultado] = res
+        elif (resultado >= var_loc_bool_inicio and resultado < var_loc_char_inicio) or (resultado >= var_loc_temp_bool_inicio and resultado < var_loc_temp_char_inicio):
+            memoriaActiva.bools[resultado] = res
+
+        current_cuad +=1
+
+    elif op == OR:
+
+        if opdoIzq >= var_glob_bool_inicio and opdoIzq < var_glob_char_inicio:
+            dato1 = memoriaGlobal.bools[opdoIzq]
+        elif (opdoIzq >= var_loc_bool_inicio and opdoIzq < var_loc_char_inicio) or (opdoIzq >= var_loc_temp_bool_inicio and opdoIzq < var_loc_temp_char_inicio):
+            dato1 = memoriaActiva.bools[opdoIzq]
+        elif opdoIzq >= cte_bool_inicio and opdoIzq < cte_char_inicio:
+            if search(ctes,opdoIzq) == 'tru':
+                dato1 = True
+            else:
+                dato1 = False
+
+        if opdoDer >= var_glob_bool_inicio and opdoDer < var_glob_char_inicio:
+            dato2 = memoriaGlobal.bools[opdoDer]
+        elif (opdoDer >= var_loc_bool_inicio and opdoDer < var_loc_char_inicio) or (opdoDer >= var_loc_temp_bool_inicio and opdoDer < var_loc_temp_char_inicio):
+            dato2 = memoriaActiva.bools[opdoDer]
+        elif opdoDer >= cte_bool_inicio and opdoDer < cte_char_inicio:
+            if search(ctes,opdoDer) == 'tru':
+                dato2 = True
+            else:
+                dato2 = False
+
+        res = dato1 or dato2
+
+        if resultado >= var_glob_bool_inicio and resultado < var_glob_char_inicio:
+            memoriaGlobal.bools[resultado] = res
+        elif (resultado >= var_loc_bool_inicio and resultado < var_loc_char_inicio) or (resultado >= var_loc_temp_bool_inicio and resultado < var_loc_temp_char_inicio):
+            memoriaActiva.bools[resultado] = res
+
+        current_cuad +=1
+
+    elif op == EQEQ:
+
+        if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
+            dato1 = memoriaGlobal.ints[opdoIzq]
+        elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
+            dato1 = memoriaGlobal.floats[opdoIzq]
+        elif opdoIzq >= var_glob_bool_inicio and opdoIzq < var_glob_char_inicio:
+            dato1 = memoriaGlobal.bools[opdoIzq]
+        elif opdoIzq >= var_glob_char_inicio and opdoIzq < var_loc_int_inicio:
+            dato1 = memoriaGlobal.chars[opdoIzq]
+        elif (opdoIzq >= var_loc_int_inicio and opdoIzq < var_loc_float_inicio) or (opdoIzq >= var_loc_temp_int_inicio and opdoIzq < var_loc_temp_float_inicio):
+            dato1 = memoriaActiva.ints[opdoIzq]
+        elif (opdoIzq >= var_loc_float_inicio and opdoIzq < var_loc_bool_inicio) or (opdoIzq >= var_loc_temp_float_inicio and opdoIzq < var_loc_temp_bool_inicio):
+            dato1 = memoriaActiva.floats[opdoIzq]
+        elif (opdoIzq >= var_loc_bool_inicio and opdoIzq < var_loc_char_inicio) or (opdoIzq >= var_loc_temp_bool_inicio and opdoIzq < var_loc_temp_char_inicio):
+            dato1 = memoriaActiva.bools[opdoIzq]
+        elif (opdoIzq >= var_loc_char_inicio and opdoIzq < var_loc_temp_int_inicio) or (opdoIzq >= var_loc_temp_char_inicio and opdoIzq < cte_int_inicio):
+            dato1 = memoriaActiva.chars[opdoIzq]
+        elif opdoIzq >= cte_int_inicio and opdoIzq < cte_float_inicio:
+            dato1 = int(search(ctes,opdoIzq))
+        elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
+            dato1 = float(search(ctes,opdoIzq))
+        elif opdoIzq >= cte_bool_inicio and opdoIzq < cte_char_inicio:
+            if search(ctes,opdoIzq) == 'tru':
+                dato1 = True
+            else:
+                dato1 = False
+        elif opdoIzq >= cte_char_inicio:
+            dato1 = search(ctes,opdoIzq)
+
+        if opdoDer >= var_glob_int_inicio and opdoDer < var_glob_float_inicio:
+            dato2 = memoriaGlobal.ints[opdoDer]
+        elif opdoDer >= var_glob_float_inicio and opdoDer < var_glob_bool_inicio:
+            dato2 = memoriaGlobal.floats[opdoDer]
+        elif opdoDer >= var_glob_bool_inicio and opdoDer < var_glob_char_inicio:
+            dato2 = memoriaGlobal.bools[opdoDer]
+        elif opdoDer >= var_glob_char_inicio and opdoDer < var_loc_int_inicio:
+            dato2 = memoriaGlobal.chars[opdoDer]
+        elif (opdoDer >= var_loc_int_inicio and opdoDer < var_loc_float_inicio) or (opdoDer >= var_loc_temp_int_inicio and opdoDer < var_loc_temp_float_inicio):
+            dato2 = memoriaActiva.ints[opdoDer]
+        elif (opdoDer >= var_loc_float_inicio and opdoDer < var_loc_bool_inicio) or (opdoDer >= var_loc_temp_float_inicio and opdoDer < var_loc_temp_bool_inicio):
+            dato2 = memoriaActiva.floats[opdoDer]
+        elif (opdoDer >= var_loc_bool_inicio and opdoDer < var_loc_char_inicio) or (opdoDer >= var_loc_temp_bool_inicio and opdoDer < var_loc_temp_char_inicio):
+            dato2 = memoriaActiva.bools[opdoDer]
+        elif (opdoDer >= var_loc_char_inicio and opdoDer < var_loc_temp_int_inicio) or (opdoDer >= var_loc_temp_char_inicio and opdoDer < cte_int_inicio):
+            dato2 = memoriaActiva.chars[opdoDer]
+        elif opdoDer >= cte_int_inicio and opdoDer < cte_float_inicio:
+            dato2 = int(search(ctes,opdoDer))
+        elif opdoDer >= cte_float_inicio and opdoDer < cte_bool_inicio:
+            dato2 = float(search(ctes,opdoDer))
+        elif opdoDer >= cte_bool_inicio and opdoDer < cte_char_inicio:
+            if search(ctes,opdoDer) == 'tru':
+                dato2 = True
+            else:
+                dato2 = False
+        elif opdoDer >= cte_char_inicio:
+            dato2 = search(ctes,opdoDer)
+
+        res = dato1 == dato2
+
+        if resultado >= var_glob_bool_inicio and resultado < var_glob_char_inicio:
+            memoriaGlobal.bools[resultado] = res
+        elif (resultado >= var_loc_bool_inicio and resultado < var_loc_char_inicio) or (resultado >= var_loc_temp_bool_inicio and resultado < var_loc_temp_char_inicio):
+            memoriaActiva.bools[resultado] = res
+
+        current_cuad +=1
+
+    elif op == NOTEQ:
+
+        if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
+            dato1 = memoriaGlobal.ints[opdoIzq]
+        elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
+            dato1 = memoriaGlobal.floats[opdoIzq]
+        elif opdoIzq >= var_glob_bool_inicio and opdoIzq < var_glob_char_inicio:
+            dato1 = memoriaGlobal.bools[opdoIzq]
+        elif opdoIzq >= var_glob_char_inicio and opdoIzq < var_loc_int_inicio:
+            dato1 = memoriaGlobal.chars[opdoIzq]
+        elif (opdoIzq >= var_loc_int_inicio and opdoIzq < var_loc_float_inicio) or (opdoIzq >= var_loc_temp_int_inicio and opdoIzq < var_loc_temp_float_inicio):
+            dato1 = memoriaActiva.ints[opdoIzq]
+        elif (opdoIzq >= var_loc_float_inicio and opdoIzq < var_loc_bool_inicio) or (opdoIzq >= var_loc_temp_float_inicio and opdoIzq < var_loc_temp_bool_inicio):
+            dato1 = memoriaActiva.floats[opdoIzq]
+        elif (opdoIzq >= var_loc_bool_inicio and opdoIzq < var_loc_char_inicio) or (opdoIzq >= var_loc_temp_bool_inicio and opdoIzq < var_loc_temp_char_inicio):
+            dato1 = memoriaActiva.bools[opdoIzq]
+        elif (opdoIzq >= var_loc_char_inicio and opdoIzq < var_loc_temp_int_inicio) or (opdoIzq >= var_loc_temp_char_inicio and opdoIzq < cte_int_inicio):
+            dato1 = memoriaActiva.chars[opdoIzq]
+        elif opdoIzq >= cte_int_inicio and opdoIzq < cte_float_inicio:
+            dato1 = int(search(ctes,opdoIzq))
+        elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
+            dato1 = float(search(ctes,opdoIzq))
+        elif opdoIzq >= cte_bool_inicio and opdoIzq < cte_char_inicio:
+            if search(ctes,opdoIzq) == 'tru':
+                dato1 = True
+            else:
+                dato1 = False
+        elif opdoIzq >= cte_char_inicio:
+            dato1 = search(ctes,opdoIzq)
+
+        if opdoDer >= var_glob_int_inicio and opdoDer < var_glob_float_inicio:
+            dato2 = memoriaGlobal.ints[opdoDer]
+        elif opdoDer >= var_glob_float_inicio and opdoDer < var_glob_bool_inicio:
+            dato2 = memoriaGlobal.floats[opdoDer]
+        elif opdoDer >= var_glob_bool_inicio and opdoDer < var_glob_char_inicio:
+            dato2 = memoriaGlobal.bools[opdoDer]
+        elif opdoDer >= var_glob_char_inicio and opdoDer < var_loc_int_inicio:
+            dato2 = memoriaGlobal.chars[opdoDer]
+        elif (opdoDer >= var_loc_int_inicio and opdoDer < var_loc_float_inicio) or (opdoDer >= var_loc_temp_int_inicio and opdoDer < var_loc_temp_float_inicio):
+            dato2 = memoriaActiva.ints[opdoDer]
+        elif (opdoDer >= var_loc_float_inicio and opdoDer < var_loc_bool_inicio) or (opdoDer >= var_loc_temp_float_inicio and opdoDer < var_loc_temp_bool_inicio):
+            dato2 = memoriaActiva.floats[opdoDer]
+        elif (opdoDer >= var_loc_bool_inicio and opdoDer < var_loc_char_inicio) or (opdoDer >= var_loc_temp_bool_inicio and opdoDer < var_loc_temp_char_inicio):
+            dato2 = memoriaActiva.bools[opdoDer]
+        elif (opdoDer >= var_loc_char_inicio and opdoDer < var_loc_temp_int_inicio) or (opdoDer >= var_loc_temp_char_inicio and opdoDer < cte_int_inicio):
+            dato2 = memoriaActiva.chars[opdoDer]
+        elif opdoDer >= cte_int_inicio and opdoDer < cte_float_inicio:
+            dato2 = int(search(ctes,opdoDer))
+        elif opdoDer >= cte_float_inicio and opdoDer < cte_bool_inicio:
+            dato2 = float(search(ctes,opdoDer))
+        elif opdoDer >= cte_bool_inicio and opdoDer < cte_char_inicio:
+            if search(ctes,opdoDer) == 'tru':
+                dato2 = True
+            else:
+                dato2 = False
+        elif opdoDer >= cte_char_inicio:
+            dato2 = search(ctes,opdoDer)
+
+        res = dato1 != dato2
+
+        if resultado >= var_glob_bool_inicio and resultado < var_glob_char_inicio:
+            memoriaGlobal.bools[resultado] = res
+        elif (resultado >= var_loc_bool_inicio and resultado < var_loc_char_inicio) or (resultado >= var_loc_temp_bool_inicio and resultado < var_loc_temp_char_inicio):
+            memoriaActiva.bools[resultado] = res
+
+        current_cuad +=1
+
+    elif op == GT:
+
+        if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
+            dato1 = memoriaGlobal.ints[opdoIzq]
+        elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
+            dato1 = memoriaGlobal.floats[opdoIzq]
+        elif (opdoIzq >= var_loc_int_inicio and opdoIzq < var_loc_float_inicio) or (opdoIzq >= var_loc_temp_int_inicio and opdoIzq < var_loc_temp_float_inicio):
+            dato1 = memoriaActiva.ints[opdoIzq]
+        elif (opdoIzq >= var_loc_float_inicio and opdoIzq < var_loc_bool_inicio) or (opdoIzq >= var_loc_temp_float_inicio and opdoIzq < var_loc_temp_bool_inicio):
+            dato1 = memoriaActiva.floats[opdoIzq]
+        elif opdoIzq >= cte_int_inicio and opdoIzq < cte_float_inicio:
+            dato1 = int(search(ctes,opdoIzq))
+        elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
+            dato1 = float(search(ctes,opdoIzq))
+
+        if opdoDer >= var_glob_int_inicio and opdoDer < var_glob_float_inicio:
+            dato2 = memoriaGlobal.ints[opdoDer]
+        elif opdoDer >= var_glob_float_inicio and opdoDer < var_glob_bool_inicio:
+            dato2 = memoriaGlobal.floats[opdoDer]
+        elif (opdoDer >= var_loc_int_inicio and opdoDer < var_loc_float_inicio) or (opdoDer >= var_loc_temp_int_inicio and opdoDer < var_loc_temp_float_inicio):
+            dato2 = memoriaActiva.ints[opdoDer]
+        elif (opdoDer >= var_loc_float_inicio and opdoDer < var_loc_bool_inicio) or (opdoDer >= var_loc_temp_float_inicio and opdoDer < var_loc_temp_bool_inicio):
+            dato2 = memoriaActiva.floats[opdoDer]
+        elif opdoDer >= cte_int_inicio and opdoDer < cte_float_inicio:
+            dato2 = int(search(ctes,opdoDer))
+        elif opdoDer >= cte_float_inicio and opdoDer < cte_bool_inicio:
+            dato2 = float(search(ctes,opdoDer))
+
+        res = dato1 > dato2
+
+        if resultado >= var_glob_bool_inicio and resultado < var_glob_char_inicio:
+            memoriaGlobal.bools[resultado] = res
+        elif (resultado >= var_loc_bool_inicio and resultado < var_loc_char_inicio) or (resultado >= var_loc_temp_bool_inicio and resultado < var_loc_temp_char_inicio):
+            memoriaActiva.bools[resultado] = res
+
+        current_cuad +=1
+
+    elif op == LT:
+
+        if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
+            dato1 = memoriaGlobal.ints[opdoIzq]
+        elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
+            dato1 = memoriaGlobal.floats[opdoIzq]
+        elif (opdoIzq >= var_loc_int_inicio and opdoIzq < var_loc_float_inicio) or (opdoIzq >= var_loc_temp_int_inicio and opdoIzq < var_loc_temp_float_inicio):
+            dato1 = memoriaActiva.ints[opdoIzq]
+        elif (opdoIzq >= var_loc_float_inicio and opdoIzq < var_loc_bool_inicio) or (opdoIzq >= var_loc_temp_float_inicio and opdoIzq < var_loc_temp_bool_inicio):
+            dato1 = memoriaActiva.floats[opdoIzq]
+        elif opdoIzq >= cte_int_inicio and opdoIzq < cte_float_inicio:
+            dato1 = int(search(ctes,opdoIzq))
+        elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
+            dato1 = float(search(ctes,opdoIzq))
+
+        if opdoDer >= var_glob_int_inicio and opdoDer < var_glob_float_inicio:
+            dato2 = memoriaGlobal.ints[opdoDer]
+        elif opdoDer >= var_glob_float_inicio and opdoDer < var_glob_bool_inicio:
+            dato2 = memoriaGlobal.floats[opdoDer]
+        elif (opdoDer >= var_loc_int_inicio and opdoDer < var_loc_float_inicio) or (opdoDer >= var_loc_temp_int_inicio and opdoDer < var_loc_temp_float_inicio):
+            dato2 = memoriaActiva.ints[opdoDer]
+        elif (opdoDer >= var_loc_float_inicio and opdoDer < var_loc_bool_inicio) or (opdoDer >= var_loc_temp_float_inicio and opdoDer < var_loc_temp_bool_inicio):
+            dato2 = memoriaActiva.floats[opdoDer]
+        elif opdoDer >= cte_int_inicio and opdoDer < cte_float_inicio:
+            dato2 = int(search(ctes,opdoDer))
+        elif opdoDer >= cte_float_inicio and opdoDer < cte_bool_inicio:
+            dato2 = float(search(ctes,opdoDer))
+
+        res = dato1 < dato2
+
+        if resultado >= var_glob_bool_inicio and resultado < var_glob_char_inicio:
+            memoriaGlobal.bools[resultado] = res
+        elif (resultado >= var_loc_bool_inicio and resultado < var_loc_char_inicio) or (resultado >= var_loc_temp_bool_inicio and resultado < var_loc_temp_char_inicio):
+            memoriaActiva.bools[resultado] = res
+
+        current_cuad +=1
+
+    elif op == GTE:
+
+        if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
+            dato1 = memoriaGlobal.ints[opdoIzq]
+        elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
+            dato1 = memoriaGlobal.floats[opdoIzq]
+        elif (opdoIzq >= var_loc_int_inicio and opdoIzq < var_loc_float_inicio) or (opdoIzq >= var_loc_temp_int_inicio and opdoIzq < var_loc_temp_float_inicio):
+            dato1 = memoriaActiva.ints[opdoIzq]
+        elif (opdoIzq >= var_loc_float_inicio and opdoIzq < var_loc_bool_inicio) or (opdoIzq >= var_loc_temp_float_inicio and opdoIzq < var_loc_temp_bool_inicio):
+            dato1 = memoriaActiva.floats[opdoIzq]
+        elif opdoIzq >= cte_int_inicio and opdoIzq < cte_float_inicio:
+            dato1 = int(search(ctes,opdoIzq))
+        elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
+            dato1 = float(search(ctes,opdoIzq))
+
+        if opdoDer >= var_glob_int_inicio and opdoDer < var_glob_float_inicio:
+            dato2 = memoriaGlobal.ints[opdoDer]
+        elif opdoDer >= var_glob_float_inicio and opdoDer < var_glob_bool_inicio:
+            dato2 = memoriaGlobal.floats[opdoDer]
+        elif (opdoDer >= var_loc_int_inicio and opdoDer < var_loc_float_inicio) or (opdoDer >= var_loc_temp_int_inicio and opdoDer < var_loc_temp_float_inicio):
+            dato2 = memoriaActiva.ints[opdoDer]
+        elif (opdoDer >= var_loc_float_inicio and opdoDer < var_loc_bool_inicio) or (opdoDer >= var_loc_temp_float_inicio and opdoDer < var_loc_temp_bool_inicio):
+            dato2 = memoriaActiva.floats[opdoDer]
+        elif opdoDer >= cte_int_inicio and opdoDer < cte_float_inicio:
+            dato2 = int(search(ctes,opdoDer))
+        elif opdoDer >= cte_float_inicio and opdoDer < cte_bool_inicio:
+            dato2 = float(search(ctes,opdoDer))
+
+        res = dato1 >= dato2
+
+        if resultado >= var_glob_bool_inicio and resultado < var_glob_char_inicio:
+            memoriaGlobal.bools[resultado] = res
+        elif (resultado >= var_loc_bool_inicio and resultado < var_loc_char_inicio) or (resultado >= var_loc_temp_bool_inicio and resultado < var_loc_temp_char_inicio):
+            memoriaActiva.bools[resultado] = res
+
+        current_cuad +=1
+
+    elif op == LTE:
+
+        if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
+            dato1 = memoriaGlobal.ints[opdoIzq]
+        elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
+            dato1 = memoriaGlobal.floats[opdoIzq]
+        elif (opdoIzq >= var_loc_int_inicio and opdoIzq < var_loc_float_inicio) or (opdoIzq >= var_loc_temp_int_inicio and opdoIzq < var_loc_temp_float_inicio):
+            dato1 = memoriaActiva.ints[opdoIzq]
+        elif (opdoIzq >= var_loc_float_inicio and opdoIzq < var_loc_bool_inicio) or (opdoIzq >= var_loc_temp_float_inicio and opdoIzq < var_loc_temp_bool_inicio):
+            dato1 = memoriaActiva.floats[opdoIzq]
+        elif opdoIzq >= cte_int_inicio and opdoIzq < cte_float_inicio:
+            dato1 = int(search(ctes,opdoIzq))
+        elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
+            dato1 = float(search(ctes,opdoIzq))
+
+        if opdoDer >= var_glob_int_inicio and opdoDer < var_glob_float_inicio:
+            dato2 = memoriaGlobal.ints[opdoDer]
+        elif opdoDer >= var_glob_float_inicio and opdoDer < var_glob_bool_inicio:
+            dato2 = memoriaGlobal.floats[opdoDer]
+        elif (opdoDer >= var_loc_int_inicio and opdoDer < var_loc_float_inicio) or (opdoDer >= var_loc_temp_int_inicio and opdoDer < var_loc_temp_float_inicio):
+            dato2 = memoriaActiva.ints[opdoDer]
+        elif (opdoDer >= var_loc_float_inicio and opdoDer < var_loc_bool_inicio) or (opdoDer >= var_loc_temp_float_inicio and opdoDer < var_loc_temp_bool_inicio):
+            dato2 = memoriaActiva.floats[opdoDer]
+        elif opdoDer >= cte_int_inicio and opdoDer < cte_float_inicio:
+            dato2 = int(search(ctes,opdoDer))
+        elif opdoDer >= cte_float_inicio and opdoDer < cte_bool_inicio:
+            dato2 = float(search(ctes,opdoDer))
+
+        res = dato1 <= dato2
+
+        if resultado >= var_glob_bool_inicio and resultado < var_glob_char_inicio:
+            memoriaGlobal.bools[resultado] = res
+        elif (resultado >= var_loc_bool_inicio and resultado < var_loc_char_inicio) or (resultado >= var_loc_temp_bool_inicio and resultado < var_loc_temp_char_inicio):
+            memoriaActiva.bools[resultado] = res
+
+        current_cuad +=1
+
+    elif op == PLUS:
+
+        if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
+            dato1 = memoriaGlobal.ints[opdoIzq]
+        elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
+            dato1 = memoriaGlobal.floats[opdoIzq]
+        elif (opdoIzq >= var_loc_int_inicio and opdoIzq < var_loc_float_inicio) or (opdoIzq >= var_loc_temp_int_inicio and opdoIzq < var_loc_temp_float_inicio):
+            dato1 = memoriaActiva.ints[opdoIzq]
+        elif (opdoIzq >= var_loc_float_inicio and opdoIzq < var_loc_bool_inicio) or (opdoIzq >= var_loc_temp_float_inicio and opdoIzq < var_loc_temp_bool_inicio):
+            dato1 = memoriaActiva.floats[opdoIzq]
+        elif opdoIzq >= cte_int_inicio and opdoIzq < cte_float_inicio:
+            dato1 = int(search(ctes,opdoIzq))
+        elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
+            dato1 = float(search(ctes,opdoIzq))
+
+        if opdoDer >= var_glob_int_inicio and opdoDer < var_glob_float_inicio:
+            dato2 = memoriaGlobal.ints[opdoDer]
+        elif opdoDer >= var_glob_float_inicio and opdoDer < var_glob_bool_inicio:
+            dato2 = memoriaGlobal.floats[opdoDer]
+        elif (opdoDer >= var_loc_int_inicio and opdoDer < var_loc_float_inicio) or (opdoDer >= var_loc_temp_int_inicio and opdoDer < var_loc_temp_float_inicio):
+            dato2 = memoriaActiva.ints[opdoDer]
+        elif (opdoDer >= var_loc_float_inicio and opdoDer < var_loc_bool_inicio) or (opdoDer >= var_loc_temp_float_inicio and opdoDer < var_loc_temp_bool_inicio):
+            dato2 = memoriaActiva.floats[opdoDer]
+        elif opdoDer >= cte_int_inicio and opdoDer < cte_float_inicio:
+            dato2 = int(search(ctes,opdoDer))
+        elif opdoDer >= cte_float_inicio and opdoDer < cte_bool_inicio:
+            dato2 = float(search(ctes,opdoDer))
+
+        res = dato1 + dato2
+
+        if resultado >= var_glob_int_inicio and resultado < var_glob_float_inicio:
+            memoriaGlobal.ints[resultado] = res
+        elif resultado >= var_glob_float_inicio and resultado < var_glob_bool_inicio:
+            memoriaGlobal.floats[resultado] = res
+        elif (resultado >= var_loc_int_inicio and resultado < var_loc_float_inicio) or (resultado >= var_loc_temp_int_inicio and resultado < var_loc_temp_float_inicio):
+            memoriaActiva.ints[resultado] = res
+        elif (resultado >= var_loc_float_inicio and resultado < var_loc_bool_inicio) or (resultado >= var_loc_temp_float_inicio and resultado < var_loc_temp_bool_inicio):
+            memoriaActiva.floats[resultado] = res
+
+        current_cuad +=1
+
+    elif op == MINUS:
+
+        if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
+            dato1 = memoriaGlobal.ints[opdoIzq]
+        elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
+            dato1 = memoriaGlobal.floats[opdoIzq]
+        elif (opdoIzq >= var_loc_int_inicio and opdoIzq < var_loc_float_inicio) or (opdoIzq >= var_loc_temp_int_inicio and opdoIzq < var_loc_temp_float_inicio):
+            dato1 = memoriaActiva.ints[opdoIzq]
+        elif (opdoIzq >= var_loc_float_inicio and opdoIzq < var_loc_bool_inicio) or (opdoIzq >= var_loc_temp_float_inicio and opdoIzq < var_loc_temp_bool_inicio):
+            dato1 = memoriaActiva.floats[opdoIzq]
+        elif opdoIzq >= cte_int_inicio and opdoIzq < cte_float_inicio:
+            dato1 = int(search(ctes,opdoIzq))
+        elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
+            dato1 = float(search(ctes,opdoIzq))
+
+        if opdoDer >= var_glob_int_inicio and opdoDer < var_glob_float_inicio:
+            dato2 = memoriaGlobal.ints[opdoDer]
+        elif opdoDer >= var_glob_float_inicio and opdoDer < var_glob_bool_inicio:
+            dato2 = memoriaGlobal.floats[opdoDer]
+        elif (opdoDer >= var_loc_int_inicio and opdoDer < var_loc_float_inicio) or (opdoDer >= var_loc_temp_int_inicio and opdoDer < var_loc_temp_float_inicio):
+            dato2 = memoriaActiva.ints[opdoDer]
+        elif (opdoDer >= var_loc_float_inicio and opdoDer < var_loc_bool_inicio) or (opdoDer >= var_loc_temp_float_inicio and opdoDer < var_loc_temp_bool_inicio):
+            dato2 = memoriaActiva.floats[opdoDer]
+        elif opdoDer >= cte_int_inicio and opdoDer < cte_float_inicio:
+            dato2 = int(search(ctes,opdoDer))
+        elif opdoDer >= cte_float_inicio and opdoDer < cte_bool_inicio:
+            dato2 = float(search(ctes,opdoDer))
+
+        res = dato1 - dato2
+
+        if resultado >= var_glob_int_inicio and resultado < var_glob_float_inicio:
+            memoriaGlobal.ints[resultado] = res
+        elif resultado >= var_glob_float_inicio and resultado < var_glob_bool_inicio:
+            memoriaGlobal.floats[resultado] = res
+        elif (resultado >= var_loc_int_inicio and resultado < var_loc_float_inicio) or (resultado >= var_loc_temp_int_inicio and resultado < var_loc_temp_float_inicio):
+            memoriaActiva.ints[resultado] = res
+        elif (resultado >= var_loc_float_inicio and resultado < var_loc_bool_inicio) or (resultado >= var_loc_temp_float_inicio and resultado < var_loc_temp_bool_inicio):
+            memoriaActiva.floats[resultado] = res
+
+        current_cuad +=1
+
+    elif op == NOT:
+
+        if opdoIzq >= var_glob_bool_inicio and opdoIzq < var_glob_char_inicio:
+            dato1 = memoriaGlobal.bools[opdoIzq]
+        elif (opdoIzq >= var_loc_bool_inicio and opdoIzq < var_loc_char_inicio) or (opdoIzq >= var_loc_temp_bool_inicio and opdoIzq < var_loc_temp_char_inicio):
+            dato1 = memoriaActiva.bools[opdoIzq]
+        elif opdoIzq >= cte_bool_inicio and opdoIzq < cte_char_inicio:
+            if search(ctes,opdoIzq) == 'tru':
+                dato1 = True
+            else:
+                dato1 = False
+
+        res = not dato1
+
+        if resultado >= var_glob_bool_inicio and resultado < var_glob_char_inicio:
+            memoriaGlobal.bools[resultado] = res
+        elif (resultado >= var_loc_bool_inicio and resultado < var_loc_char_inicio) or (resultado >= var_loc_temp_bool_inicio and resultado < var_loc_temp_char_inicio):
+            memoriaActiva.bools[resultado] = res
+
+        current_cuad +=1
+
+    elif op == EQ:
+
+        if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
+            dato1 = memoriaGlobal.ints[opdoIzq]
+        elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
+            dato1 = memoriaGlobal.floats[opdoIzq]
+        elif opdoIzq >= var_glob_bool_inicio and opdoIzq < var_glob_char_inicio:
+            dato1 = memoriaGlobal.bools[opdoIzq]
+        elif opdoIzq >= var_glob_char_inicio and opdoIzq < var_loc_int_inicio:
+            dato1 = memoriaGlobal.chars[opdoIzq]
+        elif (opdoIzq >= var_loc_int_inicio and opdoIzq < var_loc_float_inicio) or (opdoIzq >= var_loc_temp_int_inicio and opdoIzq < var_loc_temp_float_inicio):
+            dato1 = memoriaActiva.ints[opdoIzq]
+        elif (opdoIzq >= var_loc_float_inicio and opdoIzq < var_loc_bool_inicio) or (opdoIzq >= var_loc_temp_float_inicio and opdoIzq < var_loc_temp_bool_inicio):
+            dato1 = memoriaActiva.floats[opdoIzq]
+        elif (opdoIzq >= var_loc_bool_inicio and opdoIzq < var_loc_char_inicio) or (opdoIzq >= var_loc_temp_bool_inicio and opdoIzq < var_loc_temp_char_inicio):
+            dato1 = memoriaActiva.bools[opdoIzq]
+        elif (opdoIzq >= var_loc_char_inicio and opdoIzq < var_loc_temp_int_inicio) or (opdoIzq >= var_loc_temp_char_inicio and opdoIzq < cte_int_inicio):
+            dato1 = memoriaActiva.chars[opdoIzq]
+        elif opdoIzq >= cte_int_inicio and opdoIzq < cte_float_inicio:
+            dato1 = int(search(ctes,opdoIzq))
+        elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
+            dato1 = float(search(ctes,opdoIzq))
+        elif opdoIzq >= cte_bool_inicio and opdoIzq < cte_char_inicio:
+            if search(ctes,opdoIzq) == 'tru':
+                dato1 = True
+            else:
+                dato1 = False
+        elif opdoIzq >= cte_char_inicio:
+            dato1 = search(ctes,opdoIzq)
+
+        res = dato1
+
+
+        if resultado >= var_glob_int_inicio and resultado < var_glob_float_inicio:
+            memoriaGlobal.ints[resultado] = res
+        elif resultado >= var_glob_float_inicio and resultado < var_glob_bool_inicio:
+            memoriaGlobal.floats[resultado] = res
+        elif resultado >= var_glob_bool_inicio and resultado < var_glob_char_inicio:
+            memoriaGlobal.bools[resultado] = res
+        elif resultado >= var_glob_char_inicio and resultado < var_loc_int_inicio:
+            memoriaGlobal.chars[resultado] = res
+        elif (resultado >= var_loc_int_inicio and resultado < var_loc_float_inicio) or (resultado >= var_loc_temp_int_inicio and resultado < var_loc_temp_float_inicio):
+            memoriaActiva.ints[resultado] = res
+        elif (resultado >= var_loc_float_inicio and resultado < var_loc_bool_inicio) or (resultado >= var_loc_temp_float_inicio and resultado < var_loc_temp_bool_inicio):
+            memoriaActiva.floats[resultado] = res
+        elif (resultado >= var_loc_bool_inicio and resultado < var_loc_char_inicio) or (resultado >= var_loc_temp_bool_inicio and resultado < var_loc_temp_char_inicio):
+            memoriaActiva.bools[resultado] = res
+        elif (resultado >= var_loc_char_inicio and resultado < var_loc_temp_int_inicio) or (resultado >= var_loc_temp_char_inicio and resultado < cte_int_inicio):
+            memoriaActiva.chars[resultado] = res
+
+        current_cuad +=1
+
+    elif op == PLAY:
+        ##TODO: Robi sabe como se construye este pedo
+        print "pase play"
+        current_cuad +=1
+
+    elif op == PRINT:
+        if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
+            dato1 = memoriaGlobal.ints[opdoIzq]
+        elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
+            dato1 = memoriaGlobal.floats[opdoIzq]
+        elif opdoIzq >= var_glob_bool_inicio and opdoIzq < var_glob_char_inicio:
+            dato1 = memoriaGlobal.bools[opdoIzq]
+        elif opdoIzq >= var_glob_char_inicio and opdoIzq < var_loc_int_inicio:
+            dato1 = memoriaGlobal.chars[opdoIzq]
+        elif (opdoIzq >= var_loc_int_inicio and opdoIzq < var_loc_float_inicio) or (opdoIzq >= var_loc_temp_int_inicio and opdoIzq < var_loc_temp_float_inicio):
+            dato1 = memoriaActiva.ints[opdoIzq]
+        elif (opdoIzq >= var_loc_float_inicio and opdoIzq < var_loc_bool_inicio) or (opdoIzq >= var_loc_temp_float_inicio and opdoIzq < var_loc_temp_bool_inicio):
+            dato1 = memoriaActiva.floats[opdoIzq]
+        elif (opdoIzq >= var_loc_bool_inicio and opdoIzq < var_loc_char_inicio) or (opdoIzq >= var_loc_temp_bool_inicio and opdoIzq < var_loc_temp_char_inicio):
+            dato1 = memoriaActiva.bools[opdoIzq]
+        elif (opdoIzq >= var_loc_char_inicio and opdoIzq < var_loc_temp_int_inicio) or (opdoIzq >= var_loc_temp_char_inicio and opdoIzq < cte_int_inicio):
+            dato1 = memoriaActiva.chars[opdoIzq]
+        elif opdoIzq >= cte_int_inicio and opdoIzq < cte_float_inicio:
+            dato1 = int(search(ctes,opdoIzq))
+        elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
+            dato1 = float(search(ctes,opdoIzq))
+        elif opdoIzq >= cte_bool_inicio and opdoIzq < cte_char_inicio:
+            if search(ctes,opdoIzq) == 'tru':
+                dato1 = True
+            else:
+                dato1 = False
+        elif opdoIzq >= cte_char_inicio:
+            dato1 = search(ctes,opdoIzq)
+
+        print dato1
+        current_cuad += 1
+
+    elif op == GOTO:
+        current_cuad = resultado
+
+    elif op == GOTOF:
+
+        if opdoIzq >= var_glob_bool_inicio and opdoIzq < var_glob_char_inicio:
+            dato1 = memoriaGlobal.bools[opdoIzq]
+        elif (opdoIzq >= var_loc_bool_inicio and opdoIzq < var_loc_char_inicio) or (opdoIzq >= var_loc_temp_bool_inicio and opdoIzq < var_loc_temp_char_inicio):
+            dato1 = memoriaActiva.bools[opdoIzq]
+        elif opdoIzq >= cte_bool_inicio and opdoIzq < cte_char_inicio:
+            if search(ctes,opdoIzq) == 'tru':
+                dato1 = True
+            else:
+                dato1 = False
+
+        if not dato1:
+            current_cuad = resultado
+        else:
+            current_cuad +=1
+
+    elif op == GOTOV:
+
+        if opdoIzq >= var_glob_bool_inicio and opdoIzq < var_glob_char_inicio:
+            dato1 = memoriaGlobal.bools[opdoIzq]
+        elif (opdoIzq >= var_loc_bool_inicio and opdoIzq < var_loc_char_inicio) or (opdoIzq >= var_loc_temp_bool_inicio and opdoIzq < var_loc_temp_char_inicio):
+            dato1 = memoriaActiva.bools[opdoIzq]
+        elif opdoIzq >= cte_bool_inicio and opdoIzq < cte_char_inicio:
+            if search(ctes,opdoIzq) == 'tru':
+                dato1 = True
+            else:
+                dato1 = False
+
+        if dato1:
+            current_cuad = resultado
+        else:
+            current_cuad +=1
+
+    elif op == ENDPROC:
+        current_cuad = pSaltos.pop() + 1
+        if memoriaDormida != []:
+            memoriaActiva = memoriaDormida.pop()
+
+    elif op == ERA:
+        global memoriaAux
+        memoriaAux = memoria.Memoria(dir_procs[opdoIzq][pos_dics_tam]['vi'], dir_procs[opdoIzq][pos_dics_tam]['vf'], dir_procs[opdoIzq][pos_dics_tam]['vb'], dir_procs[opdoIzq][pos_dics_tam]['vc'], dir_procs[opdoIzq][pos_dics_tam]['ti'], dir_procs[opdoIzq][pos_dics_tam]['tf'], dir_procs[opdoIzq][pos_dics_tam]['tb'], dir_procs[opdoIzq][pos_dics_tam]['tc'], False)
+        current_cuad +=1
+
+    elif op == PARAMETRO:
+        if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
+            dato1 = memoriaGlobal.ints[opdoIzq]
+        elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
+            dato1 = memoriaGlobal.floats[opdoIzq]
+        elif opdoIzq >= var_glob_bool_inicio and opdoIzq < var_glob_char_inicio:
+            dato1 = memoriaGlobal.bools[opdoIzq]
+        elif opdoIzq >= var_glob_char_inicio and opdoIzq < var_loc_int_inicio:
+            dato1 = memoriaGlobal.chars[opdoIzq]
+        elif (opdoIzq >= var_loc_int_inicio and opdoIzq < var_loc_float_inicio) or (opdoIzq >= var_loc_temp_int_inicio and opdoIzq < var_loc_temp_float_inicio):
+            dato1 = memoriaActiva.ints[opdoIzq]
+        elif (opdoIzq >= var_loc_float_inicio and opdoIzq < var_loc_bool_inicio) or (opdoIzq >= var_loc_temp_float_inicio and opdoIzq < var_loc_temp_bool_inicio):
+            dato1 = memoriaActiva.floats[opdoIzq]
+        elif (opdoIzq >= var_loc_bool_inicio and opdoIzq < var_loc_char_inicio) or (opdoIzq >= var_loc_temp_bool_inicio and opdoIzq < var_loc_temp_char_inicio):
+            dato1 = memoriaActiva.bools[opdoIzq]
+        elif (opdoIzq >= var_loc_char_inicio and opdoIzq < var_loc_temp_int_inicio) or (opdoIzq >= var_loc_temp_char_inicio and opdoIzq < cte_int_inicio):
+            dato1 = memoriaActiva.chars[opdoIzq]
+        elif opdoIzq >= cte_int_inicio and opdoIzq < cte_float_inicio:
+            dato1 = int(search(ctes,opdoIzq))
+        elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
+            dato1 = float(search(ctes,opdoIzq))
+        elif opdoIzq >= cte_bool_inicio and opdoIzq < cte_char_inicio:
+            if search(ctes,opdoIzq) == 'tru':
+                dato1 = True
+            else:
+                dato1 = False
+        elif opdoIzq >= cte_char_inicio:
+            dato1 = search(ctes,opdoIzq)
+
+        res = dato1
+
+        if (resultado >= var_loc_int_inicio and resultado < var_loc_float_inicio) or (resultado >= var_loc_temp_int_inicio and resultado < var_loc_temp_float_inicio):
+            memoriaAux.ints[resultado] = res
+        elif (resultado >= var_loc_float_inicio and resultado < var_loc_bool_inicio) or (resultado >= var_loc_temp_float_inicio and resultado < var_loc_temp_bool_inicio):
+            memoriaAux.floats[resultado] = res
+        elif (resultado >= var_loc_bool_inicio and resultado < var_loc_char_inicio) or (resultado >= var_loc_temp_bool_inicio and resultado < var_loc_temp_char_inicio):
+            memoriaAux.bools[resultado] = res
+        elif (resultado >= var_loc_char_inicio and resultado < var_loc_temp_int_inicio) or (resultado >= var_loc_temp_char_inicio and resultado < cte_int_inicio):
+            memoriaAux.chars[resultado] = res
+
+        current_cuad +=1
+
+    elif op == GOSUB:
+        if memoriaActiva != None:
+            memoriaDormida.append(memoriaActiva)
+        memoriaActiva = memoriaAux
+        pSaltos.append(current_cuad)
+        current_cuad = dir_procs[opdoIzq][pos_dics_dir_inicio]
+    elif op == VERIFICA:
+        if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
+            dato1 = memoriaGlobal.ints[opdoIzq]
+        elif (opdoIzq >= var_loc_int_inicio and opdoIzq < var_loc_float_inicio) or (opdoIzq >= var_loc_temp_int_inicio and opdoIzq < var_loc_temp_float_inicio):
+            dato1 = memoriaActiva.ints[opdoIzq]
+        elif opdoIzq >= cte_int_inicio and opdoIzq < cte_float_inicio:
+            dato1 = int(search(ctes,opdoIzq))
+        if dato1 < opdoDer or dato1 > resultado:
+            print "Indice fuera de rango"
+            exit()
+        current_cuad += 1
+
+    elif op == NEG:
+
+        if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
+            dato1 = memoriaGlobal.ints[opdoIzq]
+        elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
+            dato1 = memoriaGlobal.floats[opdoIzq]
+        elif (opdoIzq >= var_loc_int_inicio and opdoIzq < var_loc_float_inicio) or (opdoIzq >= var_loc_temp_int_inicio and opdoIzq < var_loc_temp_float_inicio):
+            dato1 = memoriaActiva.ints[opdoIzq]
+        elif (opdoIzq >= var_loc_float_inicio and opdoIzq < var_loc_bool_inicio) or (opdoIzq >= var_loc_temp_float_inicio and opdoIzq < var_loc_temp_bool_inicio):
+            dato1 = memoriaActiva.floats[opdoIzq]
+        elif opdoIzq >= cte_int_inicio and opdoIzq < cte_float_inicio:
+            dato1 = int(search(ctes,opdoIzq))
+        elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
+            dato1 = float(search(ctes,opdoIzq))
+
+        res = -dato1
+
+        if resultado >= var_glob_int_inicio and resultado < var_glob_float_inicio:
+            memoriaGlobal.ints[resultado] = res
+        elif resultado >= var_glob_float_inicio and resultado < var_glob_bool_inicio:
+            memoriaGlobal.floats[resultado] = res
+        elif (resultado >= var_loc_int_inicio and resultado < var_loc_float_inicio) or (resultado >= var_loc_temp_int_inicio and resultado < var_loc_temp_float_inicio):
+            memoriaActiva.ints[resultado] = res
+        elif (resultado >= var_loc_float_inicio and resultado < var_loc_bool_inicio) or (resultado >= var_loc_temp_float_inicio and resultado < var_loc_temp_bool_inicio):
+            memoriaActiva.floats[resultado] = res
+
+        current_cuad +=1
+
+######################################
+## maquina virtual                  ##
+######################################
+print "comienza maquina virtual"
+print ctes
+global current_cuad
+current_cuad = 1
+memoriaGlobal = memoria.Memoria(dir_procs['global'][pos_dics_tam]['vi'], dir_procs['global'][pos_dics_tam]['vf'], dir_procs['global'][pos_dics_tam]['vb'], dir_procs['global'][pos_dics_tam]['vc'], dir_procs['global'][pos_dics_tam]['ti'], dir_procs['global'][pos_dics_tam]['tf'], dir_procs['global'][pos_dics_tam]['tb'], dir_procs['global'][pos_dics_tam]['tc'], True)
+memoriaActiva = memoria.Memoria(dir_procs['CANCION'][pos_dics_tam]['vi'], dir_procs['CANCION'][pos_dics_tam]['vf'], dir_procs['CANCION'][pos_dics_tam]['vb'], dir_procs['CANCION'][pos_dics_tam]['vc'], dir_procs['CANCION'][pos_dics_tam]['ti'], dir_procs['CANCION'][pos_dics_tam]['tf'], dir_procs['CANCION'][pos_dics_tam]['tb'], dir_procs['CANCION'][pos_dics_tam]['tc'], False)
+memoriaDormida = []
+while current_cuad < contCuad:
+    func_maq_virtual()

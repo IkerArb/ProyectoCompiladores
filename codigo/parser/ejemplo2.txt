@@ -1,11 +1,11 @@
 VAR z : FLOAT;
 
+
 FUNC INT parte1(INT repeticiones)
 
   VAR switch : BOOL;
   VAR i : INT;
 {
-  switch = true;
   RETURN (5+3);
 }
 
@@ -26,24 +26,13 @@ FUNC VOID parte3(FLOAT repeticiones)
 
 CANCION (90)
   VAR x : FLOAT;
+  VAR switch : BOOL;
 {
-  x = 30;
-  WHILE((x/10)<20){
-    PLAY(A1,4);
-    IF (x+10/1>30){
-      IF(x+20>10){
-        x = x + 10*5;
-      }
-      ELSE{
-        x= x + 30;
-      };
-    };
-  };
-  FOR(x=0;x==3;x=x+3;){
-    PLAY(G4,2);
-    PRINT x + 3;
-  };
-  CALL parte3(x*5);
-  x = CALL parte1(3); + CALL parte2(x);;
-  PRINT x + 3;
+switch = true;
+x = 5;
+FOR(x=0;x<9;x=x+3;){
+  PLAY(G4,2);
+};
+CALL parte3(x*5);
+x = CALL parte1(3); + CALL parte2(x);;
 }
