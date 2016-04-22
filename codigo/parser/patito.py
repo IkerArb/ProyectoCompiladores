@@ -24,7 +24,7 @@ tokens = (
     'CANCION','WHILE','PLAY','VOID'
     )
 
-literals = ['(',')',',',':',';', '{','}','*','/','',',',';','>','<','=','+','-','[',']']
+literals = ['(',')',',',':',';', '{','}','*','/','',',',';','>','<','=','+','-','[',']','.']
 
 # Tokens
 def t_PLAY(t):
@@ -166,7 +166,7 @@ def t_CTECHAR(t):
     return t
 
 def t_CTEBOOL(t):
-    r'true| false'
+    r'True| False'
     t.value = bool(t.value)
     return t
 
@@ -595,8 +595,11 @@ pos_vars_tipo = 0
 pos_vars_dir_virtual = 1
 pos_vars_dim = 2
 
+pilaNumFuncs = []
 pSaltos = deque([])
 auxParamCount = 0
+tempFunc = 0
+currentFunc = 0
 auxFuncDestinoDir = None
 ctes = {}
 pos_cuads_op = 0
@@ -703,7 +706,7 @@ def p_vars(p):
     global var_loc_char
     global var_loc_char_inicio
 
-    global var_temp_loc_int_inicio
+    global var_loc_temp_int_inicio
     auxDic = dir_procs[scope[-1]][pos_dics_var]
     if p[2] in auxDic:
         print "Variable con ese ID ya existe en ese scope"
@@ -762,7 +765,7 @@ def p_vars(p):
                     print "Overflow de variables char globales"
                     exit()
             else:
-                if var_loc_char + dim < var_temp_loc_int_inicio:
+                if var_loc_char + dim < var_loc_temp_int_inicio:
                     auxDic[p[2]][pos_vars_dir_virtual] = var_loc_char
                     var_loc_char += dim
                 else:
@@ -922,7 +925,7 @@ def p_meterparams(p):
     global var_loc_char
     global var_loc_char_inicio
 
-    global var_temp_loc_int_inicio
+    global var_loc_temp_int_inicio
     auxDic = dir_procs[scope[-1]][pos_dics_var]
     if p[-1] in auxDic:
         print "Parametro con ese ID ya existe en ese scope"
@@ -948,7 +951,7 @@ def p_meterparams(p):
                 exit()
         elif p[-2] == CHAR:
             dir_procs[scope[-1]][pos_dics_tam]['vc']+=1
-            if var_loc_char + 1 < var_temp_loc_int_inicio:
+            if var_loc_char + 1 < var_loc_temp_int_inicio:
                 auxDic[p[-1]][pos_vars_dir_virtual] = var_loc_char
                 var_loc_char += 1
             else:
@@ -2037,36 +2040,40 @@ def p_accesoVarDim(p):
 
     if p[-1] in dir_procs[scope[-1]][pos_dics_var]:
         if dir_procs[scope[-1]][pos_dics_var][p[-1]][pos_vars_dim] != None:
-            op = VERIFICA
-            opdoIzq = pilaO[-1]
-            opdoDer = dir_procs[scope[-1]][pos_dics_var][p[-1]][pos_vars_dim][1]
-            res = dir_procs[scope[-1]][pos_dics_var][p[-1]][pos_vars_dim][0]
-            cuadruplos[contCuad] = [op,opdoIzq,opdoDer,res]
-            contCuad += 1
-            op = PLUS
-            opdoIzq = pilaO.pop()
-            pTipos.pop()
-            aux = dir_procs[scope[-1]][pos_dics_var][p[-1]][pos_vars_dir_virtual]
-            if (not aux in ctes):
-                if cte_int + 1 < cte_float_inicio:
-                    ctes[aux] = cte_int
-                    cte_int += 1
-                else:
-                    print "Overflow de constantes enteras"
-                    exit()
-            opdoDer = ctes[aux]
-            dir_procs[scope[-1]][pos_dics_tam]['ti']+=1
-            if var_loc_temp_int + 1 < var_loc_temp_float_inicio:
-                cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_int]
+            if pTipos[-1] == INT:
+                op = VERIFICA
+                opdoIzq = pilaO[-1]
+                opdoDer = dir_procs[scope[-1]][pos_dics_var][p[-1]][pos_vars_dim][1]
+                res = dir_procs[scope[-1]][pos_dics_var][p[-1]][pos_vars_dim][0]
+                cuadruplos[contCuad] = [op,opdoIzq,opdoDer,res]
                 contCuad += 1
-                pilaO.append("("+str(var_loc_temp_int)+")")
-                var_loc_temp_int += 1
+                op = PLUS
+                opdoIzq = pilaO.pop()
+                pTipos.pop()
+                aux = dir_procs[scope[-1]][pos_dics_var][p[-1]][pos_vars_dir_virtual]
+                if (not aux in ctes):
+                    if cte_int + 1 < cte_float_inicio:
+                        ctes[aux] = cte_int
+                        cte_int += 1
+                    else:
+                        print "Overflow de constantes enteras"
+                        exit()
+                opdoDer = ctes[aux]
+                dir_procs[scope[-1]][pos_dics_tam]['ti']+=1
+                if var_loc_temp_int + 1 < var_loc_temp_float_inicio:
+                    cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_int]
+                    contCuad += 1
+                    pilaO.append("("+str(var_loc_temp_int)+")")
+                    var_loc_temp_int += 1
+                else:
+                    print "Overflow de temporales enteras"
+                    exit()
+                pTipos.append(dir_procs[scope[-1]][pos_dics_var][p[-1]][pos_vars_tipo])
+                if pOper[-1] == '[':
+                    pOper.pop()
             else:
-                print "Overflow de temporales enteras"
+                print "El indice que tratas de acccesar no es de tipo entero"
                 exit()
-            pTipos.append(dir_procs[scope[-1]][pos_dics_var][p[-1]][pos_vars_tipo])
-            if pOper[-1] == '[':
-                pOper.pop()
         else:
             print "No es una variable dimensionada"
             exit()
@@ -2102,6 +2109,28 @@ def p_neur27(p):
 def p_length(p):
     'length : "." LENGTH "(" ")"'
     p[0] = 3
+    global pilaO
+    global pTipos
+    global cte_int
+    global cte_float_inicio
+    if p[-1] in dir_procs[scope[-1]][pos_dics_var]:
+        if dir_procs[scope[-1]][pos_dics_var][p[-1]][pos_vars_dim] != None:
+            pTipos.append(INT);
+            dim = dir_procs[scope[-1]][pos_dics_var][p[-1]][pos_vars_dim][0]+1
+            if (not dim in ctes):
+                if cte_int + 1 < cte_float_inicio:
+                    ctes[dim] = cte_int
+                    cte_int += 1
+                else:
+                    print "Overflow de constantes enteras"
+                    exit()
+            pilaO.append(ctes[dim])
+        else:
+            print "No es una variable dimensionada"
+            exit()
+    else:
+        print "No existe tal variable"
+        exit()
     pass
 
 ######################################
@@ -2277,24 +2306,33 @@ def p_neur25(p):
     global contCuad
     global auxParamCount
     global auxFuncDestinoDir
-    if len(pilaO)>0:
-        argumento = pilaO.pop()
-        tipoarg = pTipos.pop()
-        if tipoarg == dir_procs[auxFuncDestinoDir][pos_dics_params][auxParamCount] or (tipoarg == INT and dir_procs[auxFuncDestinoDir][pos_dics_params][auxParamCount]==FLOAT):
-            op = PARAMETRO
-            if tipoarg == INT:
-                cuadruplos[contCuad] = [op,argumento,None,var_loc_int_inicio + auxParamCount]
-            elif tipoarg == FLOAT:
-                cuadruplos[contCuad] = [op,argumento,None,var_loc_float_inicio + auxParamCount]
-            elif tipoRes == CHAR:
-                cuadruplos[contCuad] = [op,argumento,None,var_loc_char_inicio + auxParamCount]
+    global currentFunc
+    print pilaNumFuncs
+    if pOper != [] and currentFunc == pilaNumFuncs[-1]:
+        print pOper
+        if len(pilaO)>0 and pOper[-1] == PARAMETRO:
+            argumento = pilaO.pop()
+            tipoarg = pTipos.pop()
+            print "parametros: "+repr(auxParamCount)
+            print "funcion destino: "+repr(auxFuncDestinoDir)
+            if tipoarg == dir_procs[auxFuncDestinoDir][pos_dics_params][auxParamCount] or (tipoarg == INT and dir_procs[auxFuncDestinoDir][pos_dics_params][auxParamCount]==FLOAT):
+                op = PARAMETRO
+                if tipoarg == INT:
+                    cuadruplos[contCuad] = [op,argumento,None,var_loc_int_inicio + auxParamCount]
+                elif tipoarg == FLOAT:
+                    cuadruplos[contCuad] = [op,argumento,None,var_loc_float_inicio + auxParamCount]
+                elif tipoRes == CHAR:
+                    cuadruplos[contCuad] = [op,argumento,None,var_loc_char_inicio + auxParamCount]
+                else:
+                    cuadruplos[contCuad] = [op,argumento,None,var_loc_bool_inicio + auxParamCount]
+                auxParamCount += 1
+                contCuad+=1
             else:
-                cuadruplos[contCuad] = [op,argumento,None,var_loc_bool_inicio + auxParamCount]
-            auxParamCount += 1
-            contCuad+=1
+                print "Error en declaracion de parametros"
+                exit()
         else:
-            print "Error en declaracion de parametros"
-            exit()
+            argumento = None
+            tipoarg = None
     else:
         argumento = None
         tipoarg = None
@@ -2327,14 +2365,22 @@ def p_neur24(p):
     global contCuad
     global auxParamCount
     global auxFuncDestinoDir
+    global tempFunc
+    global currentFunc
     global pOper
     if p[-1] in dir_procs:
+
         auxFuncDestinoDir = p[-1]
         auxParamCount = 0
         op = ERA
         cuadruplos[contCuad] = [op,p[-1],None,None]
         contCuad += 1
         pOper.append(PARAMETRO)
+        currentFunc = tempFunc
+        pilaNumFuncs.append(tempFunc)
+        tempFunc += 1
+        print "entro funcion"+ repr(p[-1]) + " " + repr(auxParamCount)
+        print pOper
     else:
         print "Funcion con ese id no existe"
         exit()
@@ -2356,11 +2402,13 @@ def p_neur26(p):
         op = GOSUB
         if(pOper[-1] == PARAMETRO):
             pOper.pop()
+            pilaNumFuncs.pop()
         else:
             print "Llamada a funcion con operaciones pendientes"
             exit()
         cuadruplos[contCuad] = [GOSUB,auxFuncDestinoDir,None,None]
         contCuad += 1
+
     pass
 
 ######################################
@@ -2516,9 +2564,9 @@ def func_maq_virtual():
     global memoriaActiva
     global memoriaDormida
     op = cuadruplos[current_cuad][0]
-    print cuadruplos[current_cuad]
+    # print cuadruplos[current_cuad]
     opdoIzq = cuadruplos[current_cuad][1]
-    if isinstance(opdoIzq,basestring):
+    if isinstance(opdoIzq,basestring) and opdoIzq[0] == '(' and opdoIzq[-1]==')':
         opdoIzq = int(opdoIzq[1:-1])
         if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
             opdoIzq = memoriaGlobal.ints[opdoIzq]
@@ -2548,7 +2596,7 @@ def func_maq_virtual():
         elif opdoIzq >= cte_char_inicio:
             opdoIzq = search(ctes,opdoIzq)
     opdoDer = cuadruplos[current_cuad][2]
-    if isinstance(opdoDer,basestring):
+    if isinstance(opdoDer,basestring) and opdoDer[0] == '(' and opdoDer[-1]==')':
         opdoDer = int(opdoDer[1:-1])
         if opdoDer >= var_glob_int_inicio and opdoDer < var_glob_float_inicio:
             opdoDer = memoriaGlobal.ints[opdoDer]
@@ -2578,7 +2626,7 @@ def func_maq_virtual():
         elif opdoDer >= cte_char_inicio:
             opdoDer = search(ctes,opdoDer)
     resultado = cuadruplos[current_cuad][3]
-    if isinstance(resultado,basestring):
+    if isinstance(resultado,basestring) and resultado[0] == '(' and resultado[-1]==')':
         resultado = int(resultado[1:-1])
         if resultado >= var_glob_int_inicio and resultado < var_glob_float_inicio:
             resultado = memoriaGlobal.ints[resultado]
@@ -3323,6 +3371,7 @@ def func_maq_virtual():
         memoriaActiva = memoriaAux
         pSaltos.append(current_cuad)
         current_cuad = dir_procs[opdoIzq][pos_dics_dir_inicio]
+
     elif op == VERIFICA:
         if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
             dato1 = memoriaGlobal.ints[opdoIzq]

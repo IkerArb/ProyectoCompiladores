@@ -16,7 +16,6 @@ FUNC INT fibIteration(INT n)
 }
 
 FUNC INT fibRecursion(INT  n) {
-  PRINT n;
   IF ((n == 1) OR (n == 0)) {
       RETURN (n);
   };
@@ -26,6 +25,6 @@ FUNC INT fibRecursion(INT  n) {
 CANCION (90)
   VAR x : FLOAT;
 {
-  PRINT CALL fibIteration(10);;
-  PRINT CALL fibRecursion(10);;
+  PRINT CALL fibIteration(11);;
+  PRINT CALL fibRecursion(11);;
 }

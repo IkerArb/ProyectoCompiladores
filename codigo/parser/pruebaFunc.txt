@@ -1,0 +1,25 @@
+FUNC INT suma(INT  n,INT m) {
+  RETURN (n + m);
+}
+
+FUNC INT resta(INT n, INT m){
+  RETURN (n-m);
+}
+
+CANCION (90)
+  VAR x : FLOAT;
+  VAR z : CHAR;
+  VAR y : BOOL;
+{
+  y = True;
+  z = "h";
+  x = CALL suma(1,2);;
+  PRINT CALL suma(1,2);;
+  IF (x <= 3 AND x>1) {
+      PRINT "X";
+  };
+  IF (y){
+    PRINT z;
+  };
+  PRINT CALL resta(1,2);;
+}

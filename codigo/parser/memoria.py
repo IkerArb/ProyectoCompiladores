@@ -16,7 +16,6 @@ class Memoria:
             aux_vb = 13000
             aux_vc = 15000
 
-        print aux_vf
         aux_ti = 17000
         aux_tf = 21000
         aux_tb = 25000
