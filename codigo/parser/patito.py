@@ -596,6 +596,8 @@ pos_vars_dir_virtual = 1
 pos_vars_dim = 2
 
 pilaNumFuncs = []
+pilaAuxParamCount = []
+pilaFuncs = []
 pSaltos = deque([])
 auxParamCount = 0
 tempFunc = 0
@@ -2307,14 +2309,11 @@ def p_neur25(p):
     global auxParamCount
     global auxFuncDestinoDir
     global currentFunc
-    print pilaNumFuncs
+    auxFuncDestinoDir = pilaFuncs[-1]
     if pOper != [] and currentFunc == pilaNumFuncs[-1]:
-        print pOper
         if len(pilaO)>0 and pOper[-1] == PARAMETRO:
             argumento = pilaO.pop()
             tipoarg = pTipos.pop()
-            print "parametros: "+repr(auxParamCount)
-            print "funcion destino: "+repr(auxFuncDestinoDir)
             if tipoarg == dir_procs[auxFuncDestinoDir][pos_dics_params][auxParamCount] or (tipoarg == INT and dir_procs[auxFuncDestinoDir][pos_dics_params][auxParamCount]==FLOAT):
                 op = PARAMETRO
                 if tipoarg == INT:
@@ -2326,6 +2325,7 @@ def p_neur25(p):
                 else:
                     cuadruplos[contCuad] = [op,argumento,None,var_loc_bool_inicio + auxParamCount]
                 auxParamCount += 1
+                pilaAuxParamCount[-1] = auxParamCount
                 contCuad+=1
             else:
                 print "Error en declaracion de parametros"
@@ -2368,10 +2368,11 @@ def p_neur24(p):
     global tempFunc
     global currentFunc
     global pOper
+    global pilaFuncs
     if p[-1] in dir_procs:
-
-        auxFuncDestinoDir = p[-1]
+        pilaFuncs.append(p[-1])
         auxParamCount = 0
+        pilaAuxParamCount.append(auxParamCount)
         op = ERA
         cuadruplos[contCuad] = [op,p[-1],None,None]
         contCuad += 1
@@ -2379,8 +2380,6 @@ def p_neur24(p):
         currentFunc = tempFunc
         pilaNumFuncs.append(tempFunc)
         tempFunc += 1
-        print "entro funcion"+ repr(p[-1]) + " " + repr(auxParamCount)
-        print pOper
     else:
         print "Funcion con ese id no existe"
         exit()
@@ -2395,6 +2394,11 @@ def p_neur26(p):
     global auxParamCount
     global auxFuncDestinoDir
     global contCuad
+    global pilaFuncs
+    global currentFunc
+    global auxParamCount
+    auxFuncDestinoDir = pilaFuncs[-1]
+
     if auxParamCount != len(dir_procs[auxFuncDestinoDir][pos_dics_params]):
         print "Error en cantidad de parametros"
         exit()
@@ -2403,11 +2407,19 @@ def p_neur26(p):
         if(pOper[-1] == PARAMETRO):
             pOper.pop()
             pilaNumFuncs.pop()
+            pilaAuxParamCount.pop()
+            if pilaNumFuncs != []:
+                currentFunc = pilaNumFuncs[-1]
+                auxParamCount = pilaAuxParamCount[-1]
+
         else:
             print "Llamada a funcion con operaciones pendientes"
             exit()
+
         cuadruplos[contCuad] = [GOSUB,auxFuncDestinoDir,None,None]
         contCuad += 1
+        pilaFuncs.pop()
+
 
     pass
 

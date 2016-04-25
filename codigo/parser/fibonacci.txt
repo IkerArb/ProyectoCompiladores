@@ -22,9 +22,14 @@ FUNC INT fibRecursion(INT  n) {
   RETURN (CALL fibRecursion(n - 1); + CALL fibRecursion(n - 2););
 }
 
+FUNC INT suma(INT  n,INT m) {
+  RETURN (n + m);
+}
+
 CANCION (90)
   VAR x : FLOAT;
 {
-  PRINT CALL fibIteration(11);;
+  PRINT CALL fibIteration(CALL fibIteration(11););;
+  PRINT CALL suma(CALL fibIteration(12);,10);;
   PRINT CALL fibRecursion(11);;
 }
