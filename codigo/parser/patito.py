@@ -10,216 +10,317 @@ import pprint
 pp = pprint.PrettyPrinter(indent=4)
 
 
-
+# Cuando se revisa el archivo si la version
+# de python es mayor a tres en lugar de raw_input
+# se usa input
 if sys.version_info[0] >= 3:
     raw_input = input
 
+###############################################
+## Tokens declarados                         ##
+###############################################
 tokens = (
-    'VAR','FUNC','NEW','LIST','IF', 'ELSE',
-    'FOR','NOT','AND','OR','SET','APPEND',
-    'LENGTH','GET','REMOVE','NOTA','PRINT',
+    'VAR','FUNC','LIST','IF', 'ELSE',
+    'FOR','NOT','AND','OR',
+    'LENGTH','NOTA','PRINT',
     'CALL', 'RETURN', 'INT', 'CHAR', 'FLOAT',
     'BOOL','NOTEQ', 'LTHANEQ', 'MTHANEQ', 'EQ',
     'CTEF', 'CTEE', 'CTEBOOL', 'CTECHAR', 'ID',
     'CANCION','WHILE','PLAY','VOID'
     )
 
+###############################################
+## Literales aceptados                       ##
+###############################################
 literals = ['(',')',',',':',';', '{','}','*','/','',',',';','>','<','=','+','-','[',']','.']
 
-# Tokens
+###############################################
+## Tokens desarrollados                      ##
+###############################################
+
+# La palabra PLAY literalmente, se usa para hacer la
+# accion de tocar una nota
 def t_PLAY(t):
     r'PLAY'
     return t
 
+# La palabra VOID literalmente, se utiliza para declarar
+# una funcion que no regresa nada
 def t_VOID(t):
     r'VOID'
     return t
 
+# La palabra WHILE literalmente, se utiliza para declarar
+# ciclos de este tipo
 def t_WHILE(t):
     r'WHILE'
     return t
 
+# La palabra CANCION literalmente, se utiliza para declarar
+# la funcion principal del programa que ira a ejecutarse
+# primero
 def t_CANCION(t):
     r'CANCION'
     return t
 
+# La palabra VAR literalmente, se utiliza para declarar
+# variables
 def t_VAR(t):
     r'VAR'
     return t
 
+# La palabra FUNC literalmente, se utiliza para declarar
+# el inicio de una nueva funcion
 def t_FUNC(t):
     r'FUNC'
     return t
 
-def t_NEW(t):
-    r'NEW'
-    return t
-
+# La palabra LIST literalmente, se utiliza para declarar
+# que una variable es un arreglo
 def t_LIST(t):
     r'LIST'
     return t
 
+# La palabra IF literalmente, se utiliza para declarar el
+# inicio de una condicional tipo if
 def t_IF(t):
     r'IF'
     return t
 
+# La palabra ELSE literalmente, se utiliza para definir
+# el camino en falso de una condicional if
 def t_ELSE(t):
     r'ELSE'
     return t
 
+# La palabra FOR literalmente, se utiliza para declarar
+# el inicio de un ciclo de este tipo
 def t_FOR(t):
     r'FOR'
     return t
 
+# La palabra NOT literalmente, se utiliza para negar
+# una expresion tipo booleana
 def t_NOT(t):
     r'NOT'
     return t
 
+# La palabra AND literalmente, se utiliza para hacer una
+# operacion and entre dos booleanos
 def t_AND(t):
     r'AND'
     return t
 
+# La palabra OR literalmente, se utiliza para hacer una
+# operacion or entre dos booleanos
 def t_OR(t):
     r'OR'
     return t
 
-def t_SET(t):
-    r'SET'
-    return t
-
-def t_APPEND(t):
-    r'APPEND'
-    return t
-
+# La palabra LENGTH literalmente, se utiliza para sacar
+# el tamano de una variable tipo lista o arreglo
 def t_LENGTH(t):
     r'LENGTH'
     return t
 
-def t_GET(t):
-    r'GET'
-    return t
-
-def t_REMOVE(t):
-    r'REMOVE'
-    return t
-
+# Las notas se definen entre una letra de la A a la G
+# y con un numero del 1 al 7, estas se usan en el estatuto
+# play
 def t_NOTA(t):
     r'([A-G][1-7])|([A,C,D,F,G][#][1-7])'
     return t
 
+# La palabra PRINT literalmente, se utilia para imprimir
+# texto en la consola
 def t_PRINT(t):
     r'PRINT'
     return t
 
+# La palabra CALL literalmente, se utiliza para mandar a
+# llamar una funcion
 def t_CALL(t):
     r'CALL'
     return t
 
+# La palabra RETURN literalmente, se utiliza para regresar
+# respuesta en una funcion que no sea de tipo void
 def t_RETURN(t):
     r'RETURN'
     return t
 
+# La palabra INT literalmente, se utiliza para declarar el
+# tipo entero
 def t_INT(t):
     r'INT'
     return t
 
+# La palabra CHAR literalmente, se utiliza para declarar el
+# tipo caracter
 def t_CHAR(t):
     r'CHAR'
     return t
 
+# La palabra FLOAT literalmente, se utiliza para declarar
+# el tipo flotante
 def t_FLOAT(t):
     r'FLOAT'
     return t
 
+# La palabra BOOL literalmente, se utiliza para declarar
+# el tipo booleano
 def t_BOOL(t):
     r'BOOL'
     return t
 
+# El token NOTEQ se llena con la combinacion del !=, se
+# utiliza para comparar dos valores y decir si no son iguales
+# tienen que ser del mismo tipo
 def t_NOTEQ(t):
     r'!='
     return t
 
+# El token LTHANEQ se llena con la combinacion del <=, se
+# utiliza para comparar dos valores y decir si es menor o
+# igual el primero del segundo
 def t_LTHANEQ(t):
     r'<='
     return t
 
+# El token LTHANEQ se llena con la combinacion del >=, se
+# utiliza para comparar dos valores y decir si es mayor o
+# igual el primero del segundo
 def t_MTHANEQ(t):
     r'>='
     return t
 
+# El token EQ se llena con la combinacion del ==, se
+# utiliza para comparar dos valores y decir si es
+# igual el primero al segundo, tienen que ser del mismo tipo
 def t_EQ(t):
     r'=='
     return t
 
+# El token CTEF se llena con la combinacion de una serie de
+# digitos, opcionalmente seguido por un punto y mas digitos
+# junto con la opcion de poner exponencial, para ser una
+# CTEF tiene que tener el . o la e para exponenciar.
+# Este token se utiliza para asignar valores a operaciones
+# de tipo flotante.
 def t_CTEF(t):
     r'[0-9]+([eE]([+]|[-])?|[.][0-9]+[eE]([+]|[-])?|[.])[0-9]+'
     t.value = float(t.value)
     return t
 
+# El token CTEE se llena con la combinacion de una serie
+# de digitos. Este token se utiliza para asignar valores
+# a operaciones de tipo enteras.
 def t_CTEE(t):
     r'[0-9]+'
     t.value = int(t.value)
     return t
 
+# El token CTECHAR consiste de cualquier caracter salvo
+# el salto de linea \n que se encuentre entre dos comillas
+# dobles "". Este token se utiliza para asignar valores
+# a operaciones de tipo char
 def t_CTECHAR(t):
     r'\"[^\n"]\"'
     return t
 
+# El token CTEBOOL consiste de la palabra True o False.
+# Este token se utiliza para asignar valores a operaciones
+# de tipo boolenas
 def t_CTEBOOL(t):
     r'True| False'
     t.value = bool(t.value)
     return t
 
+# El token ID consiste de empezar con una letra seguida
+# de un guion bajo _ y una serie opcional de caracteres
+# alfanumericos. Este token entra siempre y cuando no
+# choque con los tokens anteriores ya que los anteriores
+# son palabras reservadas. Este token se usa para declarar
+# nombres de variables y funciones.
 def t_ID(t):
     r'[A-Za-z]([_]?([a-zA-Z]|[0-9]))*'
     return t
 
+# Al final se ignoran los espacios en blanco, tabuladores \t
+# y saltos de linea \n
 t_ignore = " \t\n"
 
+# Si existe un error de lexico se imprime el mensaje
+# Caracter ilegal seguido del Caracter que no se acepta
+# y termina la ejecucion de la compilacion
 def t_error(t):
-    print("Illegal character '%s'" % t.value[0])
+    print("Caracter ilegal '%s'" % t.value[0])
     t.lexer.skip(1)
 
-# Build the lexer
+# Construye el lexico con la libreria de ply.lex
 import ply.lex as lex
 lex.lex()
 
 
 
 ###############################################
-## Operaciones                               ##
+## Codigos de Operacion                      ##
 ###############################################
 
+# Multiplicacion
 MULT = 1
+# Division
 DIV = 2
+# And
 AND = 3
+# Or
 OR = 4
+# ==
 EQEQ = 5
+# !=
 NOTEQ = 6
+# >
 GT = 7
+# <
 LT = 8
+# >=
 GTE = 9
+# <=
 LTE = 10
+# Suma
 PLUS = 11
+# Resta
 MINUS = 12
+# Not (!)
 NOT = 13
+# Asignacion
 EQ = 14
+# Play
 PLAY = 15
+# Imprime
 PRINT = 16
+# Brinco
 GOTO = 17
+# Brinco en falso
 GOTOF = 18
+# Brinco en verdader
 GOTOV = 19
+# Cierra procedimiento
 ENDPROC = 20
+# Registro de activacion
 ERA = 21
+# Entrada de parametro
 PARAMETRO = 22
+# Arranca procedimiento
 GOSUB = 23
+# Verifica que este dentro de rango el arreglo
 VERIFICA = 24
+# Signo negativo
 NEG = 25
+# Error, usado para los errores en el cubo semantico
 ERR = -1
-USELESS = -2
 
 ###############################################
-## Tipos                                     ##
+## Codigos de Tipos                          ##
 ###############################################
 
 INT = 100
@@ -246,8 +347,8 @@ cubo_semantico[FLOAT] = {}
 #diccionario donde BOOL es el primer operando
 cubo_semantico[BOOL] = {}
 
-#diccionarios vacios para cubo Semantico
-
+# diccionarios para la permutacion entre los 4 y asi
+# cubrir todos los posibles escenarios
 cubo_semantico[INT][INT] = {}
 cubo_semantico[INT][FLOAT] = {}
 cubo_semantico[INT][CHAR] = {}
@@ -450,7 +551,9 @@ cubo_semantico[FLOAT][FLOAT][EQ]=FLOAT
 cubo_semantico[FLOAT][BOOL][EQ]=ERR
 cubo_semantico[BOOL][BOOL][EQ]=BOOL
 
-### Caso especial para igualdad #####
+### Caso especial para igualdad ya que solo
+### se puede asignar un int a un float y no al
+### reves
 cubo_semantico[FLOAT][INT] = {}
 cubo_semantico[FLOAT][INT][EQ] = FLOAT
 
@@ -466,172 +569,418 @@ cubo_semantico[BOOL][NEG]=ERR
 ####################################
 ## PILAS AUXILIARES               ##
 ####################################
+
+# Pila de Operandos:
+## Se utiliza para saber las direcciones virtuales
+## de los operandos que estan pendientes por transformar
+## o utilizar
 pilaO=[]
+# Pila de Operadores:
+## Se utiliza para saber los codigos de operacion
+## de las operaciones pendientes en el codigo actual
 pOper=[]
+# Pila de Tipos:
+## Se utiliza para saber cuales son los codigos de los
+## tipos que corresponden a la pila de operandos
 pTipos=[]
 
 ####################################
 ## CUADRUPLOS                     ##
 ####################################
+
+# Diccionario de Cuadruplos:
+## Este diccionario de listas se utiliza para ingresar los cuadruplos
+## que el programa va ingresando (codigo intermedio) que tiene la
+## siguiente organizacion:
+## posicion0 = codigo de la operacion a realizar
+## posicion1 = direccion virtual del operando izquierdo
+## posicion2 = direccion virtual del operando derecho
+## posicion3 = direccion virtual del resultado
 cuadruplos={}
+
+# Iniciamos el contador de cuadruplos en 0
 contCuad = 1
+
+# Variable que representa la posicion de la operacion
+# en el diccionario de cuadruplos
+pos_cuads_op = 0
+
+# Variable que representa la posicion del operando izquierdo
+# en el diccionario de cuadruplos
+pos_cuads_opdoIzq = 1
+
+# Variable que representa la posicion del operando derecho
+# en el diccionario de cuadruplos
+pos_cuads_opdoDer = 2
+
+# Variable que representa la posicion del resultado
+# en el diccionario de cuadruplos
+pos_cuads_res = 3
 
 ####################################
 ## Variables globales enteras     ##
 ####################################
+
+# Direccion virtual que representa el actual de variables
+# globales enteras en el programa, empieza en 1000
 var_glob_int = 1000
+
+# Direccion virtual que representa el inicio de las variables
+# globales enteras en el programa
 var_glob_int_inicio = 1000
 
 ####################################
 ## Variables globales flotantes   ##
 ####################################
+
+# Direccion virtual que representa el actual de variables
+# globales flotantes en el programa, empieza en 3000
 var_glob_float = 3000
+
+# Direccion virtual que representa el inicio de las variables
+# globales flotantes en el programa
 var_glob_float_inicio = 3000
 
 ####################################
 ## Variables globales booleanas   ##
 ####################################
+
+# Direccion virtual que representa el actual de variables
+# globales booleanas en el programa, empieza en 5000
 var_glob_bool = 5000
+
+# Direccion virtual que representa el inicio de las variables
+# globales booleanas en el programa
 var_glob_bool_inicio = 5000
 
 ####################################
 ## Variables globales char        ##
 ####################################
+
+# Direccion virtual que representa el actual de variables
+# globales char en el programa, empieza en 7000
 var_glob_char = 7000
+
+# Direccion virtual que representa el inicio de las variables
+# globales char en el programa
 var_glob_char_inicio = 7000
 
 ####################################
 ## Variables locales enteras      ##
 ####################################
+
+# Direccion virtual que representa el actual de variables
+# locales enteras en el contexto, empieza en 9000
 var_loc_int = 9000
+
+# Direccion virtual que representa el inicio de las variables
+# locales char en el contexto
 var_loc_int_inicio = 9000
 
 ####################################
 ## Variables locales flotantes    ##
 ####################################
+
+# Direccion virtual que representa el actual de variables
+# locales flotantes en el contexto, empieza en 11000
 var_loc_float = 11000
+
+# Direccion virtual que representa el inicio de las variables
+# locales flotantes en el contexto
 var_loc_float_inicio = 11000
 
 ####################################
 ## Variables locales booleanas    ##
 ####################################
+
+# Direccion virtual que representa el actual de variables
+# locales booleanas en el contexto, empieza en 13000
 var_loc_bool = 13000
+
+# Direccion virtual que representa el inicio de las variables
+# locales booleanas en el contexto
 var_loc_bool_inicio = 13000
 
 ####################################
 ## Variables locales char         ##
 ####################################
+
+# Direccion virtual que representa el actual de variables
+# locales char en el contexto, empieza en 15000
 var_loc_char = 15000
+
+# Direccion virtual que representa el inicio de las variables
+# locales char en el contexto
 var_loc_char_inicio = 15000
 
 ##################################################
 ## Variables locales temporales enteras         ##
 ##################################################
+
+# Direccion virtual que representa el actual de temporales
+# locales enteras en el contexto, empieza en 17000
 var_loc_temp_int = 17000
+
+# Direccion virtual que representa el inicio de las temporales
+# locales enteras en el contexto
 var_loc_temp_int_inicio = 17000
 
 ##################################################
 ## Variables locales temporales flotantes       ##
 ##################################################
+
+# Direccion virtual que representa el actual de temporales
+# locales float en el contexto, empieza en 17000
 var_loc_temp_float = 21000
+
+# Direccion virtual que representa el inicio de las temporales
+# locales float en el contexto
 var_loc_temp_float_inicio = 21000
 
 ##################################################
 ## Variables locales temporales booleanas       ##
 ##################################################
+
+# Direccion virtual que representa el actual de temporales
+# locales booleanas en el contexto, empieza en 25000
 var_loc_temp_bool = 25000
+
+# Direccion virtual que representa el inicio de las temporales
+# locales booleanas en el contexto
 var_loc_temp_bool_inicio = 25000
 
 ##################################################
 ## Variables locales temporales char            ##
 ##################################################
+
+# Direccion virtual que representa el actual de temporales
+# locales char en el contexto, empieza en 29000
 var_loc_temp_char = 29000
+
+# Direccion virtual que representa el inicio de las temporales
+# locales char en el contexto
 var_loc_temp_char_inicio = 29000
 
 ################################
 ## Constantes enteras         ##
 ################################
+
+# Direccion virtual que representa el actual de constantes
+# globales enteras en el programa, empieza en 33000
 cte_int = 33000
+
+# Direccion virtual que representa el inicio de las constantes
+# globales enteras en el programa
 cte_int_inicio = 33000
 
 ################################
 ## Constantes flotantes       ##
 ################################
+
+# Direccion virtual que representa el actual de constantes
+# globales flotantes en el programa, empieza en 37000
 cte_float = 37000
+
+# Direccion virtual que representa el inicio de las constantes
+# globales flotantes en el programa
 cte_float_inicio = 37000
 
 ################################
 ## Constantes booleanas       ##
 ################################
+
+# Direccion virtual que representa el actual de constantes
+# globales booleanas en el programa, empieza en 41000
 cte_bool = 41000
+
+# Direccion virtual que representa el inicio de las constantes
+# globales booleanas en el programa
 cte_bool_inicio = 41000
 
 ################################
 ## Constantes char            ##
 ################################
+
+# Direccion virtual que representa el actual de constantes
+# globales char en el programa, empieza en 41000
 cte_char = 45000
+
+# Direccion virtual que representa el inicio de las constantes
+# globales char en el programa
 cte_char_inicio = 45000
 
 ################################
-## Constantes notas            ##
+## Constantes notas           ##
 ################################
+
+# Direccion virtual que representa el actual de constantes
+# globales nota en el programa, empieza en 49000
 cte_nota = 49000
+
+# Direccion virtual que representa el inicio de las constantes
+# globales nota en el programa
 cte_nota_inicio = 49000
 
+# Se utiliza para tener una pila/queue al que se le pueden
+# hacer pops y dequeues
 from collections import deque
 
-#diccionario de listas, pos0 = tipo, pos1 = vars, pos2 = direccion inicio,
-#                       pos3 = tam, pos4 = params,
+################################
+## Procedimientos             ##
+################################
+
+# Diccionario de Procedimientos:
+## Este diccionario de los procedimientos del programa
+## es un diccionario de listas que tiene la siguiente
+## organizacion:
+## posicion0 = tipo del procedimiento
+## posicion1 = diccionario de variables del procedimiento
+## posicion2 = direccion cuadruplo inicio del procedimiento
+## posicion3 = diccionario del tamano del procedimiento, representado en cada tipo y por variables y constantes
+## posicion4 = lista de parametros que tiene el procedimiento
 dir_procs = {}
+
+# Diccionario Auxiliar:
+## Utilizado para hacer operaciones sobre el diccionario
+## de procedimientos sin modificar al mismo
 auxDic = {}
+
+# Pila de Scopes:
+## Es una pila que representa el scope o funcion en la
+## que nos encontramos actualmente en su tope y se van
+## empujando a la pila las funciones que estan pendientes
+## ya que llamaron a otras funciones y no queremos perderlas
 scope = []
+
+# Variable que representa la posicion del tipo en el
+# diccionario de procedimientos
 pos_dics_tipo = 0
+
+# Variable que representa la posicion de las variables
+# en el diccionario de procedimientos
 pos_dics_var = 1
+
+# Variable que representa la posicion de la direccion
+# de inicio en el diccionario de procedimientos
 pos_dics_dir_inicio = 2
+
+# Variable que representa la posicion del tamano
+# en el diccionario de procedimientos
 pos_dics_tam = 3
+
+# Variable que representa la posicion de los parametros
+# en el diccionario de procedimientos
 pos_dics_params = 4
 
+################################
+## Variables                  ##
+################################
+
+# Diccionario de Variables:
+## Este diccionario es un diccionario de listas que tiene
+## la siguiente organizacion:
+## posicion0 = tipo de la variable
+## posicion1 = direccion virtual de la variable
+## posicion2 = lista de dimensiones de la variable (para variables de tipo lista)
+### No esta declarada aqui porque se declara cada vez que se
+### manda a crear un nuevo procedimiento y se crea adentro
+### de la posicion de variables en el diccionario de procedimientos
+
+
+# Variable que representa la posicion de las variables
+# en el diccionario de variables
 pos_vars_tipo = 0
+
+# Variable que representa la posicion de la direccion virtual
+# en el diccionario de variables
 pos_vars_dir_virtual = 1
+
+# Variable que representa la posicion de las dimensiones
+# en el diccionario de variables
 pos_vars_dim = 2
 
+################################
+## Llamadas a funciones       ##
+################################
+
+# Pila de Numero de Funciones:
+## Esta pila se utiliza para llevar un registro de a que
+## funciones se estan llamando para que cuando se mande
+## a llamar una funcion adentro de otra entonces sepa a
+## cual registrarle parametros, se utilizan numeros
+## ya que puede mandarse a llamar la misma funcion adentro
+## de la otra
 pilaNumFuncs = []
+
+# Pila auxParamCount:
+## Esta pila se utiliza para llevar un registro de en que
+## parametro se encuentran las funciones en pilaNumFuncs
+## esto se utiliza para cuando se mande a llamar una funcion
+## adentro de otra
 pilaAuxParamCount = []
+
+# Pila de Funciones:
+## Esta pila se utiliza para llevar un registro de a que
+## funciones se estan llamando para que cuando se mande
+## a llamar una funcion adentro de otra entonces sepa a
+## cual registrarle parametros a diferencia de la pilaNumFuncs
+## esta es para saber el nombre de la funcion a la que se le
+## estan enviando las cosas
 pilaFuncs = []
+
+# Pila de Saltos:
+## Esta pila/queue se utiliza para llevar un registro de
+## los saltos que tiene pendiente por rellenar el programa
+## o por asignar mas adelante, se utilizo pila/queue para
+## que se puedan sacar por ambos lados
 pSaltos = deque([])
+
+# Variable que cuenta la cantidad de parametros que lleva
+# el llamado a la funcion que se esta haciendo
 auxParamCount = 0
+
+# Variable que representa el conteo de funciones que se han
+# hecho calls en el programa esto para poder meterlas con su
+# numero a la pilaNumFuncs
 tempFunc = 0
+
+# Variable que representa el numero de la funcion a la que
+# se le esta haciendo call al momento
 currentFunc = 0
+
+# Representa la direccion de la funcion en el directorio de
+# de procedimientos a la que se le esta haciendo el call
 auxFuncDestinoDir = None
+
+################################
+## Constantes                 ##
+################################
+
+# Diccionario de constantes:
+## Aqui se guardan las constantes que se van declarando
+## la organizacion es que la llave es el valor de la constante
+## y el valor es la direccion virtual para los cuadruplos
 ctes = {}
-pos_cuads_op = 0
-pos_cuads_opdoIzq = 1
-pos_cuads_opdoDer = 2
-pos_cuads_res = 3
-# Parsing rules
 
-#estructura dir_proc = ["global",vars{}]
+#### Parseo comienza a partir de aqui  ######
 
-# ######################################
-# ## maquina virtual                  ##
-# ######################################
-#
-# def comienzaMaqVirtual():
-#     print "comenzamos maq virtual"
-#     return;
-
-
-
-######################################
-## programa                         ##
-######################################
+###############################################
+## programa                                  ##
+### Regla inicial para todo el programa      ##
+###############################################
 
 def p_programa(p):
     'programa : creadirprocglobal a neur22 c cancion'
+
+    ## Cuando acaba de parsear toda esta regla
+    ## que es la regla de todo el programa entonces se
+    ## ejecuta lo siguiente
+
+    ## Vaciamos la tabla de variables
     #dir_procs[scope[-1]][pos_dics_var] = {}
 
+    ## Imprimimos para debuggeo
     print('done with file!\n')
-
     pp.pprint(dir_procs)
     pp.pprint(cuadruplos)
     print pOper
@@ -640,56 +989,89 @@ def p_programa(p):
     print pSaltos
     pass
 
-###########################################
-## creadirprocglobal (punto neuralgico)  ##
-###########################################
+#####################################################################
+## creadirprocglobal (punto neuralgico)                            ##
+### punto nueoralgico para crear el directorio de procedimientos   ##
+### de tipo global                                                 ##
+#####################################################################
 
 def p_creadirprocglobal(p):
     'creadirprocglobal : '
+    ## Creamos el directorio de procedimientos global con las variables vacias
+    ## la direccion de inicio en None, el tamano en 0's y con los parametros vacios
     dir_procs['global'] = ['global',{},None,{'vi':0,'vf':0,'vc':0,'vb':0,'ti':0,'tf':0,'tc':0,'tb':0},[]]
+
+    ## Agregamos a los scopes el scope global
     scope.append('global')
     pass
 
+###################################################################
+## Regla sintactica a para poder meter ninguna o variable        ##
+## seguida de regla b                                            ##
+###################################################################
 def p_a(p):
     ''' a : empty
           | vars b'''
     pass
 
+###################################################################
+## Regla sintactica a para poder acabar el ciclo de variables    ##
+## o volver a mandar a a                                         ##
+###################################################################
 def p_b(p):
     '''b : empty
          | a'''
     pass
 
-##########################
-## punto neuralgico 22  ##
-##########################
-
+###################################################################
+## punto neuralgico 22                                           ##
+### Utilizado para generar el salto a cancion que representa     ##
+### el main del programa                                         ##
+###################################################################
 def p_neur22(p):
     'neur22 : '
+    ## Traer la global de cantidad de cuadruplos
     global contCuad
+
+    ## Hacer operacion de Goto pero sin saber aun
+    ## a donde vamos a brincar
     op = GOTO
     cuadruplos[contCuad] = [op,None,None,None]
     contCuad+=1
+
+    ## Agregamos a pila de saltos lo que hay que rellenar
     pSaltos.append(contCuad-1)
     pass
 
-
+###################################################################
+## Regla sintactica c para poder meter ninguna o una funcion     ##
+## y mandar a llamar a la regla d                                ##
+###################################################################
 def p_c(p):
     '''c : empty
          | funcion d'''
     pass
 
+###################################################################
+## Regla sintactica a para poder acabar el ciclo de funciones    ##
+## o volver a mandar a c                                         ##
+###################################################################
 def p_d(p):
     '''d : empty
          | c'''
     pass
 
-######################################
-## vars                             ##
-######################################
-
+###################################################################
+## vars                                                          ##
+### Utilizada para declarar variables en cualquier funcion       ##
+### o globalmente                                                ##
+###################################################################
 def p_vars(p):
-    'vars : VAR v ":" tipo u ";"'
+    'vars : VAR ID ":" tipo u ";"'
+
+    ## Una vez que se termina la declaracion de la variable ##
+
+    ## Nos traemos todas las variables globales que usaremos
     global dir_procs
     global var_glob_int
     global var_glob_float
@@ -698,7 +1080,6 @@ def p_vars(p):
     global var_glob_bool_inicio
     global var_glob_char
     global var_glob_char_inicio
-
     global var_loc_int
     global var_loc_int_inicio
     global var_loc_float
@@ -707,128 +1088,193 @@ def p_vars(p):
     global var_loc_bool_inicio
     global var_loc_char
     global var_loc_char_inicio
-
     global var_loc_temp_int_inicio
+
+    ## Utilizamos el diccionario auxiliar
     auxDic = dir_procs[scope[-1]][pos_dics_var]
+
+    ## Validamos que la variable exista
     if p[2] in auxDic:
+        ## si exite salimos
         print "Variable con ese ID ya existe en ese scope"
         exit()
     else:
+        ## Sino checamos si es dimensionada
         if p[5] == "NA":
+            ## utilizamos una variable que nos ayuda con la
+            ## dimension y la declaramos en 0
             dim = 1
+        ## Si la dimension sale <= 0 hay un error
         elif p[5] <= 0:
             print "Dimension no valida"
             exit()
+        ## Sino asignamos la dimension que nos mandaron
         else:
             dim = p[5]
+        ## Si no hay dimension
         if dim == 1:
+            ## Creamos el diccionario de la variable
+            ## con solamente el tipo, dimension en None
             auxDic[p[2]] = [p[4],None,None]
         else:
+            ## Creamos el diccionario de la variable con
+            ## el tipo, y el arreglo de la dimension (dim sup, dim inf)
             auxDic[p[2]] = [p[4],None,[dim-1,0]]
+        ## Si el tipo es INT
         if p[4] == INT:
+            ## Aumenta la cantidad de variables enteras en la cantidad de dim
             dir_procs[scope[-1]][pos_dics_tam]['vi']+=dim
+            ## Si es global el scope
             if scope[-1] == 'global':
+                ## Checa si junto con la dimension caben en las direcciones virtuales
                 if var_glob_int + dim < var_glob_float_inicio:
+                    ## Si cabe, agrega a su diccionario de variable su direccion virtual
                     auxDic[p[2]][pos_vars_dir_virtual] = var_glob_int
+                    ## Aumenta la cantidad en dim de variables globales enteras
                     var_glob_int += dim
+                ## Si no cabe, hay overflow y salimos
                 else:
                     print "Overflow de variables enteras globales"
                     exit()
+            ## si no es global entonces es local
             else:
+                ## Checa si junto con la dimension caben en las direcciones virtuales
                 if var_loc_int + dim < var_loc_float_inicio:
+                    ## Si cabe, agrega a su diccionario de variable su direccion virtual
                     auxDic[p[2]][pos_vars_dir_virtual] = var_loc_int
+                    ## Aumenta la cantidad en dim de variables locales enteras
                     var_loc_int += dim
+                ## Si no cabe, hay overflow y salimos
                 else:
                     print "Overflow de variables enteras locales"
                     exit()
+        ## Si el tipo es FLOAT
         elif p[4] == FLOAT:
+            ## Aumenta la cantidad de variables flotantes en la cantidad de dim
             dir_procs[scope[-1]][pos_dics_tam]['vf']+=dim
+            ## Si es global el scope
             if scope[-1] == 'global':
+                ## Checa si junto con la dimension caben en las direcciones virtuales
                 if var_glob_float + dim < var_glob_bool_inicio:
+                    ## Si cabe, agrega a su diccionario de variable su direccion virtual
                     auxDic[p[2]][pos_vars_dir_virtual] = var_glob_float
+                    ## Aumenta la cantidad en dim de variables globales flotantes
                     var_glob_float += dim
+                ## Si no cabe, hay overflow y salimos
                 else:
                     print "Overflow de variables flotantes globales"
                     exit()
+            ## si no es global entonces es local
             else:
+                ## Checa si junto con la dimension caben en las direcciones virtuales
                 if var_loc_float + dim < var_loc_bool_inicio:
+                    ## Si cabe, agrega a su diccionario de variable su direccion virtual
                     auxDic[p[2]][pos_vars_dir_virtual] = var_loc_float
+                    ## Aumenta la cantidad en dim de variables locales flotantes
                     var_loc_float += dim
+                ## Si no cabe, hay overflow y salimos
                 else:
                     print "Overflow de variables flotantes locales"
                     exit()
+        ## Si el tipo es CHAR
         elif p[4] == CHAR:
+            ## Aumenta la cantidad de variables flotantes en la cantidad de dim
             dir_procs[scope[-1]][pos_dics_tam]['vc']+=dim
+            ## Si es global el scope
             if scope[-1] == 'global':
+                ## Checa si junto con la dimension caben en las direcciones virtuales
                 if var_glob_char + dim < var_loc_int_inicio:
+                    ## Si cabe, agrega a su diccionario de variable su direccion virtual
                     auxDic[p[2]][pos_vars_dir_virtual] = var_glob_char
+                    ## Aumenta la cantidad en dim de variables globales char
                     var_glob_char += dim
+                ## Si no cabe, hay overflow y salimos
                 else:
                     print "Overflow de variables char globales"
                     exit()
+            ## si no es global entonces es local
             else:
+                ## Checa si junto con la dimension caben en las direcciones virtuales
                 if var_loc_char + dim < var_loc_temp_int_inicio:
+                    ## Si cabe, agrega a su diccionario de variable su direccion virtual
                     auxDic[p[2]][pos_vars_dir_virtual] = var_loc_char
+                    ## Aumenta la cantidad en dim de variables locales char
                     var_loc_char += dim
+                ## Si no cabe, hay overflow y salimos
                 else:
                     print "Overflow de variables char locales"
                     exit()
+        ## Si el tipo es BOOL
         else:
+            ## Aumenta la cantidad de variables booleanas en la cantidad de dim
             dir_procs[scope[-1]][pos_dics_tam]['vb']+=dim
+            ## Si es global el scope
             if scope[-1] == 'global':
+                ## Checa si junto con la dimension caben en las direcciones virtuales
                 if var_glob_bool + dim < var_glob_char_inicio:
+                    ## Si cabe, agrega a su diccionario de variable su direccion virtual
                     auxDic[p[2]][pos_vars_dir_virtual] = var_glob_bool
+                    ## Aumenta la cantidad en dim de variables globales booleanas
                     var_glob_bool += dim
+                ## Si no cabe, hay overflow y salimos
                 else:
                     print "Overflow de variables booleanas globales"
                     exit()
+            ## si no es global entonces es local
             else:
+                ## Checa si junto con la dimension caben en las direcciones virtuales
                 if var_loc_bool + dim < var_loc_char_inicio:
+                    ## Si cabe, agrega a su diccionario de variable su direccion virtual
                     auxDic[p[2]][pos_vars_dir_virtual] = var_loc_bool
+                    ## Aumenta la cantidad en dim de variables locales booleanas
                     var_loc_bool += dim
+                ## Si no cabe, hay overflow y salimos
                 else:
                     print "Overflow de variables booleanas locales"
                     exit()
     pass
 
-def p_v(p):
-    'v : ID'
-    p[0] = p[1]
-    pass
-
-#def p_e(p):
-#    '''e : empty
-#         | "," v'''
-#    pass
-
-# estructura de dir_proc = [tipo,vars{}]
-
-######################################
-## funcion                          ##
-######################################
+########################################################################
+## funcion                                                            ##
+### Utilizada para declarar cualquier funcion                         ##
+########################################################################
 
 def p_funcion(p):
     'funcion : FUNC z ID meterfuncion "(" params ")" f neur23 bloque'
+
+    ## Una vez que se termina la declaracion de la funcion ##
+
+    ## Nos traemos todas las variables globales que usaremos
     global contCuad
     global pos_dics_tipo
     global pos_dics_var
-    if p[4] != -1:
-        if (not(scope[-1] in dir_procs["global"][pos_dics_var]) and (dir_procs[scope[-1]][pos_dics_tipo] != None)):
-            print "Falta regresar parametro de salida en funcion"
-            exit()
-        #dir_procs[scope[-1]][pos_dics_var] = {}
-        var_loc_int = var_loc_int_inicio
-        var_loc_float = var_loc_float_inicio
-        var_loc_bool = var_loc_bool_inicio
-        var_loc_char = var_loc_char_inicio
-        var_loc_temp_int = var_loc_temp_int_inicio
-        var_loc_temp_float = var_loc_temp_float_inicio
-        var_loc_temp_bool = var_loc_temp_bool_inicio
-        var_loc_temp_char = var_loc_temp_char_inicio
-        scope.pop()
-        op = ENDPROC
-        cuadruplos[contCuad]=[op,None,None,None]
-        contCuad += 1
+
+    ## Si no es global o no es una funcion void, tenemos un error
+    if (not(scope[-1] in dir_procs["global"][pos_dics_var]) and (dir_procs[scope[-1]][pos_dics_tipo] != None)):
+        ## Falto poner el return
+        print "Falta regresar parametro de salida en funcion"
+        exit()
+    ## Borramos la tabla de variables de la funcion
+    #dir_procs[scope[-1]][pos_dics_var] = {}
+
+    ## Reiniciamos los valores de nuestros contadores de
+    ## variables locales y temporales locales
+    var_loc_int = var_loc_int_inicio
+    var_loc_float = var_loc_float_inicio
+    var_loc_bool = var_loc_bool_inicio
+    var_loc_char = var_loc_char_inicio
+    var_loc_temp_int = var_loc_temp_int_inicio
+    var_loc_temp_float = var_loc_temp_float_inicio
+    var_loc_temp_bool = var_loc_temp_bool_inicio
+    var_loc_temp_char = var_loc_temp_char_inicio
+
+    ## Sacamos el scope actual
+    scope.pop()
+
+    ## Terminamos el procedimiento con un cuadruplo
+    op = ENDPROC
+    cuadruplos[contCuad]=[op,None,None,None]
+    contCuad += 1
     pass
 
 def p_z(p):
@@ -865,7 +1311,6 @@ def p_meterfuncion(p):
     global var_loc_temp_char
     if p[-1] in dir_procs:
         print "Funcion con ese ID ya existe en el programa"
-        p[0] = -1
         exit()
     else:
         var_loc_int = var_loc_int_inicio
@@ -1904,6 +2349,7 @@ def p_neurVar(p):
     'neurVar : '
     if p[-1] == -1:
         auxDic = dir_procs[scope[-1]][pos_dics_var]
+        print p[-2]
         if p[-2] in auxDic:
             pTipos.append(auxDic[p[-2]][0])
             pilaO.append(auxDic[p[-2]][pos_vars_dir_virtual])
@@ -2309,7 +2755,7 @@ def p_neur25(p):
     global auxParamCount
     global auxFuncDestinoDir
     global currentFunc
-    auxFuncDestinoDir = pilaFuncs[-1]
+    # auxFuncDestinoDir = pilaFuncs[-1]
     if pOper != [] and currentFunc == pilaNumFuncs[-1]:
         if len(pilaO)>0 and pOper[-1] == PARAMETRO:
             argumento = pilaO.pop()
@@ -2325,7 +2771,7 @@ def p_neur25(p):
                 else:
                     cuadruplos[contCuad] = [op,argumento,None,var_loc_bool_inicio + auxParamCount]
                 auxParamCount += 1
-                pilaAuxParamCount[-1] = auxParamCount
+                # pilaAuxParamCount[-1] = auxParamCount
                 contCuad+=1
             else:
                 print "Error en declaracion de parametros"
@@ -2370,9 +2816,10 @@ def p_neur24(p):
     global pOper
     global pilaFuncs
     if p[-1] in dir_procs:
-        pilaFuncs.append(p[-1])
+        # pilaFuncs.append(p[-1])
+        auxFuncDestinoDir = p[-1]
         auxParamCount = 0
-        pilaAuxParamCount.append(auxParamCount)
+        # pilaAuxParamCount.append(auxParamCount)
         op = ERA
         cuadruplos[contCuad] = [op,p[-1],None,None]
         contCuad += 1
@@ -2394,10 +2841,10 @@ def p_neur26(p):
     global auxParamCount
     global auxFuncDestinoDir
     global contCuad
-    global pilaFuncs
-    global currentFunc
-    global auxParamCount
-    auxFuncDestinoDir = pilaFuncs[-1]
+    # global pilaFuncs
+    # global currentFunc
+    # global auxParamCount
+    # auxFuncDestinoDir = pilaFuncs[-1]
 
     if auxParamCount != len(dir_procs[auxFuncDestinoDir][pos_dics_params]):
         print "Error en cantidad de parametros"
@@ -2407,10 +2854,10 @@ def p_neur26(p):
         if(pOper[-1] == PARAMETRO):
             pOper.pop()
             pilaNumFuncs.pop()
-            pilaAuxParamCount.pop()
-            if pilaNumFuncs != []:
-                currentFunc = pilaNumFuncs[-1]
-                auxParamCount = pilaAuxParamCount[-1]
+            # pilaAuxParamCount.pop()
+            # if pilaNumFuncs != []:
+            #     currentFunc = pilaNumFuncs[-1]
+            #     auxParamCount = pilaAuxParamCount[-1]
 
         else:
             print "Llamada a funcion con operaciones pendientes"
@@ -2418,7 +2865,7 @@ def p_neur26(p):
 
         cuadruplos[contCuad] = [GOSUB,auxFuncDestinoDir,None,None]
         contCuad += 1
-        pilaFuncs.pop()
+        # pilaFuncs.pop()
 
 
     pass

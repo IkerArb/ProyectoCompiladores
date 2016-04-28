@@ -29,7 +29,7 @@ FUNC INT suma(INT  n,INT m) {
 CANCION (90)
   VAR x : FLOAT;
 {
-  PRINT CALL fibIteration(CALL fibIteration(11););;
-  PRINT CALL suma(CALL fibIteration(12);,10);;
+  x = 11;
+  PRINT CALL fibIteration(x);;
   PRINT CALL fibRecursion(11);;
 }

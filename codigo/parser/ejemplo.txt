@@ -1,7 +1,6 @@
 VAR z : FLOAT;
 
 FUNC INT parte1(INT repeticiones)
-
   VAR switch : BOOL;
   VAR i : INT;
 {
