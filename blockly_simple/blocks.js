@@ -22,21 +22,6 @@ Blockly.Blocks['programa'] = {
   }
 };
 
-//VARIABLE
-//https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#bzj9yt
-Blockly.Blocks['variable'] = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField("VARIABLE")
-        .appendField(new Blockly.FieldTextInput("nombreVar"), "id")
-        .appendField(new Blockly.FieldDropdown([["int", "INT"], ["float", "FLOAT"], ["char", "CHAR"], ["bool", "BOOL"]]), "tipo");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setTooltip('');
-    this.setHelpUrl('http://www.example.com/');
-  }
-};
-
 //BLOQUE_CANCION
 //https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#6xrwfx
 Blockly.Blocks['bloque_cancion'] = {
@@ -78,6 +63,23 @@ Blockly.Blocks['bloque_funcion'] = {
     this.setHelpUrl('http://www.example.com/');
   }
 };
+
+//VARIABLE
+//https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#bzj9yt
+Blockly.Blocks['variable'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("VARIABLE")
+        .appendField(new Blockly.FieldTextInput("nombreVar"), "id")
+        .appendField(new Blockly.FieldDropdown([["int", "INT"], ["float", "FLOAT"], ["char", "CHAR"], ["bool", "BOOL"]]), "tipo");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setTooltip('');
+    this.setHelpUrl('http://www.example.com/');
+  }
+};
+
+
 
 //VAR LISTA
 //https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#5o7cym
