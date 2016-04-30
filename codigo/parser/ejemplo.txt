@@ -4,7 +4,7 @@ FUNC INT parte1(INT repeticiones)
   VAR switch : BOOL;
   VAR i : INT;
 {
-  switch = true;
+  switch = True;
   RETURN (5+3);
 }
 
@@ -12,7 +12,7 @@ FUNC FLOAT parte2(FLOAT repeticiones)
   VAR i : INT;
   VAR switch : BOOL;
 {
-  switch = true;
+  switch = True;
   RETURN (8*3);
 }
 
@@ -20,7 +20,7 @@ FUNC VOID parte3(FLOAT repeticiones)
   VAR i : INT;
   VAR switch : BOOL;
 {
-  switch = true;
+  switch = True;
 }
 
 CANCION (90)
