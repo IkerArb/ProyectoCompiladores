@@ -1,5 +1,0 @@
-PROG prueba_1;
-VAR nombre69 : FLOAT;
-{
-  nombre69 = 69.34 +;
-}
