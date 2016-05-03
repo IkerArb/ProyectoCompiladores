@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Din</title>
+  <link href='https://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  <script src="blockly/blockly_compressed.js"></script>
+  <script src="blockly/blocks_compressed.js"></script>
+  <script src="blockly/din_compressed.js"></script>
+  <script src="blockly/msg/js/en.js"></script>
+  <script src="FileSaver.js"></script>
+  <link rel="stylesheet" type="text/css" href="style.css" />
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      font-weight: normal;
+      font-size: 140%;
+    }
+  </style>
+
+<script type="text/javascript">
+function text_file(codigo) {
+  var blob = new Blob([codigo], {type: "text/plain;charset=utf-8"});
+  saveAs(blob, "testfile1.txt");
+}
+</script>
+
+
+
+</head>
+<body>
+  <h1>Din</h1>
+  <button id="button_run" onclick="run_code()">
+  		Run Code
+  </button>
+  <div id="blocklyDiv" style="height: 1600px; width: 1600px;"></div>
+
+  <div id="codeOutput">
+    <div id="canvas"></div>
+    <div id="console">
+      <div class="header">
+        <div class="dot red"></div>
+        <div class="dot yellow"></div>
+        <div class="dot green"></div>
+      </div>
+      <div class="panel">
+        <div class="action">
+          <div class="command"><span class="symbol">$</span></div>
+          <div id="output" class="output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <xml id="toolbox" style="display: none">
+    <category name="Inicio">
+      <block type="programa"></block>
+      <block type="bloque_cancion"></block>
+      <block type="bloque_funcion"></block>
+    </category>
+    <category name="Expresiones">
+      <block type="lista"></block>
+      <block type="num"></block>
+      <block type="var"></block>
+      <block type="not"></block>
+      <block type="parentesis"></block>
+      <block type="expresion"></block>
+      <block type="char"></block>
+      <block type="bool"></block>
+    </category>
+    <category name="Logic">
+      <block type="if"></block>
+      <block type="if_else"></block>
+      <block type="for"></block>
+      <block type="while"></block>
+    </category>
+    <category name="Simples">
+      <block type="play"></block>
+      <block type="print"></block>
+      <block type="return"></block>
+      <block type="call"></block>
+      <block type="call_void"></block>
+      <block type="param"></block>
+      <block type="_param"></block>
+    </category>
+    <category name="Variable">
+      <block type="variable"></block>
+      <block type="assig_var"></block>
+      <block type="var_lista"></block>
+      <block type="assig_lista"></block>
+    </category>
+  </xml>
+
+  <script>
+    var workspace = Blockly.inject('blocklyDiv',
+        {toolbox: document.getElementById('toolbox')});
+    function run_code() {
+    			Blockly.Din.INFINITE_LOOP_TRAP = null;
+    			code = Blockly;
+    			code = Blockly.Din.workspaceToCode(workspace);
+    			console.log(code);
+          text_file(code);
+    }
+  </script>
+
+</body>
+</html>
