@@ -2,7 +2,7 @@ FUNC INT suma(INT  n,INT m) {
   RETURN (n + m);
 }
 
-FUNC INT resta(INT n, INT m){
+FUNC FLOAT resta(FLOAT n, INT m){
   RETURN (n-m);
 }
 
@@ -15,11 +15,11 @@ CANCION (90)
   z = "h";
   x = CALL suma(1,2);;
   PRINT CALL suma(1,2);;
-  IF (x <= 3 AND x>1) {
+  IF (x<=3ANDx>1) {
       PRINT "X";
   };
   IF (y){
     PRINT z;
   };
-  PRINT CALL resta(1,2);;
+  PRINT CALL resta(x,1);;
 }

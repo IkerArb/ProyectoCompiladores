@@ -1,0 +1,54 @@
+VAR a : FLOAT LIST(10);
+
+FUNC VOID BubbleSort (INT length)
+VAR i : INT;
+VAR j : INT;
+VAR temp : FLOAT;
+{
+    FOR (i = 0; i < length; i=i+1;)
+    {
+        FOR (j = 0; j < length - 1; j = j+1;)
+        {
+            IF (a[j + 1] < a[j])
+            {
+                temp = a[j];
+                a[j] = a[j + 1];
+                a[j + 1] = temp;
+            };
+        };
+    };
+}
+
+FUNC INT Find (FLOAT dato, INT length)
+VAR i : INT;
+{
+    FOR (i = 0; i < length; i=i+1;)
+    {
+      IF (a[i] == dato)
+      {
+          RETURN (i);
+      };
+    };
+    RETURN (-1);
+}
+
+CANCION(200)
+  VAR cant : INT;
+  VAR i : INT;
+{
+  cant = 5;
+  FOR(i = 0; i < cant;i = i+1;){
+    a[i] = 10 - i;
+  };
+  PRINT "antes del sort";
+  FOR(i = 0; i < cant;i = i+1;){
+    PRINT a[i];
+  };
+  CALL BubbleSort(cant);
+  PRINT "despues del sort";
+  FOR(i = 0; i < cant;i = i+1;){
+    PRINT a[i];
+  };
+  PRINT "Find del 7:";
+  PRINT CALL Find(7,cant);;
+}

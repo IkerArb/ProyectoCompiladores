@@ -123,11 +123,11 @@ def t_LENGTH(t):
     r'LENGTH'
     return t
 
-# Las notas se definen entre una letra de la A a la G
+# Las notas se definen entre una letra de la a a la g
 # y con un numero del 1 al 7, estas se usan en el estatuto
 # play
 def t_NOTA(t):
-    r'([A-G][1-7])|([A,C,D,F,G][#][1-7])'
+    r'([a-g][1-7])|([a,c,d,f,g][#][1-7])'
     return t
 
 # La palabra PRINT literalmente, se utilia para imprimir
@@ -219,12 +219,12 @@ def t_CTEE(t):
     t.value = int(t.value)
     return t
 
-# El token CTECHAR consiste de cualquier caracter salvo
+# El token CTECHAR consiste de cualquier cantidad de caracteres salvo
 # el salto de linea \n que se encuentre entre dos comillas
 # dobles "". Este token se utiliza para asignar valores
 # a operaciones de tipo char
 def t_CTECHAR(t):
-    r'\"[^\n"]\"'
+    r'\"[^\n"]+\"'
     return t
 
 # El token CTEBOOL consiste de la palabra True o False.
@@ -2631,7 +2631,7 @@ def p_neurVar(p):
             pilaO.append(auxDic[p[-2]][pos_vars_dir_virtual])
         ## si no esta es por que no existe y marcamos error
         else:
-            print "No existe tal variable"
+            print "No existe tal variable normal " + repr(p[-2])
             exit()
     pass
 
@@ -2884,9 +2884,73 @@ def p_accesoVarDim(p):
         else:
             print "No es una variable dimensionada"
             exit()
+    ## hacemos lo mismo para ver si existe como global
+    elif p[-1] in dir_procs['global'][pos_dics_var]:
+        ## revisamos que sea una variable dimensionada por su campo de dimension
+        ## en el diccionario
+        if dir_procs['global'][pos_dics_var][p[-1]][pos_vars_dim] != None:
+            ## revisamos que sea un entero el resultado de la expresion
+            ## de acceso al indice
+            if pTipos[-1] == INT:
+                ## hacemos la operacion para verificar que este
+                ## dentro del rango de la dimension y que lo revise en
+                ## ejecucion y para eso hacemos este cuadruplo
+                op = VERIFICA
+                opdoIzq = pilaO[-1]
+                opdoDer = dir_procs['global'][pos_dics_var][p[-1]][pos_vars_dim][1]
+                res = dir_procs['global'][pos_dics_var][p[-1]][pos_vars_dim][0]
+                cuadruplos[contCuad] = [op,opdoIzq,opdoDer,res]
+                contCuad += 1
+                ## vamos a hacer la operacion de suma del resultado de la operacion
+                ## interna con la direccion virtual base de la variable dimensionada
+                ## opdoIzq es el resultado de la operacion y el opdoDer es la direccion
+                ## base de la variable convertida en direccion virtual de constante
+                op = PLUS
+                opdoIzq = pilaO.pop()
+                pTipos.pop()
+                ## aqui saco la direccion base con la direccion virtual
+                aux = dir_procs['global'][pos_dics_var][p[-1]][pos_vars_dir_virtual]
+                ## aqui lo agregue a las constantes si no estaba
+                if (not aux in ctes):
+                    if cte_int + 1 < cte_float_inicio:
+                        ctes[aux] = cte_int
+                        cte_int += 1
+                    else:
+                        print "Overflow de constantes enteras"
+                        exit()
+                ## aqui ya definimos el opdoDer para el cuadruplo
+                opdoDer = ctes[aux]
+                dir_procs[scope[-1]][pos_dics_tam]['ti']+=1
+                if var_loc_temp_int + 1 < var_loc_temp_float_inicio:
+                    ## se genera el cuadruplo
+                    cuadruplos[contCuad] = [op,opdoIzq,opdoDer,var_loc_temp_int]
+                    contCuad += 1
+                    ## aqui agrego la direccion representada como meter el numero
+                    ## de la direccion virtual entre parentesis para que de esta manera
+                    ## lo trate como apuntador la maquina virtual y de esta manera
+                    ## encuentra el valor de la casilla
+                    pilaO.append("("+str(var_loc_temp_int)+")")
+                    var_loc_temp_int += 1
+                else:
+                    print "Overflow de temporales enteras"
+                    exit()
+                ## aqui agrego el tipo de la variable dimensionada
+                pTipos.append(dir_procs['global'][pos_dics_var][p[-1]][pos_vars_tipo])
+                ## aqui saco el fondo falso que se mete cuando se manda a llamar la
+                ## expresion interna para saber el desplazamiento que se quiere hacer
+                if pOper[-1] == '[':
+                    pOper.pop()
+            ## si no es entera la expresion interna entonces es un error
+            else:
+                print "El indice que tratas de acccesar no es de tipo entero"
+                exit()
+        ## si la variable no es dimensionada entonces es un error
+        else:
+            print "No es una variable dimensionada"
+            exit()
     ## si no existe la variable es un error
     else:
-        print "No existe tal variable"
+        print "No existe tal variable dimensionada "+repr(p[-1])
         exit()
 
     pass
@@ -2944,7 +3008,7 @@ def p_length(p):
             exit()
     ## error si no habia sido declarada la variable en el scope o globalmente
     else:
-        print "No existe tal variable"
+        print "No existe tal variable dimensionada "+repr(p[-1])
         exit()
     pass
 
@@ -3168,6 +3232,10 @@ def p_neur25(p):
     global currentFunc
     global pilaAuxParamCount
 
+    ## llevamos la cuenta de la cantidad e parametros al sumar todos los
+    ## declarados por tipo
+    paramCount = pilaAuxParamCount[-1][0]+ pilaAuxParamCount[-1][1]+ pilaAuxParamCount[-1][2]+pilaAuxParamCount[-1][3]
+
     ## como permitimos la llamada de una funcion como parametro
     ## de otra funcion tenemos que manejar una pila en la que
     ## el tope es a la funcion a la que se desea llamar y para
@@ -3191,20 +3259,32 @@ def p_neur25(p):
             ## al que se lo estamos mandando, esto se debe al tope de la pilaAuxParamCount que nos dice
             ## que numero de parametro estamos llamando y hacemos el caso especial que si
             ## nos manda un int en la llamada a un float en el destino se la aceptamos
-            if tipoarg == dir_procs[auxFuncDestinoDir][pos_dics_params][pilaAuxParamCount[-1]] or (tipoarg == INT and dir_procs[auxFuncDestinoDir][pos_dics_params][pilaAuxParamCount[-1]]==FLOAT):
+            if tipoarg == dir_procs[auxFuncDestinoDir][pos_dics_params][paramCount] or (tipoarg == INT and dir_procs[auxFuncDestinoDir][pos_dics_params][paramCount]==FLOAT):
                 ## hacemos la operacion parametro y dependendo del tipo entonces
                 ## utilizamos la variable local correspondiente
                 op = PARAMETRO
                 if tipoarg == INT:
-                    cuadruplos[contCuad] = [op,argumento,None,var_loc_int_inicio + pilaAuxParamCount[-1]]
+                    ## validacion especial cuando mandan un int a un float
+                    if tipoarg == INT and dir_procs[auxFuncDestinoDir][pos_dics_params][paramCount]==FLOAT:
+                        cuadruplos[contCuad] = [op,argumento,None,var_loc_float_inicio + pilaAuxParamCount[-1][1]]
+                        ## sumamos la cantidad de parametros flotantes
+                        pilaAuxParamCount[-1][1] += 1
+                    else:
+                        cuadruplos[contCuad] = [op,argumento,None,var_loc_int_inicio + pilaAuxParamCount[-1][0]]
+                        ## sumamos la cantidad de parametros enteros
+                        pilaAuxParamCount[-1][0] += 1
                 elif tipoarg == FLOAT:
-                    cuadruplos[contCuad] = [op,argumento,None,var_loc_float_inicio + pilaAuxParamCount[-1]]
+                    cuadruplos[contCuad] = [op,argumento,None,var_loc_float_inicio + pilaAuxParamCount[-1][1]]
+                    ## sumamos la cantidad de parametros flotantes
+                    pilaAuxParamCount[-1][1] += 1
                 elif tipoRes == CHAR:
-                    cuadruplos[contCuad] = [op,argumento,None,var_loc_char_inicio + pilaAuxParamCount[-1]]
+                    cuadruplos[contCuad] = [op,argumento,None,var_loc_char_inicio + pilaAuxParamCount[-1][2]]
+                    ## sumamos la cantidad de parametros char
+                    pilaAuxParamCount[-1][2] += 1
                 else:
-                    cuadruplos[contCuad] = [op,argumento,None,var_loc_bool_inicio + pilaAuxParamCount[-1]]
-                ## sumamos la cantidad de parametros
-                pilaAuxParamCount[-1] += 1
+                    cuadruplos[contCuad] = [op,argumento,None,var_loc_bool_inicio + pilaAuxParamCount[-1][3]]
+                    ## sumamos la cantidad de parametros booleanos
+                    pilaAuxParamCount[-1][3] += 1
                 contCuad+=1
             else:
                 print "Error en declaracion de parametros"
@@ -3264,7 +3344,7 @@ def p_neur24(p):
         ## el numero de parametros dados de alta en 0's
         pilaFuncs.append(p[-1])
         auxFuncDestinoDir = p[-1]
-        pilaAuxParamCount.append(0)
+        pilaAuxParamCount.append([0,0,0,0])
         ## generamos la operacion de era
         op = ERA
         cuadruplos[contCuad] = [op,p[-1],None,None]
@@ -3302,10 +3382,14 @@ def p_neur26(p):
     ## definimos la funcion destino
     auxFuncDestinoDir = pilaFuncs[-1]
 
+    ## llevamos la cuenta de la cantidad e parametros al sumar todos los
+    ## declarados por tipo
+    paramCount = pilaAuxParamCount[-1][0]+ pilaAuxParamCount[-1][1]+ pilaAuxParamCount[-1][2]+pilaAuxParamCount[-1][3]
+
     ## revisamos que el numero de parametros dados de alta sean iguales a la
     ## longitud de el arreglo de parametros en el diccionario de procedimientos
     ## no vaya a ser que dio parametros de menos
-    if pilaAuxParamCount[-1] != len(dir_procs[auxFuncDestinoDir][pos_dics_params]):
+    if paramCount != len(dir_procs[auxFuncDestinoDir][pos_dics_params]):
         print "Error en cantidad de parametros"
         exit()
     else:
@@ -3495,29 +3579,56 @@ yacc.parse(s)
 ## hacemos el import de la clase memoria
 import memoria
 
-###########################
-## funcion search        ##
-###########################
+##############################################################
+## funcion search                                           ##
+### funcion utilizada para sacar la constante dada una      ##
+### direccion virtual, se utiliza en la maquina virtual     ##
+### cuando le llega una direccion virtual y tiene que       ##
+### saber cual es su constante buscando en el diccionario   ##
+### dada el valor y se tiene que encontrar la llave que     ##
+### corresponde                                             ##
+##############################################################
 def search(values, searchFor):
+    ## values es el diccionario y searchFor es la direccion
+    ## virtual a encontrar, k empieza con la primera llave
+    ## del diccionario y recorre todas
     for k in values:
+        ## en caso de que se encuentre entonces se regresa
+        ## k que representa la constante y llave y se
+        ## termina el ciclo
         if searchFor == values[k]:
             return k
+    ## en caso de que termine el ciclo y no haya salido
+    ## entonces no existe y regresamos None
     return None
 
 
-################################################
-## funcion de operaciones maq virtual         ##
-################################################
+##########################################################
+## funcion de operaciones maq virtual                   ##
+### funcion que ayuda a leer el cuadruplo actual saca   ##
+### la operacion correspondiente y toma las acciones    ##
+### de acuerdo al cuadruplo que lee                     ##
+##########################################################
 def func_maq_virtual():
+    ## nos traemos las variables necesarias
     global current_cuad
     global memoriaGlobal
     global memoriaActiva
     global memoriaDormida
+    global song
+    ## sacamos la operacion actual
     op = cuadruplos[current_cuad][0]
     # print cuadruplos[current_cuad]
+    ## sacamos el operando izquierdo
     opdoIzq = cuadruplos[current_cuad][1]
+    ## revisamos si es un apuntador porque tiene los parentesis
     if isinstance(opdoIzq,basestring) and opdoIzq[0] == '(' and opdoIzq[-1]==')':
+        ## en caso de que lo sea le hacemos un trim al string y lo
+        ## convertimos en int
         opdoIzq = int(opdoIzq[1:-1])
+        ## y del apuntador sacamos el valor correspondiente dentro de la
+        ## memoria, recorriendo cada uno de los rangos para saber de que
+        ## parte sacarlo y luego ya sacamos el operando con su valor
         if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
             opdoIzq = memoriaGlobal.ints[opdoIzq]
         elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
@@ -3539,12 +3650,15 @@ def func_maq_virtual():
         elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
             opdoIzq = float(search(ctes,opdoIzq))
         elif opdoIzq >= cte_bool_inicio and opdoIzq < cte_char_inicio:
+            ## aqui lo convertimos a booleano de acuerdo a nuestra
+            ## sintaxis
             if search(ctes,opdoIzq) == 'tru':
                 opdoIzq = True
             else:
                 opdoIzq = False
         elif opdoIzq >= cte_char_inicio:
             opdoIzq = search(ctes,opdoIzq)
+    ## hacemos lo mismo pero conel operando derecho
     opdoDer = cuadruplos[current_cuad][2]
     if isinstance(opdoDer,basestring) and opdoDer[0] == '(' and opdoDer[-1]==')':
         opdoDer = int(opdoDer[1:-1])
@@ -3575,6 +3689,7 @@ def func_maq_virtual():
                 opdoDer = False
         elif opdoDer >= cte_char_inicio:
             opdoDer = search(ctes,opdoDer)
+    ## y finalmente tambien lo hacemos con resultado
     resultado = cuadruplos[current_cuad][3]
     if isinstance(resultado,basestring) and resultado[0] == '(' and resultado[-1]==')':
         resultado = int(resultado[1:-1])
@@ -3605,10 +3720,20 @@ def func_maq_virtual():
                 resultado = False
         elif resultado >= cte_char_inicio:
             resultado = search(ctes,resultado)
+    ## datos representan ya el valor de la operacion
+    ## que se encuentra en memoria empiezan en none
     dato1 = None
     dato2 = None
-    if op == MULT:
 
+    ## en la multiplicacion sacamos el dato1 que es el operando
+    ## izquierdo y lo multipicamos contra el dato2 que es el
+    ## operando derecho y ponemos el resultado en el temporal
+    ## de memoria dado
+    ## en esta operacion el dato1 y dato2 solo pueden
+    ## ser enteros o flotantes entonces buscamos en las
+    ## memorias y constantes correspondientes
+    if op == MULT:
+        ## sacamos el valor del dato1
         if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
             dato1 = memoriaGlobal.ints[opdoIzq]
         elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
@@ -3622,6 +3747,7 @@ def func_maq_virtual():
         elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
             dato1 = float(search(ctes,opdoIzq))
 
+        ## sacamos el valor del dato2
         if opdoDer >= var_glob_int_inicio and opdoDer < var_glob_float_inicio:
             dato2 = memoriaGlobal.ints[opdoDer]
         elif opdoDer >= var_glob_float_inicio and opdoDer < var_glob_bool_inicio:
@@ -3635,9 +3761,10 @@ def func_maq_virtual():
         elif opdoDer >= cte_float_inicio and opdoDer < cte_bool_inicio:
             dato2 = float(search(ctes,opdoDer))
 
-
+        ## hacemos la operacion
         res = dato1 * dato2
 
+        ## el resultado de la operacion se guarda en memoria Global o Activa segun aplique
         if resultado >= var_glob_int_inicio and resultado < var_glob_float_inicio:
             memoriaGlobal.ints[resultado] = res
         elif resultado >= var_glob_float_inicio and resultado < var_glob_bool_inicio:
@@ -3647,9 +3774,18 @@ def func_maq_virtual():
         elif (resultado >= var_loc_float_inicio and resultado < var_loc_bool_inicio) or (resultado >= var_loc_temp_float_inicio and resultado < var_loc_temp_bool_inicio):
             memoriaActiva.floats[resultado] = res
 
+        ## sumamos para leer el siguiente cuadruplo
         current_cuad +=1
 
+    ## en la division sacamos el dato1 que es el operando
+    ## izquierdo y lo dividimos entre el dato2 que es el
+    ## operando derecho y ponemos el resultado en el temporal
+    ## de memoria dado
+    ## en esta operacion el dato1 y dato2 solo pueden
+    ## ser enteros o flotantes entonces buscamos en las
+    ## memorias y constantes correspondientes
     elif op == DIV:
+        ## sacamos el dato1
         if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
             dato1 = memoriaGlobal.ints[opdoIzq]
         elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
@@ -3663,6 +3799,7 @@ def func_maq_virtual():
         elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
             dato1 = float(search(ctes,opdoIzq))
 
+        ## sacamos el dato2
         if opdoDer >= var_glob_int_inicio and opdoDer < var_glob_float_inicio:
             dato2 = memoriaGlobal.ints[opdoDer]
         elif opdoDer >= var_glob_float_inicio and opdoDer < var_glob_bool_inicio:
@@ -3676,8 +3813,10 @@ def func_maq_virtual():
         elif opdoDer >= cte_float_inicio and opdoDer < cte_bool_inicio:
             dato2 = float(search(ctes,opdoDer))
 
+        ## hacemos la operacion
         res = dato1 / dato2
 
+        ## guardamos el resultado en memoria Global o Activa segun aplique
         if resultado >= var_glob_int_inicio and resultado < var_glob_float_inicio:
             memoriaGlobal.ints[resultado] = res
         elif resultado >= var_glob_float_inicio and resultado < var_glob_bool_inicio:
@@ -3687,10 +3826,18 @@ def func_maq_virtual():
         elif (resultado >= var_loc_float_inicio and resultado < var_loc_bool_inicio) or (resultado >= var_loc_temp_float_inicio and resultado < var_loc_temp_bool_inicio):
             memoriaActiva.floats[resultado] = res
 
+        ## sumamos el cuadruplo para ir al siguiente
         current_cuad +=1
 
+    ## en el AND sacamos el dato1 que es el operando
+    ## izquierdo y hacemos la operacion booleana contra
+    ## el dato2 que es el operando derecho y ponemos
+    ## el resultado en el temporal de memoria dado
+    ## en esta operacion el dato1 y dato2 solo pueden
+    ## ser booleanos entonces solo buscamos en esas memorias
+    ## y constantes
     elif op == AND:
-
+        ## sacamos el dato1
         if opdoIzq >= var_glob_bool_inicio and opdoIzq < var_glob_char_inicio:
             dato1 = memoriaGlobal.bools[opdoIzq]
         elif (opdoIzq >= var_loc_bool_inicio and opdoIzq < var_loc_char_inicio) or (opdoIzq >= var_loc_temp_bool_inicio and opdoIzq < var_loc_temp_char_inicio):
@@ -3700,7 +3847,7 @@ def func_maq_virtual():
                 dato1 = True
             else:
                 dato1 = False
-
+        ## sacamos el dato2
         if opdoDer >= var_glob_bool_inicio and opdoDer < var_glob_char_inicio:
             dato2 = memoriaGlobal.bools[opdoDer]
         elif (opdoDer >= var_loc_bool_inicio and opdoDer < var_loc_char_inicio) or (opdoDer >= var_loc_temp_bool_inicio and opdoDer < var_loc_temp_char_inicio):
@@ -3711,18 +3858,28 @@ def func_maq_virtual():
             else:
                 dato2 = False
 
-
+        ## hacemos la operacion
         res = dato1 and dato2
 
+        ## lo guardamos en memoria Global o Activa segun aplique
         if resultado >= var_glob_bool_inicio and resultado < var_glob_char_inicio:
             memoriaGlobal.bools[resultado] = res
         elif (resultado >= var_loc_bool_inicio and resultado < var_loc_char_inicio) or (resultado >= var_loc_temp_bool_inicio and resultado < var_loc_temp_char_inicio):
             memoriaActiva.bools[resultado] = res
 
+        ## sumamos el cuadruplo para ir al siguiente
         current_cuad +=1
 
+    ## en el OR sacamos el dato1 que es el operando
+    ## izquierdo y hacemos la operacion booleana contra
+    ## el dato2 que es el operando derecho y ponemos
+    ## el resultado en el temporal de memoria dado
+    ## en esta operacion el dato1 y dato2 solo pueden
+    ## ser booleanos entonces solo buscamos en esas memorias
+    ## y constantes
     elif op == OR:
 
+        ## sacamos el dato1
         if opdoIzq >= var_glob_bool_inicio and opdoIzq < var_glob_char_inicio:
             dato1 = memoriaGlobal.bools[opdoIzq]
         elif (opdoIzq >= var_loc_bool_inicio and opdoIzq < var_loc_char_inicio) or (opdoIzq >= var_loc_temp_bool_inicio and opdoIzq < var_loc_temp_char_inicio):
@@ -3733,6 +3890,7 @@ def func_maq_virtual():
             else:
                 dato1 = False
 
+        ## sacamos el dato2
         if opdoDer >= var_glob_bool_inicio and opdoDer < var_glob_char_inicio:
             dato2 = memoriaGlobal.bools[opdoDer]
         elif (opdoDer >= var_loc_bool_inicio and opdoDer < var_loc_char_inicio) or (opdoDer >= var_loc_temp_bool_inicio and opdoDer < var_loc_temp_char_inicio):
@@ -3743,17 +3901,28 @@ def func_maq_virtual():
             else:
                 dato2 = False
 
+        ## hacemos la operacion
         res = dato1 or dato2
 
+        ## guardamos el resultado en memoria Global o Activa segun sea el caso
         if resultado >= var_glob_bool_inicio and resultado < var_glob_char_inicio:
             memoriaGlobal.bools[resultado] = res
         elif (resultado >= var_loc_bool_inicio and resultado < var_loc_char_inicio) or (resultado >= var_loc_temp_bool_inicio and resultado < var_loc_temp_char_inicio):
             memoriaActiva.bools[resultado] = res
 
+        ## sumamos el cuadruplo para ir al siguiente
         current_cuad +=1
 
+    ## en el EQEQ sacamos el dato1 que es el operando
+    ## izquierdo y hacemos la operacion booleana contra
+    ## el dato2 que es el operando derecho y ponemos
+    ## el resultado en el temporal de memoria dado
+    ## en esta operacion el dato1 y dato2 pueden ser
+    ## de cualquier tipo entonces hay que buscar en todos
+    ## los tipos de memoria y constantes
     elif op == EQEQ:
 
+        ## sacamos el dato1
         if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
             dato1 = memoriaGlobal.ints[opdoIzq]
         elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
@@ -3782,6 +3951,7 @@ def func_maq_virtual():
         elif opdoIzq >= cte_char_inicio:
             dato1 = search(ctes,opdoIzq)
 
+        ## sacamos el dato2
         if opdoDer >= var_glob_int_inicio and opdoDer < var_glob_float_inicio:
             dato2 = memoriaGlobal.ints[opdoDer]
         elif opdoDer >= var_glob_float_inicio and opdoDer < var_glob_bool_inicio:
@@ -3810,17 +3980,28 @@ def func_maq_virtual():
         elif opdoDer >= cte_char_inicio:
             dato2 = search(ctes,opdoDer)
 
+        ## hacemos la operacion
         res = dato1 == dato2
 
+        ## guardamos la operacion en la memoria Global o Activa segun sea el caso
         if resultado >= var_glob_bool_inicio and resultado < var_glob_char_inicio:
             memoriaGlobal.bools[resultado] = res
         elif (resultado >= var_loc_bool_inicio and resultado < var_loc_char_inicio) or (resultado >= var_loc_temp_bool_inicio and resultado < var_loc_temp_char_inicio):
             memoriaActiva.bools[resultado] = res
 
+        ## sumamos el cuadruplo para ir al siguiente
         current_cuad +=1
 
+    ## en el NOTEQ sacamos el dato1 que es el operando
+    ## izquierdo y hacemos la operacion booleana contra
+    ## el dato2 que es el operando derecho y ponemos
+    ## el resultado en el temporal de memoria dado
+    ## en esta operacion el dato1 y dato2 pueden ser
+    ## de cualquier tipo entonces hay que buscar en todos
+    ## los tipos de memoria y constantes
     elif op == NOTEQ:
 
+        ## sacamos el dato1
         if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
             dato1 = memoriaGlobal.ints[opdoIzq]
         elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
@@ -3849,6 +4030,7 @@ def func_maq_virtual():
         elif opdoIzq >= cte_char_inicio:
             dato1 = search(ctes,opdoIzq)
 
+        ## sacamos el dato2
         if opdoDer >= var_glob_int_inicio and opdoDer < var_glob_float_inicio:
             dato2 = memoriaGlobal.ints[opdoDer]
         elif opdoDer >= var_glob_float_inicio and opdoDer < var_glob_bool_inicio:
@@ -3877,17 +4059,28 @@ def func_maq_virtual():
         elif opdoDer >= cte_char_inicio:
             dato2 = search(ctes,opdoDer)
 
+        ## hacemos la operacion
         res = dato1 != dato2
 
+        ## guardamos el resultado en la memoria Global o Activa segun sea el caso
         if resultado >= var_glob_bool_inicio and resultado < var_glob_char_inicio:
             memoriaGlobal.bools[resultado] = res
         elif (resultado >= var_loc_bool_inicio and resultado < var_loc_char_inicio) or (resultado >= var_loc_temp_bool_inicio and resultado < var_loc_temp_char_inicio):
             memoriaActiva.bools[resultado] = res
 
+        ## sumamos el cuadruplo para ir al siguiente
         current_cuad +=1
 
+    ## en el GT sacamos el dato1 que es el operando
+    ## izquierdo y lo comparamos contra el dato2 que es el
+    ## operando derecho y ponemos el resultado en el temporal
+    ## de memoria dado
+    ## en esta operacion el dato1 y dato2 solo pueden
+    ## ser enteros o flotantes entonces buscamos en las
+    ## memorias y constantes correspondientes
     elif op == GT:
 
+        ## sacamos el dato1
         if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
             dato1 = memoriaGlobal.ints[opdoIzq]
         elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
@@ -3901,6 +4094,7 @@ def func_maq_virtual():
         elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
             dato1 = float(search(ctes,opdoIzq))
 
+        ## sacamos el dato2
         if opdoDer >= var_glob_int_inicio and opdoDer < var_glob_float_inicio:
             dato2 = memoriaGlobal.ints[opdoDer]
         elif opdoDer >= var_glob_float_inicio and opdoDer < var_glob_bool_inicio:
@@ -3914,17 +4108,28 @@ def func_maq_virtual():
         elif opdoDer >= cte_float_inicio and opdoDer < cte_bool_inicio:
             dato2 = float(search(ctes,opdoDer))
 
+        ## hacemos la operacion
         res = dato1 > dato2
 
+        ## guardamos el resultado en la memoria Global o Activa segun sea el caso
         if resultado >= var_glob_bool_inicio and resultado < var_glob_char_inicio:
             memoriaGlobal.bools[resultado] = res
         elif (resultado >= var_loc_bool_inicio and resultado < var_loc_char_inicio) or (resultado >= var_loc_temp_bool_inicio and resultado < var_loc_temp_char_inicio):
             memoriaActiva.bools[resultado] = res
 
+        ## sumamos el cuadruplo para ir al siguiente
         current_cuad +=1
 
+    ## en el LT sacamos el dato1 que es el operando
+    ## izquierdo y lo comparamos contra el dato2 que es el
+    ## operando derecho y ponemos el resultado en el temporal
+    ## de memoria dado
+    ## en esta operacion el dato1 y dato2 solo pueden
+    ## ser enteros o flotantes entonces buscamos en las
+    ## memorias y constantes correspondientes
     elif op == LT:
 
+        ## sacamos el dato1
         if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
             dato1 = memoriaGlobal.ints[opdoIzq]
         elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
@@ -3938,6 +4143,7 @@ def func_maq_virtual():
         elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
             dato1 = float(search(ctes,opdoIzq))
 
+        ## sacamos el dato2
         if opdoDer >= var_glob_int_inicio and opdoDer < var_glob_float_inicio:
             dato2 = memoriaGlobal.ints[opdoDer]
         elif opdoDer >= var_glob_float_inicio and opdoDer < var_glob_bool_inicio:
@@ -3951,17 +4157,28 @@ def func_maq_virtual():
         elif opdoDer >= cte_float_inicio and opdoDer < cte_bool_inicio:
             dato2 = float(search(ctes,opdoDer))
 
+        ## hacemos la operacion
         res = dato1 < dato2
 
+        ## guardamos el resultado en la memoria Global o Activa segun sea el caso
         if resultado >= var_glob_bool_inicio and resultado < var_glob_char_inicio:
             memoriaGlobal.bools[resultado] = res
         elif (resultado >= var_loc_bool_inicio and resultado < var_loc_char_inicio) or (resultado >= var_loc_temp_bool_inicio and resultado < var_loc_temp_char_inicio):
             memoriaActiva.bools[resultado] = res
 
+        ## sumamos el cuadruplo para ir al siguiente
         current_cuad +=1
 
+    ## en el GTE sacamos el dato1 que es el operando
+    ## izquierdo y lo comparamos contra el dato2 que es el
+    ## operando derecho y ponemos el resultado en el temporal
+    ## de memoria dado
+    ## en esta operacion el dato1 y dato2 solo pueden
+    ## ser enteros o flotantes entonces buscamos en las
+    ## memorias y constantes correspondientes
     elif op == GTE:
 
+        ## sacamos el dato1
         if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
             dato1 = memoriaGlobal.ints[opdoIzq]
         elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
@@ -3975,6 +4192,7 @@ def func_maq_virtual():
         elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
             dato1 = float(search(ctes,opdoIzq))
 
+        ## sacamos el dato2
         if opdoDer >= var_glob_int_inicio and opdoDer < var_glob_float_inicio:
             dato2 = memoriaGlobal.ints[opdoDer]
         elif opdoDer >= var_glob_float_inicio and opdoDer < var_glob_bool_inicio:
@@ -3988,17 +4206,28 @@ def func_maq_virtual():
         elif opdoDer >= cte_float_inicio and opdoDer < cte_bool_inicio:
             dato2 = float(search(ctes,opdoDer))
 
+        ## hacemos la operacion
         res = dato1 >= dato2
 
+        ## guardamos el resultado en la memoria Global o Activa segun sea el caso
         if resultado >= var_glob_bool_inicio and resultado < var_glob_char_inicio:
             memoriaGlobal.bools[resultado] = res
         elif (resultado >= var_loc_bool_inicio and resultado < var_loc_char_inicio) or (resultado >= var_loc_temp_bool_inicio and resultado < var_loc_temp_char_inicio):
             memoriaActiva.bools[resultado] = res
 
+        ## sumamos el cuadruplo para ir al siguiente
         current_cuad +=1
 
+    ## en el LTE sacamos el dato1 que es el operando
+    ## izquierdo y lo comparamos contra el dato2 que es el
+    ## operando derecho y ponemos el resultado en el temporal
+    ## de memoria dado
+    ## en esta operacion el dato1 y dato2 solo pueden
+    ## ser enteros o flotantes entonces buscamos en las
+    ## memorias y constantes correspondientes
     elif op == LTE:
 
+        ## sacamos el dato1
         if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
             dato1 = memoriaGlobal.ints[opdoIzq]
         elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
@@ -4012,6 +4241,7 @@ def func_maq_virtual():
         elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
             dato1 = float(search(ctes,opdoIzq))
 
+        ## sacamos el dato2
         if opdoDer >= var_glob_int_inicio and opdoDer < var_glob_float_inicio:
             dato2 = memoriaGlobal.ints[opdoDer]
         elif opdoDer >= var_glob_float_inicio and opdoDer < var_glob_bool_inicio:
@@ -4025,17 +4255,28 @@ def func_maq_virtual():
         elif opdoDer >= cte_float_inicio and opdoDer < cte_bool_inicio:
             dato2 = float(search(ctes,opdoDer))
 
+        ## hacemos la operacion
         res = dato1 <= dato2
 
+        ## guardamos el resultado en la memoria Global o Activa segun sea el caso
         if resultado >= var_glob_bool_inicio and resultado < var_glob_char_inicio:
             memoriaGlobal.bools[resultado] = res
         elif (resultado >= var_loc_bool_inicio and resultado < var_loc_char_inicio) or (resultado >= var_loc_temp_bool_inicio and resultado < var_loc_temp_char_inicio):
             memoriaActiva.bools[resultado] = res
 
+        ## sumamos el cuadruplo para ir al siguiente
         current_cuad +=1
 
+    ## en la suma sacamos el dato1 que es el operando
+    ## izquierdo y lo sumamos con el dato2 que es el
+    ## operando derecho y ponemos el resultado en el temporal
+    ## de memoria dado
+    ## en esta operacion el dato1 y dato2 solo pueden
+    ## ser enteros o flotantes entonces buscamos en las
+    ## memorias y constantes correspondientes
     elif op == PLUS:
 
+        ## sacamos el dato1
         if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
             dato1 = memoriaGlobal.ints[opdoIzq]
         elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
@@ -4049,6 +4290,7 @@ def func_maq_virtual():
         elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
             dato1 = float(search(ctes,opdoIzq))
 
+        ## sacamos el dato2
         if opdoDer >= var_glob_int_inicio and opdoDer < var_glob_float_inicio:
             dato2 = memoriaGlobal.ints[opdoDer]
         elif opdoDer >= var_glob_float_inicio and opdoDer < var_glob_bool_inicio:
@@ -4062,8 +4304,10 @@ def func_maq_virtual():
         elif opdoDer >= cte_float_inicio and opdoDer < cte_bool_inicio:
             dato2 = float(search(ctes,opdoDer))
 
+        ## hacemos la operacion
         res = dato1 + dato2
 
+        ## guardamos el resultado en la memoria Global o Activa segun sea el caso
         if resultado >= var_glob_int_inicio and resultado < var_glob_float_inicio:
             memoriaGlobal.ints[resultado] = res
         elif resultado >= var_glob_float_inicio and resultado < var_glob_bool_inicio:
@@ -4073,10 +4317,19 @@ def func_maq_virtual():
         elif (resultado >= var_loc_float_inicio and resultado < var_loc_bool_inicio) or (resultado >= var_loc_temp_float_inicio and resultado < var_loc_temp_bool_inicio):
             memoriaActiva.floats[resultado] = res
 
+        ## sumamos el cuadruplo para ir al siguiente
         current_cuad +=1
 
+    ## en la resta sacamos el dato1 que es el operando
+    ## izquierdo y lo restamos contra el dato2 que es el
+    ## operando derecho y ponemos el resultado en el temporal
+    ## de memoria dado
+    ## en esta operacion el dato1 y dato2 solo pueden
+    ## ser enteros o flotantes entonces buscamos en las
+    ## memorias y constantes correspondientes
     elif op == MINUS:
 
+        ## sacamos el dato1
         if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
             dato1 = memoriaGlobal.ints[opdoIzq]
         elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
@@ -4090,6 +4343,7 @@ def func_maq_virtual():
         elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
             dato1 = float(search(ctes,opdoIzq))
 
+        ## sacamos el dato2
         if opdoDer >= var_glob_int_inicio and opdoDer < var_glob_float_inicio:
             dato2 = memoriaGlobal.ints[opdoDer]
         elif opdoDer >= var_glob_float_inicio and opdoDer < var_glob_bool_inicio:
@@ -4103,8 +4357,10 @@ def func_maq_virtual():
         elif opdoDer >= cte_float_inicio and opdoDer < cte_bool_inicio:
             dato2 = float(search(ctes,opdoDer))
 
+        ## hacemos la operacion
         res = dato1 - dato2
 
+        ## guardamos el resultado en la memoria Global o Activa segun sea el caso
         if resultado >= var_glob_int_inicio and resultado < var_glob_float_inicio:
             memoriaGlobal.ints[resultado] = res
         elif resultado >= var_glob_float_inicio and resultado < var_glob_bool_inicio:
@@ -4114,10 +4370,18 @@ def func_maq_virtual():
         elif (resultado >= var_loc_float_inicio and resultado < var_loc_bool_inicio) or (resultado >= var_loc_temp_float_inicio and resultado < var_loc_temp_bool_inicio):
             memoriaActiva.floats[resultado] = res
 
+        ## sumamos el cuadruplo para ir al siguiente
         current_cuad +=1
 
+    ## en el NOT sacamos el dato1 que es el operando
+    ## izquierdo y lo negamos despues ponemos
+    ## el resultado en el temporal de memoria dado
+    ## en esta operacion el dato1 y dato2 solo pueden
+    ## ser booleanos entonces solo buscamos en esas memorias
+    ## y constantes
     elif op == NOT:
 
+        ## sacamos el dato1
         if opdoIzq >= var_glob_bool_inicio and opdoIzq < var_glob_char_inicio:
             dato1 = memoriaGlobal.bools[opdoIzq]
         elif (opdoIzq >= var_loc_bool_inicio and opdoIzq < var_loc_char_inicio) or (opdoIzq >= var_loc_temp_bool_inicio and opdoIzq < var_loc_temp_char_inicio):
@@ -4128,17 +4392,27 @@ def func_maq_virtual():
             else:
                 dato1 = False
 
+        ## hacemos la operacion
         res = not dato1
 
+        ## guardamos el resultado en la memoria Global o Activa segun sea el caso
         if resultado >= var_glob_bool_inicio and resultado < var_glob_char_inicio:
             memoriaGlobal.bools[resultado] = res
         elif (resultado >= var_loc_bool_inicio and resultado < var_loc_char_inicio) or (resultado >= var_loc_temp_bool_inicio and resultado < var_loc_temp_char_inicio):
             memoriaActiva.bools[resultado] = res
 
+        ## sumamos el cuadruplo para que vaya al siguiente
         current_cuad +=1
 
+    ## en la asignacion (EQ) sacamos el dato1 que es lo que
+    ## se busca asignar y se lo ponemos al resultado
+    ## guardandolo en la memoria dada
+    ## en esta operacion el dato1 y dato2 pueden ser
+    ## de cualquier tipo entonces hay que buscar en todos
+    ## los tipos de memoria y constantes
     elif op == EQ:
 
+        ## sacamos el dato1
         if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
             dato1 = memoriaGlobal.ints[opdoIzq]
         elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
@@ -4167,9 +4441,10 @@ def func_maq_virtual():
         elif opdoIzq >= cte_char_inicio:
             dato1 = search(ctes,opdoIzq)
 
+        ## asignamos el valor al resultado
         res = dato1
 
-
+        ## guardamos el resultado en la memoria Global o Activa segun sea el caso
         if resultado >= var_glob_int_inicio and resultado < var_glob_float_inicio:
             memoriaGlobal.ints[resultado] = res
         elif resultado >= var_glob_float_inicio and resultado < var_glob_bool_inicio:
@@ -4187,14 +4462,46 @@ def func_maq_virtual():
         elif (resultado >= var_loc_char_inicio and resultado < var_loc_temp_int_inicio) or (resultado >= var_loc_temp_char_inicio and resultado < cte_int_inicio):
             memoriaActiva.chars[resultado] = res
 
+        ## suamamos el cuadruplo para ir al siguiente
         current_cuad +=1
 
+    ## en el play sacamos el dato1 que es el acorde
+    ## a tocar y el dato2 que representa la duracion
+    ## de la nota, una vez teniendolos formamos la tupla
+    ## que se va guardando como parejas en la variable song
+    ## es importante validar si existe la variable song sino
+    ## es distinto como arrancamos o sumamos las tuplas
     elif op == PLAY:
-        ##TODO: Robi sabe como se construye este pedo
-        print "pase play"
+        ## asumimos que existe al principio
+        existe = True
+        ## sacamos las dos constantes que vamos a
+        ## utilizar
+        dato1 = search(ctes,opdoIzq)
+        dato2 = int(search(ctes,opdoDer))
+
+        ## intentamos ver si existe la variable
+        try:
+            song
+        except NameError:
+            ## si arroja la excepcion empezamos las tuplas
+            ## y decimos que no existe
+            song = (dato1,dato2),
+            existe = False
+
+        ## si ya existe simplemente las sumamos
+        if existe:
+            song += (dato1,dato2),
+
+        ## le sumamos al cuadruplo para ir al siguiente
         current_cuad +=1
 
+    ## en el print sacamos el dato1 que es lo que buscamos imprimir
+    ## el print puede imprimir lo que sea por lo que hay que buscar
+    ## en todas las memorias y constantes, pero solo imprime una cosa
+    ## a la vez
     elif op == PRINT:
+
+        ## sacamos el dato1
         if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
             dato1 = memoriaGlobal.ints[opdoIzq]
         elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
@@ -4223,14 +4530,27 @@ def func_maq_virtual():
         elif opdoIzq >= cte_char_inicio:
             dato1 = search(ctes,opdoIzq)
 
+        ## imprimimos el dato
         print dato1
+
+        ## sumamos el cuadruplo para ir al siguiente
         current_cuad += 1
 
+    ## la operacion GOTO hace un cambio del cuadruplo actual
+    ## al cuadruplo que esta en resultado, resultado es
+    ## un numero de cuadruplo por lo que no es necesario buscarlo
+    ## en memoria o en las constantes
     elif op == GOTO:
+        ## solamente cambiamos el cuadruplo siguiente a leer
         current_cuad = resultado
 
+    ## la operacion GOTOF hace un cambio del cuadruplo actual
+    ## al cuadruplo que esta en resultado, siempre y cuando
+    ## el dato1 sea falso, el dato1 es un booleano por
+    ## lo que hay que buscarlo en las memorias y constantes
     elif op == GOTOF:
 
+        ## sacamos el dato1
         if opdoIzq >= var_glob_bool_inicio and opdoIzq < var_glob_char_inicio:
             dato1 = memoriaGlobal.bools[opdoIzq]
         elif (opdoIzq >= var_loc_bool_inicio and opdoIzq < var_loc_char_inicio) or (opdoIzq >= var_loc_temp_bool_inicio and opdoIzq < var_loc_temp_char_inicio):
@@ -4241,13 +4561,20 @@ def func_maq_virtual():
             else:
                 dato1 = False
 
+        ## revisamos si es falso el dato1 para hacer el brinco
         if not dato1:
             current_cuad = resultado
+        ## si es verdadero entonces nada mas sumamos
         else:
             current_cuad +=1
 
+    ## la operacion GOTOF hace un cambio del cuadruplo actual
+    ## al cuadruplo que esta en resultado, siempre y cuando
+    ## el dato1 sea verdadero, el dato1 es un booleano por
+    ## lo que hay que buscarlo en las memorias y constantes
     elif op == GOTOV:
 
+        ## sacamos el dato1
         if opdoIzq >= var_glob_bool_inicio and opdoIzq < var_glob_char_inicio:
             dato1 = memoriaGlobal.bools[opdoIzq]
         elif (opdoIzq >= var_loc_bool_inicio and opdoIzq < var_loc_char_inicio) or (opdoIzq >= var_loc_temp_bool_inicio and opdoIzq < var_loc_temp_char_inicio):
@@ -4257,23 +4584,51 @@ def func_maq_virtual():
                 dato1 = True
             else:
                 dato1 = False
-
+        ## checamos si es verdadero para hacer el brinco
         if dato1:
             current_cuad = resultado
+        ## sino sumamos el cuadruplo para ir al siguiente
         else:
             current_cuad +=1
 
+    ## la instruccion de ENDPROC es para terminar la funcion actual
+    ## que se esta llamando y por lo tanto tiene que retomar donde
+    ## estaba en terminos de cuadruplos antes de ir a la funcion que
+    ## se esta terminando al iguals e hace un swap de memorias
     elif op == ENDPROC:
+        ## sacamos el cuadruplo en el que nos habiamos quedado antes
+        ## de llamar a la funcion ese esta en la pila de saltos que
+        ## se usa en ejecucion
         current_cuad = pSaltos.pop() + 1
+        ## revisamos si hay memoria Dormida para sacarla y convertir
+        ## el tope en la activa
         if memoriaDormida != []:
             memoriaActiva = memoriaDormida.pop()
 
+    ## la instruccion de ERA es para comenzar haciendo el espacio
+    ## de una funcion en memoria que esto es crear su estructura
+    ## propia aunque todavia no hacemos el swap, el operando izquierdo
+    ## representa el nombre de la funcion en el diccionario de procedimientos
+    ## por lo que asi sabemos que memoria asignar
     elif op == ERA:
+        ## nos traemos las variables necesarias
         global memoriaAux
+        ## igualamos la memoria auxiliar a una nueva memoria
+        ## con los espacios dictados por el tamano especificados
+        ## en su directorio de procedimiento
         memoriaAux = memoria.Memoria(dir_procs[opdoIzq][pos_dics_tam]['vi'], dir_procs[opdoIzq][pos_dics_tam]['vf'], dir_procs[opdoIzq][pos_dics_tam]['vb'], dir_procs[opdoIzq][pos_dics_tam]['vc'], dir_procs[opdoIzq][pos_dics_tam]['ti'], dir_procs[opdoIzq][pos_dics_tam]['tf'], dir_procs[opdoIzq][pos_dics_tam]['tb'], dir_procs[opdoIzq][pos_dics_tam]['tc'], False)
+
+        ## sumamos el cuadruplo para ir al siguiente
         current_cuad +=1
 
+    ## la instruccion de parametro es muy similar a la de asignacion solo
+    ## que en este caso utilizamos la recien creada memoria auxiliar
+    ## y segun el tipo de parametro que puede ser de cualquier tipo
+    ## buscandolo en todos lados es a que espacio de memoria le vamos
+    ## a asignar lo que nos estan pasando como valor
     elif op == PARAMETRO:
+
+        ## sacamos el dato1
         if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
             dato1 = memoriaGlobal.ints[opdoIzq]
         elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
@@ -4302,8 +4657,10 @@ def func_maq_virtual():
         elif opdoIzq >= cte_char_inicio:
             dato1 = search(ctes,opdoIzq)
 
+        ## igualamos el resultado para saber que vamos a asignar
         res = dato1
 
+        ## asignamos a la memoria auxiliar el valor que nos pasaron
         if (resultado >= var_loc_int_inicio and resultado < var_loc_float_inicio) or (resultado >= var_loc_temp_int_inicio and resultado < var_loc_temp_float_inicio):
             memoriaAux.ints[resultado] = res
         elif (resultado >= var_loc_float_inicio and resultado < var_loc_bool_inicio) or (resultado >= var_loc_temp_float_inicio and resultado < var_loc_temp_bool_inicio):
@@ -4313,29 +4670,59 @@ def func_maq_virtual():
         elif (resultado >= var_loc_char_inicio and resultado < var_loc_temp_int_inicio) or (resultado >= var_loc_temp_char_inicio and resultado < cte_int_inicio):
             memoriaAux.chars[resultado] = res
 
+        ## sumamos el cuadruplo para ir al siguiente
         current_cuad +=1
 
+    ## operacion que manda a dormir la memoria activa para
+    ## pasarse a dormir y la memoria auxiliar activada por el
+    ## era ahora pasa a ser la activa y sacamos el operando izquierdo
+    ## que nos dira el nombre de la funcion a la que vamos
+    ## para brincar y guardando en la pila de saltos de ejecucion
+    ## en donde nos habiamos quedado en la funcion que esta mandando a llamar
     elif op == GOSUB:
+        ## revisamos que haya memoria activa
         if memoriaActiva != None:
+            ## la agregamos a la memoria dormida que es una pila
             memoriaDormida.append(memoriaActiva)
+        ## ahora la memoria activa es la memoria auxiliar que veniamos
+        ## preparando con el era y parametros
         memoriaActiva = memoriaAux
+        ## guardamos donde nos habiamos quedado antes de brincar a
+        ## la llamada
         pSaltos.append(current_cuad)
+        ## ahora nuestro apuntador de cuadruplo es a donde empieza
+        ## la funcion que queremos ir expresada en el operando izquierdo
         current_cuad = dir_procs[opdoIzq][pos_dics_dir_inicio]
 
+    ## la operacion verifica sirve para checar si el resultado
+    ## de la expresion en el operando izquierdo cabe dentro de
+    ## los limites del arreglo y este puede ser una variable de cualquier tipo
+    ## constante o temporal por lo que hay que buscar en las memorias
+    ## y constantes pero solo enteras
     elif op == VERIFICA:
+
+        ## sacamos el dato1
         if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
             dato1 = memoriaGlobal.ints[opdoIzq]
         elif (opdoIzq >= var_loc_int_inicio and opdoIzq < var_loc_float_inicio) or (opdoIzq >= var_loc_temp_int_inicio and opdoIzq < var_loc_temp_float_inicio):
             dato1 = memoriaActiva.ints[opdoIzq]
         elif opdoIzq >= cte_int_inicio and opdoIzq < cte_float_inicio:
             dato1 = int(search(ctes,opdoIzq))
+        ## verificamos si cabe dentro del rango del arreglo
         if dato1 < opdoDer or dato1 > resultado:
             print "Indice fuera de rango"
             exit()
+
+        ## sumamos el cuadruplo para ir al siguiente
         current_cuad += 1
 
+    ## la operacion del negativo hace que el dato1 que es un dato
+    ## entero o flotante se convierta en negativo, hay que buscar
+    ## el dato en las memorias y las constantes para negarlo y
+    ## luego volver a meterlo a la memoria ahora en negativo
     elif op == NEG:
 
+        ## sacamos el dato1
         if opdoIzq >= var_glob_int_inicio and opdoIzq < var_glob_float_inicio:
             dato1 = memoriaGlobal.ints[opdoIzq]
         elif opdoIzq >= var_glob_float_inicio and opdoIzq < var_glob_bool_inicio:
@@ -4349,8 +4736,10 @@ def func_maq_virtual():
         elif opdoIzq >= cte_float_inicio and opdoIzq < cte_bool_inicio:
             dato1 = float(search(ctes,opdoIzq))
 
+        ## el resultado es nuestro dato1 negativo
         res = -dato1
 
+        ## lo asignamos a la memoria correspondiente
         if resultado >= var_glob_int_inicio and resultado < var_glob_float_inicio:
             memoriaGlobal.ints[resultado] = res
         elif resultado >= var_glob_float_inicio and resultado < var_glob_bool_inicio:
@@ -4360,17 +4749,53 @@ def func_maq_virtual():
         elif (resultado >= var_loc_float_inicio and resultado < var_loc_bool_inicio) or (resultado >= var_loc_temp_float_inicio and resultado < var_loc_temp_bool_inicio):
             memoriaActiva.floats[resultado] = res
 
+        ## sumamos el cuadruplo para ir al siguiente
         current_cuad +=1
 
 ######################################
 ## maquina virtual                  ##
 ######################################
+
+## aqui comienza la maquina virtual
 print "comienza maquina virtual"
+## imprimimos constantes
 print ctes
+## nos traemos las variables necesarias
 global current_cuad
+global song
+## indicamos que empezamos en el primer cuadruplo
 current_cuad = 1
+## declaramos la memoria global con la clase memoria y su
+## tamano de acuerdo a las variables que necesita
 memoriaGlobal = memoria.Memoria(dir_procs['global'][pos_dics_tam]['vi'], dir_procs['global'][pos_dics_tam]['vf'], dir_procs['global'][pos_dics_tam]['vb'], dir_procs['global'][pos_dics_tam]['vc'], dir_procs['global'][pos_dics_tam]['ti'], dir_procs['global'][pos_dics_tam]['tf'], dir_procs['global'][pos_dics_tam]['tb'], dir_procs['global'][pos_dics_tam]['tc'], True)
+## hacemos lo mismo pero con nuestra clase main que nunca se
+## genera un era para ella porque siempre se ejecuta en automatico
 memoriaActiva = memoria.Memoria(dir_procs['CANCION'][pos_dics_tam]['vi'], dir_procs['CANCION'][pos_dics_tam]['vf'], dir_procs['CANCION'][pos_dics_tam]['vb'], dir_procs['CANCION'][pos_dics_tam]['vc'], dir_procs['CANCION'][pos_dics_tam]['ti'], dir_procs['CANCION'][pos_dics_tam]['tf'], dir_procs['CANCION'][pos_dics_tam]['tb'], dir_procs['CANCION'][pos_dics_tam]['tc'], False)
+## declaramos la memoria Dormida vacia
 memoriaDormida = []
+## mientras que el cuadruplo en el que vamos sea
+## menor que la cantidad de parametros seguimos mandando a
+## llamar la funcion que lee cada cuadruplo
 while current_cuad < contCuad:
     func_maq_virtual()
+
+## nos traemos la libreria para hacer musica
+import pysynth
+
+## nos traemos la libreria que nos deja cambier el beat
+from pysynth_b import *
+
+## revisamos si utilizo plays el usuario
+try:
+    song
+except NameError:
+    ## si arroja la excepcion significa que no se utilizo
+    ## ningun play entonces no hay musica
+    existe = False
+
+## si ya existe simplemente hacemos el wav correspondiente y
+## lo guardamos en el archivo song.wav en el directorio de
+## del ejecutable, se hace play con el beat que se declaro
+## en la funcion Cancion
+if existe:
+    make_wav(song, fn = "song.wav", leg_stac = .7, bpm = dir_procs['CANCION'][5])

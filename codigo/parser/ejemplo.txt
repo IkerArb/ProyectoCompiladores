@@ -23,12 +23,12 @@ FUNC VOID parte3(FLOAT repeticiones)
   switch = True;
 }
 
-CANCION (90)
+CANCION (500)
   VAR x : FLOAT;
 {
   x = 30;
   WHILE((x/10)<20){
-    PLAY(A1,4);
+    PLAY(g7,10);
     IF (x+10/1>30){
       IF(x+20>10){
         x = x + 10*5;
@@ -39,7 +39,7 @@ CANCION (90)
     };
   };
   FOR(x=0;x==3;x=x+3;){
-    PLAY(G4,2);
+    PLAY(g4,2);
     PRINT x + 3;
   };
   CALL parte3(x*5);
