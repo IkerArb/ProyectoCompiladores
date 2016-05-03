@@ -41,7 +41,7 @@ Blockly.Blocks['play'] = {
     this.appendDummyInput()
         .appendField("PLAY")
         .appendField(new Blockly.FieldTextInput("nota"), "nota")
-        .appendField(new Blockly.FieldDropdown([["1", "1"], ["2", "2"], ["3", "3"], ["4", "4"]]), "duracion");
+        .appendField(new Blockly.FieldDropdown([["4", "1"], ["3", "2"], ["2", "3"], ["1", "4"]]), "duracion");
     this.setInputsInline(true);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);

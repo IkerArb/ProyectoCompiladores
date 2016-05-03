@@ -160,3 +160,18 @@ Blockly.Blocks['bool'] = {
     this.setHelpUrl('http://www.example.com/');
   }
 };
+
+//LENGTH 
+//https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#sormmf
+Blockly.Blocks['length'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("LENGTH");
+    this.appendValueInput("NAME")
+        .setCheck(null);
+    this.setInputsInline(true);
+    this.setOutput(true, null);
+    this.setTooltip('');
+    this.setHelpUrl('http://www.example.com/');
+  }
+};

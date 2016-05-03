@@ -110,3 +110,12 @@ Blockly.Din['bool'] = function(block) {
   // TODO: Change ORDER_NONE to the correct strength.
   return code;
 };
+
+//LENGTH
+//https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#sormmf
+Blockly.Din['length'] = function(block) {
+  var value_name = Blockly.Din.valueToCode(block, 'NAME', Blockly.Din.ORDER_ATOMIC);
+  // TODO: Assemble JavaScript into code variable.
+  var code = value_name +'.LENGTH()';
+  return code;
+};
