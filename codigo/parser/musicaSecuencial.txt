@@ -1,0 +1,12 @@
+FUNC VOID parte1(INT i)
+{
+IF (i==0){
+PLAY(c4,4);PLAY(c4,4);PLAY(c4,4);PLAY(d4,4);
+}
+ELSE {
+PLAY(e4,3);PLAY(e4,4);PLAY(e4,4);
+};}
+
+CANCION (90)
+{
+PLAY(g3,4);CALL parte1(0);PLAY(d4,4);PLAY(c4,4);PLAY(d4,4);PLAY(e4,4);CALL parte1(1);PLAY(c4,1);}
