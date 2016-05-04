@@ -9,18 +9,8 @@
   <script src="blockly/din_compressed.js"></script>
   <script src="blockly/msg/js/en.js"></script>
   <script src="FileSaver.js"></script>
+  <link rel="stylesheet" type="text/css" href="bootstrap.css" />
   <link rel="stylesheet" type="text/css" href="style.css" />
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-    h1 {
-      font-weight: normal;
-      font-size: 140%;
-    }
-  </style>
 
 <script type="text/javascript">
 function text_file(codigo) {
@@ -28,33 +18,37 @@ function text_file(codigo) {
   saveAs(blob, "testfile1.txt");
 }
 </script>
-
-
-
 </head>
 <body>
-  <h1>Din</h1>
-  <button id="button_run" onclick="run_code()">
-  		Run Code
-  </button>
-  <div id="blocklyDiv" style="height: 1600px; width: 1600px;"></div>
 
-  <div id="codeOutput">
-    <div id="canvas"></div>
-    <div id="console">
-      <div class="header">
-        <div class="dot red"></div>
-        <div class="dot yellow"></div>
-        <div class="dot green"></div>
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <!-- Brand and toggle get grouped for better mobile display -->
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">Din</a>
       </div>
-      <div class="panel">
-        <div class="action">
-          <div class="command"><span class="symbol">$</span></div>
-          <div id="output" class="output"></div>
-        </div>
-      </div>
-    </div>
-  </div>
+
+      <!-- Collect the nav links, forms, and other content for toggling -->
+      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+        <ul class="nav navbar-nav">
+          <li class="active"><a href="index.html">Programar!<span class="sr-only">(current)</span></a></li>
+          <li><a href="manual.html">Manual de Usuario</a></li>
+        </ul>
+        <form class="navbar-form navbar-right" role="search">
+          <button id="button_run" onclick="run_code()" type="button" class="btn btn-success">Crear Archivo</button>
+        </form>
+      </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
+  </nav>
+
+
+  <div class="row" id="blocklyDiv" style="height: 800px; width: 1600px;"></div>
 
   <xml id="toolbox" style="display: none">
     <category name="Inicio">
@@ -71,6 +65,7 @@ function text_file(codigo) {
       <block type="expresion"></block>
       <block type="char"></block>
       <block type="bool"></block>
+      <block type="length"></block>
     </category>
     <category name="Logic">
       <block type="if"></block>

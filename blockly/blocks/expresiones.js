@@ -32,7 +32,7 @@ goog.require('Blockly.Blocks');
 /**
  * Common HSV hue for all blocks in this category.
  */
-Blockly.Blocks.expresiones.HUE = 160;
+Blockly.Blocks.expresiones.HUE = 999;
 
 //LISTA
 //https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#25ah7o
@@ -154,6 +154,21 @@ Blockly.Blocks['bool'] = {
         .appendField("BOOL")
         .appendField(new Blockly.FieldDropdown([["true", "True"], ["false", "False"]]), "tf");
     this.appendDummyInput();
+    this.setInputsInline(true);
+    this.setOutput(true, null);
+    this.setTooltip('');
+    this.setHelpUrl('http://www.example.com/');
+  }
+};
+
+//LENGTH
+//https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#sormmf
+Blockly.Blocks['length'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("LENGTH");
+    this.appendValueInput("NAME")
+        .setCheck(null);
     this.setInputsInline(true);
     this.setOutput(true, null);
     this.setTooltip('');

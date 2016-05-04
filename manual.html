@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Din</title>
+  <link href='https://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+  <script src="blockly/blockly_compressed.js"></script>
+  <script src="blockly/blocks_compressed.js"></script>
+  <script src="blockly/din_compressed.js"></script>
+  <script src="blockly/msg/js/en.js"></script>
+  <script src="FileSaver.js"></script>
+  <link rel="stylesheet" type="text/css" href="bootstrap.css" />
+  <link rel="stylesheet" type="text/css" href="style.css" />
+
+<script type="text/javascript">
+function text_file(codigo) {
+  var blob = new Blob([codigo], {type: "text/plain;charset=utf-8"});
+  saveAs(blob, "testfile1.txt");
+}
+</script>
+</head>
+<body>
+
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <!-- Brand and toggle get grouped for better mobile display -->
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">Din</a>
+      </div>
+
+      <!-- Collect the nav links, forms, and other content for toggling -->
+      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+        <ul class="nav navbar-nav">
+          <li><a href="index.html">Programar!<span class="sr-only">(current)</span></a></li>
+          <li class="active" ><a href="manual.html">Manual de Usuario</a></li>
+        </ul>
+      </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
+  </nav>
+
+  <div class="jumbotron">
+    <h1>Manual del Usuario</h1>
+    <p>Guía para utilizar el lenguaje Din.</p>
+  </div>
+
+<p>
+  Din es un lenguaje para aprender programación orientado a la de música. Con este lenguaje se busca enseñar programación de una manera divertida y original, dandole vida al código por medio de melodías generadas en el flujo del código.
+</p>
+<p>
+  El bloque principal se encuentra ubicado en la seccion de Inicio.
+</p>
+<img src="img/1.png" alt="" />
+<p>
+  Este bloque es indispensable para que el programa funcione correctamente pues cuenta con los 3 modulos principales del lenguaje: VARS FUNCIONES y CANCION.
+</p>
+<p>
+  En el primer modulo de este bloque (VARS) se encuentra el segmento en donde se declaran variables globales.
+</p>
+<p>
+  Para declarar una variable se debe accesar a la categoria Variable ubicada en el lado derecho de la pantalla y escoger el bloque correspondiente a la declaracion de variables.
+</p>
+<img src="img/2.png" alt="" />
+<p>
+  Se debe elegir el nombre de la variable y el tipo de la misma.
+</p>
+<p>
+  Para declarar una variable que guarde una lista se debe escoger el bloque correspondiente y elegir su nombre y su tipo.
+</p>
+<img src="img/3.png" alt="" />
+<p>
+  El modulo de FUNCIONES es el responsible de la declaracion de las funciones del programa.
+</p>
+<p>
+  Para declarar una function se debe ir a la categoria Inicio y escoger el bloque correspondiente.
+</p>
+<img src="img/4.png" alt="" />
+<p>
+  Se debe elegir el nombre de la function, su tipo y se deben agregar los parametros correspondientes.
+</p>
+
+<p>
+  Para agregar un parametro se debe ir a la sección de Simples y escoger el bloque correspondiente.
+</p>
+<img src="img/5.png" alt="" />
+<p>
+  Se debe escoger el tipo y el nombre del parametro de la function, se pueden agregar varios parametros a una sola function.
+</p>
+<p>
+  Se pueden declarar variables para la function en su sección de VARS FUNCION de la misma manera que se declaran las variables globales.
+</p>
+<p>
+  La sección de STATEMENTS FUNCION es en donde se declaran todos los estatutos que forman parte del codigo de la función.
+</p>
+
+<p>
+  En esta sección se pueden manipular las variables pero no pueden ser declaradas.
+</p>
+
+<p>
+  Existen 4 distintos tipos de estatutos lógicos.
+</p>
+
+<p>
+  El primero es el IF que se utiliza seleccionando el bloque correspondiente.
+</p>
+<img src="img/6.png" alt="" />
+<p>
+  Dentro de la primera casilla del If se debe poner una expression que valida si el mismo es cierto o no.
+</p>
+<p>
+  Las expresiones se pueden contruir utilizando los bloques de las categoria Expresiones.
+</p>
+<p>
+  El Segundo tipo de estatuto lógico es el IF ELSE que es un variante del IF solo que con una alternativa dictaminada por el else. Para utilizarlo se debe elegir el bloque correspondiente.
+</p>
+<img src="img/8.png" alt="" />
+<p>
+  El tercer tipo de estatuto lógico es el FOR. El For se construye a base de 3 expresiones que deben formar una instruccion con la siguiente sintaxis: (i=0 i<n i=i+1).
+</p>
+
+<p>
+  Es decir, una asignacion, una condicion y una expression de increment o decremento.
+</p>
+<img src="img/9.png" alt="" />
+<p>
+  El ultimo tipo de estatuto lógico es el WHILE en el que al igual que el IF una expression determina si se sigue iterando o no.
+</p>
+<img src="img/10.png" alt="" />
+<p>
+  En la categoria de Simples se pueden encontrar más expresiones y estatutos para la construcción del codigo que se busca generar dentro de la funcion.
+</p>
+
+<p>
+  El tercer modulo del bloque principal (PROGRAMA) es el modulo CANCION.
+</p>
+
+<p>
+  Dicho modulo viene con un recuadro que indica el tempo en el que se va a reproducir la melodía. Se recomienda no cambiarlo.
+</p>
+<p>
+  Para poder crear las variables y los estatutos correspondientes al modulo CANCION se debe agregar un nuevo bloque ubicado en la sección de Inicio
+</p>
+<img src="img/11.png" alt="" />
+<img src="img/12.png" alt="" />
+<p>
+  Dicho bloque habilitara los modulos de VARS y STATEMENTS para la function CANCION.
+</p>
+
+<p>
+  La manera de declarar variables en la seccion de VARS y utilizer estatutos en la sección de STATEMENTS es identica a la descrita para el bloque FUNCION.
+</p>
+
+<p>
+  Ejemplo de un programa sencillo:
+</p>
+<img src="img/13.png" height="750" width="1000" alt="" />
+<br>
