@@ -1,0 +1,5 @@
+﻿CANCION (90) VAR helloworld : CHAR;
+
+{
+helloworld="hello world";
+PRINT helloworld;PLAY(a1,1);PLAY(g4,3);}
