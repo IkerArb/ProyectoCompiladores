@@ -59,6 +59,16 @@ Blockly.Din['var'] = function(block) {
   return code;
 };
 
+//TEXT
+//https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#if2eus
+Blockly.Din['text'] = function(block) {
+  var text_id = block.getFieldValue('id');
+  // TODO: Assemble JavaScript into code variable.
+  var code = '"' +text_id +'"';
+  // TODO: Change ORDER_NONE to the correct strength.
+  return code;
+};
+
 //NOT
 //https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#azhtpw
 Blockly.Din['not'] = function(block) {

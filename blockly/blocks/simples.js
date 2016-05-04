@@ -132,12 +132,14 @@ Blockly.Blocks['param'] = {
 };
 
 //+PARAM
-//https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#2bbz2x
+//https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#te5oba
 Blockly.Blocks['_param'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("+PARAM");
-    this.appendValueInput("NAME")
+    this.appendValueInput("param1")
+        .setCheck(null);
+    this.appendValueInput("param2")
         .setCheck(null);
     this.setInputsInline(true);
     this.setOutput(true, null);
