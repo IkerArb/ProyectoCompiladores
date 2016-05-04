@@ -2,8 +2,8 @@ CANCION (90)
   VAR x : FLOAT;
   VAR y : FLOAT LIST(10);
   VAR z : INT;
-  VAR t : INT LIST(8);
   VAR a : INT;
+  VAR t : INT LIST(8);
 {
   z = 3;
   a = 2;

@@ -973,7 +973,7 @@ def p_programa(p):
     ## ejecuta lo siguiente
 
     ## Vaciamos la tabla de variables
-    #dir_procs[scope[-1]][pos_dics_var] = {}
+    dir_procs[scope[-1]][pos_dics_var] = {}
 
     ## Imprimimos para debuggeo
     print('done with file!\n')
@@ -1227,13 +1227,14 @@ def p_funcion(p):
     global pos_dics_tipo
     global pos_dics_var
 
-    ## Si no es global o no es una funcion void, tenemos un error
+    ## Si no se creo la variable global del return
+    ## o no es una funcion void, tenemos un error
     if (not(scope[-1] in dir_procs["global"][pos_dics_var]) and (dir_procs[scope[-1]][pos_dics_tipo] != None)):
         ## Falto poner el return
         print "Falta regresar parametro de salida en funcion"
         exit()
     ## Borramos la tabla de variables de la funcion
-    #dir_procs[scope[-1]][pos_dics_var] = {}
+    dir_procs[scope[-1]][pos_dics_var] = {}
 
     ## Reiniciamos los valores de nuestros contadores de
     ## variables locales y temporales locales
@@ -1459,7 +1460,6 @@ def p_bloque(p):
     'bloque : "{" i "}"'
     pass
 
-# estructura de dir_proc = ['CANCION',vars{},tempo]
 
 ##################################################################
 ## cancion                                                      ##
@@ -1470,7 +1470,7 @@ def p_bloque(p):
 def p_cancion(p):
     'cancion : CANCION "(" CTEE ")" metercancion f bloque'
     ## vaciamos el diccionario de variables
-    #dir_procs[scope[-1]][pos_dics_var] = {}
+    dir_procs[scope[-1]][pos_dics_var] = {}
 
     ## sacamos el scope de la pila
     scope.pop()
@@ -1549,7 +1549,7 @@ def p_asignacion(p):
     global dir_procs
     global scope
 
-    ## revisamos si el operando pendiente es el de asignacion
+    ## revisamos si la operacion pendiente es el de asignacion
     if pOper[-1] == EQ:
         ## sacamos lo necesario de las pilas para el cuadruplo
         op = pOper.pop()
@@ -1594,6 +1594,9 @@ def p_neur8(p):
             ## lo agregamos a la pilaO y a la pila de tipos
             pilaO.append(auxDic[p[-3]][pos_vars_dir_virtual])
             pTipos.append(auxDic[p[-3]][0])
+        elif p[-3] in dir_procs['global'][pos_dics_var]:
+            pilaO.append(dir_procs['global'][pos_dics_var][p[-3]][pos_vars_dir_virtual])
+            pTipos.append(dir_procs['global'][pos_dics_var][p[-3]][0])
         ## si no existe es un error
         else:
             print "No existe tal variable a asignar"
@@ -2629,6 +2632,9 @@ def p_neurVar(p):
         if p[-2] in auxDic:
             pTipos.append(auxDic[p[-2]][0])
             pilaO.append(auxDic[p[-2]][pos_vars_dir_virtual])
+        elif p[-2] in dir_procs['global'][pos_dics_var]:
+            pTipos.append(dir_procs['global'][pos_dics_var][p[-2]][0])
+            pilaO.append(dir_procs['global'][pos_dics_var][p[-2]][pos_vars_dir_virtual])
         ## si no esta es por que no existe y marcamos error
         else:
             print "No existe tal variable normal " + repr(p[-2])
@@ -3366,7 +3372,7 @@ def p_neur24(p):
 
 ##########################################################
 ## punto neuralgico 26                                  ##
-### se utilia en cualquier llamada a funcion para       ##
+### se utiliza en cualquier llamada a funcion para       ##
 ### revisar que se hayan dado el numero de parametros   ##
 ### correctos y genera el GOSUB que ya cambia el scope  ##
 ##########################################################
@@ -3618,7 +3624,7 @@ def func_maq_virtual():
     global song
     ## sacamos la operacion actual
     op = cuadruplos[current_cuad][0]
-    # print cuadruplos[current_cuad]
+    print cuadruplos[current_cuad]
     ## sacamos el operando izquierdo
     opdoIzq = cuadruplos[current_cuad][1]
     ## revisamos si es un apuntador porque tiene los parentesis
@@ -4781,6 +4787,9 @@ while current_cuad < contCuad:
 
 ## nos traemos la libreria para hacer musica
 import pysynth
+
+## declaramos que existe antes
+existe = True
 
 ## nos traemos la libreria que nos deja cambier el beat
 from pysynth_b import *

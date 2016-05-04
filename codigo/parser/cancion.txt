@@ -1,0 +1,3 @@
+CANCION (90)
+{
+PLAY(e,4);PLAY(e,4);PLAY(f,4);PLAY(g,4);PLAY(g,4);PLAY(f,4);PLAY(e,4);PLAY(d,4);PLAY(c,4);PLAY(c,4);PLAY(d,4);PLAY(e,4);PLAY(e,4);PLAY(d,4);PLAY(d,2);}

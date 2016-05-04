@@ -1,3 +1,5 @@
+  VAR x : FLOAT;
+
 FUNC INT fibIteration(INT n)
   VAR x : INT;
   VAR y : INT;
@@ -27,9 +29,9 @@ FUNC INT suma(INT  n,INT m) {
 }
 
 CANCION (90)
-  VAR x : FLOAT;
 {
-  PRINT CALL fibIteration(CALL fibIteration(11););;
-  PRINT CALL suma(10,CALL fibIteration(12););;
-  PRINT CALL fibRecursion(11);;
+  PRINT CALL suma(CALL fibIteration(5);,10);;
+  PRINT CALL fibRecursion(5);;
+  x = CALL fibRecursion(5);;
+  PRINT x;
 }
