@@ -57,7 +57,7 @@ Blockly.Din['for'] = function(block) {
   var value_exp_for3 = Blockly.Din.valueToCode(block, 'exp_for3', Blockly.Din.ORDER_ATOMIC);
   var statements_bloque_for = Blockly.Din.statementToCode(block, 'bloque_for');
   // TODO: Assemble Din into code variable.
-  var code = 'FOR (' +value_exp_for1 +value_exp_for2 +value_exp_for3 +')' +'{\n' +statements_bloque_for +'\n};' ;
+  var code = 'FOR (' +value_exp_for1 +';' +value_exp_for2 +';' +value_exp_for3 +';' +')' +'{\n' +statements_bloque_for +'\n};' ;
   return code;
 };
 

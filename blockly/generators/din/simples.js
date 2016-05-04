@@ -95,9 +95,13 @@ Blockly.Din['param'] = function(block) {
 };
 
 //+PARAM
-//https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#2bbz2x
+//https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#te5oba
 Blockly.Din['_param'] = function(block) {
-  var value_name = Blockly.Din.valueToCode(block, 'NAME', Blockly.Din.ORDER_ATOMIC);
-  // TODO: Assemble JavaScript into code variable.
-  var code = ' , ' +value_name;
+  var value_param1 = Blockly.Din.valueToCode(block, 'param1', Blockly.Din.ORDER_ATOMIC);
+  var value_param2 = Blockly.Din.valueToCode(block, 'param2', Blockly.Din.ORDER_ATOMIC);
+  var code = value_param1;
+  if(value_param2 != ""){
+    code += "," +value_param2;
+  }
+  return code;
 };

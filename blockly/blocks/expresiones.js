@@ -82,6 +82,21 @@ Blockly.Blocks['var'] = {
   }
 };
 
+//TEXT
+//https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#if2eus
+Blockly.Blocks['text'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("TEXT")
+        .appendField(new Blockly.FieldTextInput("text"), "id");
+    this.setInputsInline(true);
+    this.setOutput(true, null);
+    this.setTooltip('');
+    this.setHelpUrl('http://www.example.com/');
+  }
+};
+
+
 //NOT
 //https://blockly-demo.appspot.com/static/demos/blockfactory/index.html#azhtpw
 Blockly.Blocks['not'] = {
