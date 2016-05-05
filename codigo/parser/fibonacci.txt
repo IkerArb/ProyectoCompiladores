@@ -30,8 +30,8 @@ FUNC INT suma(INT  n,INT m) {
 
 CANCION (90)
 {
-  PRINT CALL suma(CALL fibIteration(5);,10);;
+  PRINT CALL suma(CALL fibIteration(20);,10);;
   PRINT CALL fibRecursion(5);;
-  x = CALL fibRecursion(5);;
+  x = CALL fibRecursion(6);;
   PRINT x;
 }

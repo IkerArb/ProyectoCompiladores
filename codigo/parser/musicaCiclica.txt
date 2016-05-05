@@ -8,10 +8,11 @@ FUNC VOID parte3()
 {
 PLAY(c4,4);PLAY(c4,4);PLAY(d4,4);PLAY(e4,4);}
 
-CANCION (90) VAR i : INT;
+CANCION (150) VAR i : INT;
 
 {
-PRINT "Ode to Joy";FOR (i=0;i<=1;i=i+1;){
+PRINT "Ode to Joy";
+FOR (i=0;i<=1;i=i+1;){
 IF (i==0){
 CALL parte1();CALL parte2();CALL parte3();PLAY(e4,3);PLAY(d4,8);PLAY(d4,3);
 }

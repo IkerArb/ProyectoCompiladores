@@ -50,5 +50,5 @@ CANCION(200)
     PRINT a[i];
   };
   PRINT "Find del 7:";
-  PRINT CALL Find(7,cant);;
+  PRINT CALL Find(8,cant);;
 }

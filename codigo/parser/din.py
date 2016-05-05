@@ -3624,7 +3624,7 @@ def func_maq_virtual():
     global song
     ## sacamos la operacion actual
     op = cuadruplos[current_cuad][0]
-    print cuadruplos[current_cuad]
+    # print cuadruplos[current_cuad]
     ## sacamos el operando izquierdo
     opdoIzq = cuadruplos[current_cuad][1]
     ## revisamos si es un apuntador porque tiene los parentesis
